@@ -14,7 +14,8 @@ from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QColor, QBrush, QFont
 
 from core.config import COLOR_PRIMARIO
-from services.services import AutoService, RentaService
+from services.dashboard_service import DashboardService
+from services.auto_service import AutoService
 from views.base_widget import BaseWidget
 
 _ESTILO_TARJETA = """
@@ -188,7 +189,7 @@ class DashboardWidget(BaseWidget):
         disp = sum(1 for a in flota if a.get("estado") == "Disponible")
         taller = sum(1 for a in flota if a.get("estado") == "En Taller")
 
-        rentas = self.ejecutar_seguro(RentaService.obtener_activas) or []
+        rentas = self.ejecutar_seguro(DashboardService.obtener_activas) or []
         alertas = self.ejecutar_seguro(AutoService.obtener_alertas) or []
 
         self.card_disp.set_value(str(disp))
