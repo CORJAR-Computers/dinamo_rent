@@ -1,0 +1,35 @@
+# Dinamo Rent ERP - Dependencies
+# Core UI Framework
+PySide6>=6.6.0
+
+# Database - MySQL
+pymysql>=1.1.0
+
+# Database - SQLAlchemy (ORM)
+sqlalchemy>=2.0.25
+
+# Database Migrations
+alembic>=1.13.0
+
+# Data Validation
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# Backup & File Operations
+# (uses standard library: shutil, subprocess)
+
+# Date/Time Handling
+# (uses standard library: datetime)
+
+# Optional: For better MySQL connection pooling
+# DBUtils>=3.0.0
+
+# Optional: For PDF generation (if needed later)
+# jinja2>=3.1.0
+# weasyprint>=60.0
+
+# Optional: For logging enhancement
+# python-json-logger>=2.0.0

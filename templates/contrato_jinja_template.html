@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Contrato de Alquiler - Dinamo Rent a Car</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 0.8cm; /* Reducido de 1.5cm a 0.8cm */
+            @top-left {
+                content: "DINAMO RENTA CAR S.A.S";
+                font-size: 8pt;
+                color: #666;
+            }
+            @top-right {
+                content: "NIT: 900.694.866-3";
+                font-size: 8pt;
+                color: #666;
+            }
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 7.5pt; /* Reducido de 11pt a 7.5pt */
+            line-height: 1.2; /* Más compacto */
+            color: #000;
+            margin: 0;
+            padding: 0;
+            text-align: justify; /* Texto justificado */
+            hyphens: auto; /* Separación silábica automática */
+        }
+        
+        .encabezado-principal {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #1a237e;
+        }
+        
+        .logo-container {
+            flex: 0 0 15%;
+            text-align: left;
+            padding-top: 5px;
+        }
+        
+        .logo {
+            max-width: 100px;
+            max-height: 40px;
+            object-fit: contain;
+        }
+        
+        .titulo-container {
+            flex: 1;
+            text-align: center;
+            padding: 0 15px;
+        }
+        
+        .titulo-principal {
+            color: #1a237e;
+            font-size: 10pt; /* Título un poco más grande */
+            font-weight: bold;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+        }
+        
+        .subtitulo {
+            font-size: 6.5pt;
+            color: #666;
+            margin: 0;
+        }
+        
+        .info-contacto {
+            flex: 0 0 25%;
+            text-align: right;
+            font-size: 6.5pt;
+            color: #444;
+            padding-top: 5px;
+        }
+        
+        .numero-contrato {
+            text-align: center;
+            font-size: 9pt;
+            font-weight: bold;
+            margin: 10px 0 15px 0;
+            color: #1a237e;
+            background-color: #f5f5f5;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        
+        .seccion-partes {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-left: 3px solid #1a237e;
+            font-size: 7pt;
+            line-height: 1.15;
+        }
+        
+        .clausula-titulo {
+            font-weight: bold;
+            margin: 12px 0 4px 0;
+            color: #000;
+            font-size: 8pt;
+            page-break-after: avoid; /* Evita que los títulos queden solos */
+        }
+        
+        .clausula-contenido {
+            margin: 0 0 8px 0;
+            text-align: justify;
+            line-height: 1.15;
+            text-indent: 10px; /* Sangría para párrafos */
+        }
+        
+        .lista-numerada {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+        
+        .lista-numerada li {
+            margin-bottom: 4px;
+            line-height: 1.15;
+        }
+        
+        .campo-resaltado {
+            background-color: #e8eaf6;
+            padding: 1px 3px;
+            border-radius: 2px;
+            font-weight: bold;
+            font-size: 7pt;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        .firmas-container {
+            margin-top: 40px;
+            page-break-inside: avoid;
+            padding-top: 20px;
+            border-top: 1px solid #ccc;
+        }
+        
+        .firma-box {
+            display: inline-block;
+            width: 45%;
+            text-align: center;
+            margin: 0 2%;
+            vertical-align: top;
+        }
+        
+        .linea-firma {
+            border-top: 1px solid #333;
+            width: 90%;
+            margin: 30px auto 5px;
+        }
+        
+        .negrita {
+            font-weight: bold;
+        }
+        
+        .footer {
+            font-size: 6pt;
+            color: #666;
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 5px;
+            border-top: 1px solid #eee;
+        }
+        
+        /* Estilos para evitar viudas y huérfanas */
+        p, .clausula-contenido {
+            orphans: 2; /* Mínimo 2 líneas al final */
+            widows: 2; /* Mínimo 2 líneas al inicio */
+        }
+        
+        /* Estilos para tablas compactas */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 7pt;
+            margin: 8px 0;
+        }
+        
+        th, td {
+            padding: 3px;
+            border: 1px solid #ddd;
+        }
+        
+        /* Estilos para espacios compactos */
+        .compacto {
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .sin-sangria {
+            text-indent: 0;
+        }
+        
+        /* Para mantener juntos elementos relacionados */
+        .mantener-juntos {
+            page-break-inside: avoid;
+        }
+        
+        /* Saltos de página controlados */
+        .salto-pagina {
+            page-break-before: always;
+        }
+        
+        /* Estilo para pólizas de seguro */
+        .poliza-container {
+            margin: 10px 0;
+            padding: 8px;
+            border: 1px dashed #ccc;
+            background-color: #f8f8f8;
+            font-size: 6.5pt;
+        }
+        
+        /* Placeholder para logo si no se encuentra */
+        .logo-placeholder {
+            width: 100px;
+            height: 40px;
+            background-color: #f0f0f0;
+            border: 1px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6pt;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <!-- ENCABEZADO COMPACTO CON LOGO BASE64 -->
+    <div class="encabezado-principal mantener-juntos">
+        <div class="logo-container">
+            {% if tiene_logo and logo_base64 %}
+            <!-- Logo Dinamo en base64 - Se incrusta directamente en el HTML -->
+            <img src="{{ logo_base64 }}" alt="Dinamo Rent a Car" class="logo" style="max-width: 100px; max-height: 40px;">
+            {% else %}
+            <!-- Espacio para logo si no se encuentra -->
+            <div class="logo-placeholder">
+                LOGO<br>DINAMO
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="titulo-container">
+            <h1 class="titulo-principal">ANEXO DE CONTRATO DE ALQUILER DE VEHICULOS Y ACTA DE ENTREGA</h1>
+            <p class="subtitulo">Documento Legal - Vigencia durante el período de alquiler</p>
+        </div>
+        
+        <div class="info-contacto">
+            <p class="negrita" style="margin-bottom: 3px;">ASISTENCIA A CLIENTES</p>
+            <p style="margin: 0;">301 613 85 30 • 321 839 44 22</p>
+            <p style="margin: 2px 0 0 0; font-size: 6pt;">www.dinamorentacar.com</p>
+        </div>
+    </div>
+    
+    <!-- NÚMERO DE CONTRATO -->
+    <div class="numero-contrato">
+        CONTRATO Nº: {{ id_renta }}
+    </div>
+    
+    <!-- SECCIÓN PARTES CONTRATANTES (MÁS COMPACTA) -->
+    <div class="seccion-partes compacto">
+        <p><span class="negrita">ENTRE LOS SUSCRITOS:</span> DINAMO RENTA CAR S.A.S, RUT 900694866-3, domiciliado en Cartagena Crespo Calle 70 #2-36 Local 3, como <span class="negrita">ARRENDADOR</span>;</p>
+        <p><span class="negrita">Y:</span> {{ nombre_cliente }}, identificado con {{ tipo_doc }} No. {{ documento_cliente }}, de nacionalidad {{ nacionalidad }}, licencia {{ licencia_tipo }} No. {{ licencia_numero }}, teléfono {{ telefono }}, domiciliado en {{ direccion }}, correo {{ email }}, como <span class="negrita">ARRENDATARIO</span>.</p>
+        <p class="sin-sangria">Convienen en celebrar el presente contrato de servicio de transporte terrestre, que se rige por las siguientes cláusulas y lo no previsto en ellas por lo dispuesto en la ley.</p>
+    </div>
+    
+    <!-- CLÁUSULA PRIMERA: OBJETO -->
+    <div class="clausula-titulo">CLÁUSULA PRIMERA: OBJETO DEL CONTRATO</div>
+    <div class="clausula-contenido">El ARRENDADOR da en contrato de servicio de transporte terrestre el siguiente vehículo en buenas condiciones:</div>
+    
+    <table class="compacto">
+        <tr>
+            <td><span class="negrita">Tipo:</span> {{ auto_tipo }}</td>
+            <td><span class="negrita">Marca:</span> {{ auto_marca }}</td>
+            <td><span class="negrita">Modelo:</span> {{ auto_modelo }}</td>
+        </tr>
+        <tr>
+            <td><span class="negrita">Placa:</span> {{ auto_placa }}</td>
+            <td><span class="negrita">Color:</span> {{ color }}</td>
+            <td><span class="negrita">Combustible:</span> {{ auto_combustible }}</td>
+        </tr>
+        <tr>
+            <td colspan="3"><span class="negrita">Cilindraje/ Versión:</span> {{ auto_cilindraje }} / {{ auto_version }}</td>
+        </tr>
+    </table>
+    
+    <div class="clausula-contenido"><span class="negrita">PRIMERO:</span> DINAMO RENTA CAR S.A.S es único y exclusivo poseedor del vehículo anteriormente descrito.</div>
+    <div class="clausula-contenido"><span class="negrita">SEGUNDO:</span> Por este acto DINAMO RENTA CAR S.A.S da en arrendamiento el vehículo antes singularizado, a quien lo acepta y recibe para sí y para destinarlo a su uso.</div>
+    
+    <!-- CLÁUSULA SEGUNDA -->
+    <div class="clausula-titulo">CLÁUSULA SEGUNDA: ESTADO DEL VEHÍCULO</div>
+    <div class="clausula-contenido">El ARRENDATARIO acepta que el vehículo se encuentra en perfecto estado de funcionamiento con sus equipos y accesorios según detalle que se suscribe en anexo a este contrato y con la carrocería, tapizado, neumáticos y demás accesorios tales como se describen en el inventario adjunto. Dejan las partes constancia que se ha verificado por el arrendatario el buen funcionamiento especialmente del sistema de frenos, luces de estacionamiento, de freno, de tránsito y de viraje, así como el cinturón de seguridad en perfectas condiciones de uso, por lo cual el mismo hará entrega a DINAMO RENTA CAR S.A.S el valor de los bienes por la pérdida o daño de estos por cualquier naturaleza.</div>
+    
+    <!-- CLÁUSULA TERCERA -->
+    <div class="clausula-titulo">CLÁUSULA TERCERA: PAGOS Y GARANTÍAS</div>
+    <div class="clausula-contenido">EL ARRENDATARIO depositará al arrendador el valor del alquiler del vehículo y un depósito de seguridad del automóvil, en garantía de su cumplimiento facultando AL ARRENDADOR para disponer total o parcialmente del depósito a fin de cubrir cualquiera de las obligaciones emergentes del arriendo y de más costos que se deriven del mismo sin necesidad de aviso previo, siempre que medie incumplimiento por parte del ARRENDATARIO, por valor de $2.500.000 M/L, el cual según el término del contrato deberá ser renovada cada 3 días, si el cupo no se puede renovar por la entidad financiera del tarjeta habiente el arrendatario debe presentar inmediatamente otra tarjeta que cumpla los requisitos del contrato, de no ser así estaría en incumplimiento el mismo y por lo tanto el ARRENDATARIO deberá devolver el vehículo inmediatamente y no se hará ningún tipo de reembolso por parte de la ARRENDADORA. Según las bases y tarifas que considere la empresa por el termino pactado.</div>
+    <div class="clausula-contenido">El método de pago del presente contrato de arrendamiento se establece de la siguiente forma en <span class="campo-resaltado">{{ valor_total }} PESOS M/L</span> y de manera anticipada.</div>
+    
+    <!-- CLÁUSULA CUARTA -->
+    <div class="clausula-titulo">CLÁUSULA CUARTA: PLAZO DEL ARRENDAMIENTO</div>
+    <div class="clausula-contenido">El plazo del arrendamiento se establece a partir de la siguiente fecha de inicio el <span class="campo-resaltado">{{ fecha_inicio }}</span>, y por fecha de término el <span class="campo-resaltado">{{ fecha_fin }}</span>. Al término del arrendamiento el arrendatario deberá devolver el vehículo en el estado en que lo recibió, a las <span class="campo-resaltado">{{ hora_retorno }}</span> horas vencido el cual podrá solicitarse el secuestro de este, por parte de la ARRENDADORA.</div>
+    <div class="clausula-contenido">La duración del arrendamiento surge del plazo anteriormente establecido, no pudiendo EL ARRENDATARIO alegar la tácita renovación automática del arrendamiento por ningún motivo; salvo estipulación en contrato celebrada entre las partes, pues de pretenderse la renovación o extensión del presente contrato, esta deberá ser notificada a la ARRENDADORA en un término mínimo de 48 horas, de forma que la ARRENDADORA pueda verificar las disponibilidad y viabilidad en la extensión de la entrega, quien podrá recuperarlo en cualquier momento y en forma que estime más conveniente a sus intereses, sin que EL ARRENDATARIO pueda oponer excepción alguna.</div>
+    <div class="clausula-contenido">El plazo en exceso del término convenido será pagado por EL ARRENDATARIO de conformidad con las tarifas plenas en vigencia para el alquiler del vehículo tomado en renta. De igual manera en los casos donde se presenta la entrega anticipada del vehículo a LA ARRENDADORA, se entenderá como incumplimiento parcial de la convención por lo cual será responsabilidad del ARRENDATARIO el pago de los días restantes para la finalización del contrato, de conformidad con las tarifas plenas en vigencia para alquiler de vehículo tomado en renta.</div>
+    <div class="clausula-contenido">El atraso en la devolución del vehículo hará incurrir al arrendatario en una multa de <span class="campo-resaltado">{{ valor_hora_extra }} POR HORA</span> de retardo. Sin perjuicio de las demás acciones civiles o penales que se pudieren intentar en su contra.</div>
+    
+    <!-- PÁGINA 2 (SALTO DE PÁGINA CONTROLADO) -->
+    <div class="salto-pagina"></div>
+    
+    <!-- CONTINUACIÓN CLÁUSULA CUARTA -->
+    <div class="clausula-contenido">Vencido el plazo EL ARRENDATARIO debe devolver el vehículo alquilado de forma inmediata en el mismo estado en que lo recibió y en domicilio del ARRENDADOR salvo estipulación en contrario celebrada entre las partes que acuerden como lugar de entrega del vehículo, alguno diferente para lo cual será el ARRENDATARIO quien deberá asumir los costos adicionales que de este contrato se deriven; tales como peajes, gasolina, parqueadero y gastos de movilización del conductor.</div>
+    <div class="clausula-contenido">De presentarse cualquier plazo de exceso trascurrido hasta el momento de la devolución al ARRENDADOR del vehículo y su recepción a entera satisfacción, deberá pagar el ARRENDATARIO el valor de <span class="campo-resaltado">{{ valor_hora_extra }} POR HORA</span>. Lo anterior será pagado por el ARRENDATARIO cuando se presenten retardos hasta por tres horas pues en adelante deberá cancelar la tarifa plena del vehículo rentado, estos valores serán descontados de los depósitos anticipados efectuados a favor de la ARRENDADORA; y si el monto resultante de la liquidación practicada en este instrumento no alcanzare a ser cubierto en su totalidad el depósito, el restante adecuado por EL ARRENTATARIO, deberá ser pagado íntegramente en el momento de la devolución del vehículo arrendado.</div>
+    
+    <!-- CLÁUSULA QUINTA (RESUMIDA PARA AHORRAR ESPACIO) -->
+    <div class="clausula-titulo">CLÁUSULA QUINTA: OBLIGACIONES Y PROHIBICIONES DEL ARRENDATARIO</div>
+    <div class="clausula-contenido">EL ARRENDATARIO deberá conducir personalmente el vehículo, portar documentos de identificación y licencia vigente, y se prohíbe expresamente:</div>
+    
+    <ol class="lista-numerada" style="font-size: 7pt;">
+        <li>Subarrendar, ceder o disponer del vehículo sin autorización escrita del ARRENDADOR.</li>
+        <li>Conducir fuera de Cartagena o del territorio colombiano sin autorización expresa (sanción: $1,000 M/T por km para autos económicos y $1,500 M/T para camionetas/lujo).</li>
+        <li>Conducir bajo influencia de alcohol, drogas, sustancias psicoactivas, sedantes o somníferos.</li>
+        <li>Fumar, regar bebidas, mojar asientos con agua de mar, etc. (sanción: $150,000).</li>
+        <li>Conducir sin licencia válida o permitir que menores conduzcan.</li>
+        <li>Transportar personas en violación a la ley o con falsa identidad.</li>
+        <li>Participar en carreras, competencias o pruebas de velocidad.</li>
+        <li>Violar normas de tránsito o transportar sobrecupo.</li>
+        <li>Transportar estupefacientes, armas, materiales inflamables o explosivos.</li>
+        <li>Efectuar negociaciones particulares sobre el vehículo o falsificar documentos.</li>
+    </ol>
+    
+    <!-- CLÁUSULAS RESTANTES (RESUMIDAS) -->
+    <div class="clausula-titulo">CLÁUSULA SEXTA: REPRESENTACIÓN</div>
+    <div class="clausula-contenido">En ningún motivo ni en ninguna circunstancia podrá EL ARRENDATARIO arrogarse el carácter de representante, agente, empleado o mandatario de esta compañía o como persona que pueda actuar en representación de esta.</div>
+    
+    <div class="clausula-titulo">CLÁUSULA SÉPTIMA: ARBITRAJE</div>
+    <div class="clausula-contenido">Toda controversia relativa a este contrato se resolverá por tribunal de arbitramiento designado por la Cámara de Comercio de Cartagena, sujeto al Decreto 1818 de 1998.</div>
+    
+    <div class="clausula-titulo">CLÁUSULA OCTAVA: PENALIDAD</div>
+    <div class="clausula-contenido">El incumplimiento por cualquiera de las partes constituirá en deudora de otra parte por el valor correspondiente al 50% de la suma total del valor del contrato a título de pena, o en caso de depósito de seguridad necesario para la renta del vehículo la pérdida de este en su totalidad, además de responder económicamente por los perjuicios que pudieren ocasionarse.</div>
+    
+    <!-- CLÁUSULA NOVENA: TERMINACIÓN UNILATERAL -->
+    <div class="clausula-titulo">CLÁUSULA NOVENA: TERMINACIÓN UNILATERAL</div>
+    <div class="clausula-contenido">Son causales para la terminación del contrato: (1) Inmovilización del vehículo por más de 24 horas; (2) Imposibilidad de comunicación que bloquee el conocimiento del estado del vehículo; (3) Entrega tardía o anticipada; (4) No tener cupo de seguridad disponible en tarjeta de crédito durante la vigencia. EL ARRENDADOR podrá declarar rescindido el contrato sin requerimiento previo, retirar el vehículo y reportar a centrales de riesgo.</div>
+    
+    <!-- CLÁUSULA DÉCIMA: RESPONSABILIDAD -->
+    <div class="clausula-titulo">CLÁUSULA DÉCIMA: RESPONSABILIDAD</div>
+    <div class="clausula-contenido">EL ARRENDATARIO es enteramente responsable mientras permanezca en la tenencia del automóvil de la guardia material y jurídica del mismo asumiendo todas las responsabilidades civiles y penales que tal condición implica, hasta tanto proceda a su devolución AL ARRENDADOR y respondiendo económicamente por toda situación que sea responsabilidad suya y producto de su negligencia.</div>
+    
+    <!-- PÓLIZA DE SEGURO (COMPACTA) -->
+    <div class="poliza-container">
+        <div class="clausula-titulo" style="font-size: 7.5pt;">PÓLIZA DE SEGURO POR LUCRO CESANTE</div>
+        <div style="font-size: 6.5pt; margin-bottom: 5px;">
+            <span style="display: inline-block; width: 40%;">VEHÍCULO COMPACTO: $20,000/día</span>
+            <span style="display: inline-block; width: 40%;">VEHÍCULO SEDÁN: $35,000/día</span>
+            <span style="display: inline-block; width: 40%;">VEHÍCULO CAMIONETA: $49,000/día</span>
+        </div>
+        <div style="font-size: 6.5pt;">Cobertura del 90%, deducible 10% a cargo del arrendatario. Daños inferiores a $2,500,000 no cubiertos por aseguradora.</div>
+    </div>
+    
+    <!-- FIRMAS (MÁS COMPACTAS) -->
+    <div class="firmas-container">
+        <div class="firma-box">
+            <div class="linea-firma"></div>
+            <p class="negrita" style="font-size: 8pt; margin: 5px 0;">ARRENDADOR</p>
+            <p style="font-size: 7pt; margin: 2px 0;">DINAMO RENTA CAR S.A.S</p>
+            <p style="font-size: 6.5pt; margin: 2px 0;">RUT 900694866-3</p>
+            <p style="font-size: 6.5pt; margin: 2px 0; font-style: italic;">Representante Legal</p>
+        </div>
+        
+        <div class="firma-box">
+            <div class="linea-firma"></div>
+            <p class="negrita" style="font-size: 8pt; margin: 5px 0;">ARRENDATARIO</p>
+            <p style="font-size: 7pt; margin: 2px 0;">{{ nombre_cliente }}</p>
+            <p style="font-size: 6.5pt; margin: 2px 0;">{{ tipo_doc }} No. {{ documento_cliente }}</p>
+            <p style="font-size: 6.5pt; margin: 2px 0; font-style: italic;">Cliente</p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 15px; font-size: 6.5pt; width: 100%;">
+            <p style="margin: 5px 0;">Firmado en Cartagena, el {{ fecha_firma }}</p>
+            <p style="margin: 2px 0; font-size: 6pt;">Documento generado electrónicamente - Válido sin firma manuscrita</p>
+        </div>
+    </div>
+    
+    <!-- PIE DE PÁGINA -->
+    <div class="footer">
+        <p>Carrera 2 #70-53, Barrio Crespo, Cartagena, Colombia • Tel: 301 613 8530 - 321 839 4422 • info@dinamorentacar.com</p>
+        <p>Documento legal conforme a la legislación colombiana • Impreso el {{ fecha_firma }}</p>
+    </div>
+</body>
+</html>

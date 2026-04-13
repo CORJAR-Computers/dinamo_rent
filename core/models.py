@@ -1,0 +1,448 @@
+"""
+models.py — SQLAlchemy Models for Dinamo Rent ERP
+
+This module defines all database tables using SQLAlchemy's declarative base.
+Compatible with both MySQL and SQLite through dialect abstraction.
+
+F1A Changes applied:
+  - Fix: __table_args__ duplicado en Renta (merge collate + indexes)
+  - Fix: Comparendo ahora tiene back_populates hacia Renta y Cliente
+  - Fix: Renta.id_reserva ahora es FK hacia reservas.id
+  - Fix: Reserva.placa_asignada ahora es FK hacia autos.placa
+  - Fix: Gasto ahora tiene campo placa (FK hacia autos) para vincular gastos a vehiculos
+  - Fix: Agregado updated_at a Cliente, Reserva, MantenimientoVehiculo, Comparendo, Pago, Gasto
+
+Usage:
+    from core.models import Base, Usuario, Auto, Cliente, Renta, etc.
+"""
+from datetime import datetime
+from typing import Optional
+
+from sqlalchemy import (
+    Column, Integer, String, Float, DECIMAL, Date, Time, DateTime, Text,
+    ForeignKey, Index, SmallInteger, BigInteger
+)
+from sqlalchemy.orm import DeclarativeBase, relationship, Mapped, mapped_column
+from sqlalchemy.sql import func
+
+
+class Base(DeclarativeBase):
+    """Base class for all SQLAlchemy models."""
+    pass
+
+
+# =====================================================================
+# USUARIOS
+# =====================================================================
+
+class Usuario(Base):
+    __tablename__ = 'usuarios'
+    __table_args__ = {'mysql_collate': 'utf8mb4_unicode_ci'}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
+    password: Mapped[str] = mapped_column(String(255), nullable=False)
+    nombre: Mapped[Optional[str]] = mapped_column(String(100))
+    rol: Mapped[Optional[str]] = mapped_column(String(50))
+    email: Mapped[Optional[str]] = mapped_column(String(100))
+    activo: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default='1')
+    intentos_fallidos: Mapped[int] = mapped_column(Integer, nullable=False, server_default='0')
+    ultimo_acceso: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    def __repr__(self):
+        return f"<Usuario {self.username} ({self.rol})>"
+
+
+# =====================================================================
+# AUTOS
+# =====================================================================
+
+class Auto(Base):
+    __tablename__ = 'autos'
+    __table_args__ = {'mysql_collate': 'utf8mb4_unicode_ci'}
+
+    placa: Mapped[str] = mapped_column(String(20), primary_key=True, nullable=False)
+    marca: Mapped[Optional[str]] = mapped_column(String(80))
+    modelo: Mapped[Optional[str]] = mapped_column(String(80))
+    version: Mapped[Optional[str]] = mapped_column(String(80))
+    color: Mapped[Optional[str]] = mapped_column(String(50))
+    tipo: Mapped[Optional[str]] = mapped_column(String(50))
+    cilindraje: Mapped[Optional[str]] = mapped_column(String(30))
+    transmision: Mapped[Optional[str]] = mapped_column(String(30))
+    combustible: Mapped[Optional[str]] = mapped_column(String(30))
+    no_motor: Mapped[Optional[str]] = mapped_column(String(80))
+    no_chasis: Mapped[Optional[str]] = mapped_column(String(80))
+    propietario: Mapped[Optional[str]] = mapped_column(String(150))
+    estado: Mapped[str] = mapped_column(String(30), nullable=False, server_default='Disponible', index=True)
+    costo_fijo_mensual: Mapped[float] = mapped_column(DECIMAL(12, 2), nullable=False, server_default='0.00')
+    kilometraje: Mapped[float] = mapped_column(Float, nullable=False, server_default='0.00')
+    ubicacion: Mapped[Optional[str]] = mapped_column(String(150))
+    tipo_adquisicion: Mapped[Optional[str]] = mapped_column(String(30))
+    proximo_aceite: Mapped[Optional[int]] = mapped_column(Integer, server_default='0')
+    proximo_frenos: Mapped[Optional[int]] = mapped_column(Integer, server_default='0')
+    vencimiento_soat: Mapped[Optional[datetime]] = mapped_column(Date)
+    vencimiento_tecnico: Mapped[Optional[datetime]] = mapped_column(Date)
+    vencimiento_extintor: Mapped[Optional[datetime]] = mapped_column(Date)
+    vencimiento_bateria: Mapped[Optional[datetime]] = mapped_column(Date)
+    observaciones: Mapped[Optional[str]] = mapped_column(Text)
+    fecha_ingreso: Mapped[datetime] = mapped_column(Date, nullable=False, server_default=func.curdate())
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    # Relationships
+    rentas = relationship("Renta", back_populates="auto_rel")
+    mantenimientos = relationship("MantenimientoVehiculo", back_populates="auto_rel")
+    comparendos = relationship("Comparendo", back_populates="auto_rel")
+    reservas = relationship("Reserva", back_populates="auto_rel")       # NUEVO: reservas vinculadas
+    gastos = relationship("Gasto", back_populates="auto_rel")           # NUEVO: gastos vinculados
+
+    def __repr__(self):
+        return f"<Auto {self.placa} - {self.marca} {self.modelo}>"
+
+
+# =====================================================================
+# CLIENTES
+# =====================================================================
+
+class Cliente(Base):
+    __tablename__ = 'clientes'
+    __table_args__ = {'mysql_collate': 'utf8mb4_unicode_ci'}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    tipo_doc: Mapped[Optional[str]] = mapped_column(String(30))
+    no_doc: Mapped[Optional[str]] = mapped_column(String(30), unique=True, index=True)
+    nombres: Mapped[Optional[str]] = mapped_column(String(100))
+    apellidos: Mapped[Optional[str]] = mapped_column(String(100))
+    nombre_completo: Mapped[str] = mapped_column(String(200), nullable=False, server_default='', index=True)
+    celular: Mapped[Optional[str]] = mapped_column(String(20))
+    celular2: Mapped[Optional[str]] = mapped_column(String(20))
+    email: Mapped[Optional[str]] = mapped_column(String(150))
+    ciudad: Mapped[Optional[str]] = mapped_column(String(100))
+    estado_region: Mapped[Optional[str]] = mapped_column(String(100))
+    pais: Mapped[Optional[str]] = mapped_column(String(80))
+    nacionalidad: Mapped[Optional[str]] = mapped_column(String(80))
+    dir_residencia: Mapped[Optional[str]] = mapped_column(String(200))
+    dir_temporal: Mapped[Optional[str]] = mapped_column(String(200))
+    hotel: Mapped[Optional[str]] = mapped_column(String(150))
+    habitacion: Mapped[Optional[str]] = mapped_column(String(30))
+    no_licencia: Mapped[Optional[str]] = mapped_column(String(50))
+    tipo_licencia: Mapped[Optional[str]] = mapped_column(String(50))
+    vencimiento_licencia: Mapped[Optional[datetime]] = mapped_column(Date)
+    estado: Mapped[str] = mapped_column(String(30), nullable=False, server_default='Activo', index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(                      # NUEVO
+        DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    # Relationships
+    rentas = relationship("Renta", back_populates="cliente_rel")
+    reservas = relationship("Reserva", back_populates="cliente_rel")
+    comparendos = relationship("Comparendo", back_populates="cliente_rel")  # NUEVO
+
+    def __repr__(self):
+        return f"<Cliente {self.nombre_completo} ({self.no_doc})>"
+
+
+# =====================================================================
+# RENTAS
+# =====================================================================
+
+class Renta(Base):
+    __tablename__ = 'rentas'
+    # FIX: __table_args__ unificado (antes estaba duplicado y se perdia collate)
+    __table_args__ = (
+        Index('idx_rentas_estado', 'estado'),
+        Index('idx_rentas_fechas', 'fecha_recogida', 'fecha_retorno'),
+        {'mysql_collate': 'utf8mb4_unicode_ci'},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    placa: Mapped[Optional[str]] = mapped_column(String(20), ForeignKey('autos.placa', onupdate='CASCADE'), index=True)
+    id_cliente: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('clientes.id'), index=True)
+    nombre_cliente: Mapped[Optional[str]] = mapped_column(String(200))
+    no_licencia: Mapped[Optional[str]] = mapped_column(String(50))
+    nacionalidad: Mapped[Optional[str]] = mapped_column(String(80))
+    fecha_recogida: Mapped[Optional[datetime]] = mapped_column(Date)
+    hora_recogida: Mapped[Optional[datetime]] = mapped_column(Time)
+    ubicacion_recogida: Mapped[Optional[str]] = mapped_column(String(200))
+    fecha_retorno: Mapped[Optional[datetime]] = mapped_column(Date)
+    hora_retorno: Mapped[Optional[datetime]] = mapped_column(Time)
+    ubicacion_retorno: Mapped[Optional[str]] = mapped_column(String(200))
+    dias_calculados: Mapped[Optional[int]] = mapped_column(Integer, server_default='0')
+    horas_extras: Mapped[Optional[int]] = mapped_column(Integer, server_default='0')
+    valor_dia: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    valor_hora_extra: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    valor_dia_extra: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    costo_lavado: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    costo_silla: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    costo_retorno: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    costo_domicilio: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    costo_cables: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    costo_inversor: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    descuento: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    subtotal: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    impuestos: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    total: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    abono: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    saldo_pendiente: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    estado: Mapped[str] = mapped_column(String(30), nullable=False, server_default='Activo', index=True)
+    observaciones: Mapped[Optional[str]] = mapped_column(Text)
+    fecha_devolucion_real: Mapped[Optional[datetime]] = mapped_column(Date)
+    hora_devolucion_real: Mapped[Optional[datetime]] = mapped_column(Time)
+    km_final: Mapped[Optional[str]] = mapped_column(String(20))
+    tanque_final: Mapped[Optional[str]] = mapped_column(String(20))
+    km_salida: Mapped[float] = mapped_column(Float, server_default='0.00')
+    tanque_salida: Mapped[Optional[str]] = mapped_column(String(20), server_default='Lleno')
+    # FIX: id_reserva ahora es FK hacia reservas (antes era Integer simple)
+    id_reserva: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey('reservas.id', ondelete='SET NULL'), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+
+    # Relationships
+    auto_rel = relationship("Auto", back_populates="rentas")
+    cliente_rel = relationship("Cliente", back_populates="rentas")
+    reserva_rel = relationship("Reserva", back_populates="rentas")       # NUEVO
+    pagos = relationship("Pago", back_populates="renta_rel")
+    inspecciones = relationship("Inspeccion", back_populates="renta_rel")
+    comparendos = relationship("Comparendo", back_populates="renta_rel") # NUEVO
+
+    def __repr__(self):
+        return f"<Renta {self.id} - {self.placa} ({self.estado})>"
+
+
+# =====================================================================
+# RESERVAS
+# =====================================================================
+
+class Reserva(Base):
+    __tablename__ = 'reservas'
+    __table_args__ = {'mysql_collate': 'utf8mb4_unicode_ci'}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id_cliente: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('clientes.id'))
+    nombre_cliente: Mapped[Optional[str]] = mapped_column(String(200))
+    nacionalidad: Mapped[Optional[str]] = mapped_column(String(80))
+    categoria_vehiculo: Mapped[Optional[str]] = mapped_column(String(50))
+    # FIX: placa_asignada ahora es FK hacia autos (antes era String simple)
+    placa_asignada: Mapped[Optional[str]] = mapped_column(
+        String(20), ForeignKey('autos.placa', ondelete='SET NULL'), nullable=True
+    )
+    fecha_recogida: Mapped[Optional[datetime]] = mapped_column(Date)
+    hora_recogida: Mapped[Optional[datetime]] = mapped_column(Time)
+    ubicacion_recogida: Mapped[Optional[str]] = mapped_column(String(200))
+    fecha_retorno: Mapped[Optional[datetime]] = mapped_column(Date)
+    hora_retorno: Mapped[Optional[datetime]] = mapped_column(Time)
+    ubicacion_retorno: Mapped[Optional[str]] = mapped_column(String(200))
+    dias_calculados: Mapped[Optional[int]] = mapped_column(Integer, server_default='0')
+    horas_extras: Mapped[Optional[int]] = mapped_column(Integer, server_default='0')
+    valor_dia: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    valor_hora_adic: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    abono: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    total: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    observaciones: Mapped[Optional[str]] = mapped_column(Text)
+    estado: Mapped[str] = mapped_column(String(30), nullable=False, server_default='Confirmada', index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(                      # NUEVO
+        DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    # Relationships
+    cliente_rel = relationship("Cliente", back_populates="reservas")
+    auto_rel = relationship("Auto", back_populates="reservas")          # NUEVO
+    rentas = relationship("Renta", back_populates="reserva_rel")        # NUEVO
+
+    def __repr__(self):
+        return f"<Reserva {self.id} - {self.nombre_cliente}>"
+
+
+# =====================================================================
+# MANTENIMIENTO VEHICULOS
+# =====================================================================
+
+class MantenimientoVehiculo(Base):
+    __tablename__ = 'mantenimiento_vehiculos'
+    __table_args__ = {'mysql_collate': 'utf8mb4_unicode_ci'}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    placa: Mapped[Optional[str]] = mapped_column(String(20), ForeignKey('autos.placa', ondelete='CASCADE'), index=True)
+    pieza_varias_tipo: Mapped[Optional[str]] = mapped_column(String(80))
+    pieza_varias_fecha: Mapped[Optional[datetime]] = mapped_column(Date)
+    pieza_varias_desc: Mapped[Optional[str]] = mapped_column(String(250))
+    pieza_varias_obs: Mapped[Optional[str]] = mapped_column(Text)
+    cost_varios: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    km_proximo_cambio_aceite: Mapped[Optional[int]] = mapped_column(Integer, server_default='0')
+    total_mantenimiento: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(                      # NUEVO
+        DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    # Relationships
+    auto_rel = relationship("Auto", back_populates="mantenimientos")
+
+    def __repr__(self):
+        return f"<Mantenimiento {self.id} - {self.placa}>"
+
+
+# =====================================================================
+# CONFIGURACION
+# =====================================================================
+
+class Configuracion(Base):
+    __tablename__ = 'configuracion'
+    __table_args__ = {'mysql_collate': 'utf8mb4_unicode_ci'}
+
+    clave: Mapped[str] = mapped_column(String(100), primary_key=True, nullable=False)
+    valor: Mapped[Optional[str]] = mapped_column(Text)
+    tipo: Mapped[Optional[str]] = mapped_column(String(30))
+
+    def __repr__(self):
+        return f"<Configuracion {self.clave}>"
+
+
+# =====================================================================
+# AUDITORIA
+# =====================================================================
+
+class Auditoria(Base):
+    __tablename__ = 'auditoria'
+    __table_args__ = {'mysql_collate': 'utf8mb4_unicode_ci'}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    usuario: Mapped[Optional[str]] = mapped_column(String(50), index=True)
+    accion: Mapped[Optional[str]] = mapped_column(String(100))
+    mensaje: Mapped[Optional[str]] = mapped_column(Text)
+    ip: Mapped[Optional[str]] = mapped_column(String(45))
+    fecha: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), index=True)
+
+    def __repr__(self):
+        return f"<Auditoria {self.id} - {self.usuario}>"
+
+
+# =====================================================================
+# INSPECCIONES
+# =====================================================================
+
+class Inspeccion(Base):
+    __tablename__ = 'inspecciones'
+    __table_args__ = {'mysql_collate': 'utf8mb4_unicode_ci'}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id_renta: Mapped[int] = mapped_column(Integer, ForeignKey('rentas.id', ondelete='CASCADE'), nullable=False)
+    tipo: Mapped[str] = mapped_column(String(30), nullable=False)
+    fecha: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    kilometraje: Mapped[float] = mapped_column(Float, nullable=False)
+    nivel_gasolina: Mapped[str] = mapped_column(String(20), nullable=False)
+    limpieza: Mapped[Optional[str]] = mapped_column(String(50), server_default='Limpio')
+    tiene_repuesto: Mapped[Optional[int]] = mapped_column(SmallInteger, server_default='1')
+    tiene_gato_cruceta: Mapped[Optional[int]] = mapped_column(SmallInteger, server_default='1')
+    tiene_kit_carretera: Mapped[Optional[int]] = mapped_column(SmallInteger, server_default='1')
+    tiene_documentos: Mapped[Optional[int]] = mapped_column(SmallInteger, server_default='1')
+    danos_carroceria: Mapped[Optional[str]] = mapped_column(Text)
+    observaciones: Mapped[Optional[str]] = mapped_column(Text)
+
+    # Relationships
+    renta_rel = relationship("Renta", back_populates="inspecciones")
+
+    def __repr__(self):
+        return f"<Inspeccion {self.id} - Renta {self.id_renta}>"
+
+
+# =====================================================================
+# COMPARENDOS
+# =====================================================================
+
+class Comparendo(Base):
+    __tablename__ = 'comparendos'
+    __table_args__ = {'mysql_collate': 'utf8mb4_unicode_ci'}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    placa: Mapped[str] = mapped_column(String(20), ForeignKey('autos.placa', ondelete='CASCADE'), nullable=False)
+    fecha_infraccion: Mapped[datetime] = mapped_column(Date, nullable=False)
+    hora_infraccion: Mapped[datetime] = mapped_column(Time, nullable=False)
+    monto: Mapped[float] = mapped_column(DECIMAL(12, 2), nullable=False, server_default='0')
+    id_renta: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey('rentas.id', ondelete='SET NULL'), nullable=True
+    )
+    id_cliente: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey('clientes.id', ondelete='SET NULL'), nullable=True
+    )
+    estado: Mapped[Optional[str]] = mapped_column(String(20), server_default='Pendiente')
+    observaciones: Mapped[Optional[str]] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(                      # NUEVO
+        DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    # Relationships
+    auto_rel = relationship("Auto", back_populates="comparendos")
+    renta_rel = relationship("Renta", back_populates="comparendos")     # NUEVO
+    cliente_rel = relationship("Cliente", back_populates="comparendos") # NUEVO
+
+    def __repr__(self):
+        return f"<Comparendo {self.id} - {self.placa}>"
+
+
+# =====================================================================
+# PAGOS
+# =====================================================================
+
+class Pago(Base):
+    __tablename__ = 'pagos'
+    __table_args__ = {'mysql_collate': 'utf8mb4_unicode_ci'}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id_renta: Mapped[int] = mapped_column(Integer, ForeignKey('rentas.id', ondelete='CASCADE'), nullable=False)
+    fecha: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    monto: Mapped[float] = mapped_column(DECIMAL(12, 2), nullable=False)
+    metodo_pago: Mapped[str] = mapped_column(String(50), nullable=False)
+    concepto: Mapped[str] = mapped_column(String(80), nullable=False)
+    observaciones: Mapped[Optional[str]] = mapped_column(Text)
+    usuario: Mapped[Optional[str]] = mapped_column(String(50))
+    updated_at: Mapped[datetime] = mapped_column(                      # NUEVO
+        DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    # Relationships
+    renta_rel = relationship("Renta", back_populates="pagos")
+
+    def __repr__(self):
+        return f"<Pago {self.id} - Renta {self.id_renta} - ${self.monto}>"
+
+
+# =====================================================================
+# GASTOS
+# =====================================================================
+
+class Gasto(Base):
+    __tablename__ = 'gastos'
+    __table_args__ = {'mysql_collate': 'utf8mb4_unicode_ci'}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    # NUEVO: placa como FK hacia autos (permite vincular gastos a vehiculos)
+    placa: Mapped[Optional[str]] = mapped_column(
+        String(20), ForeignKey('autos.placa', ondelete='SET NULL'), nullable=True, index=True
+    )
+    fecha: Mapped[datetime] = mapped_column(Date, nullable=False)
+    categoria: Mapped[str] = mapped_column(String(50), nullable=False)
+    descripcion: Mapped[str] = mapped_column(String(200), nullable=False)
+    monto: Mapped[float] = mapped_column(DECIMAL(12, 2), nullable=False)
+    comprobante: Mapped[Optional[str]] = mapped_column(String(50))
+    usuario: Mapped[Optional[str]] = mapped_column(String(50), server_default='Sistema')
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(                      # NUEVO
+        DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    # Relationships
+    auto_rel = relationship("Auto", back_populates="gastos")            # NUEVO
+
+    def __repr__(self):
+        return f"<Gasto {self.id} - {self.categoria} - ${self.monto}>"

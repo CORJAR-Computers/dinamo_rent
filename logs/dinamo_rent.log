@@ -1,0 +1,1097 @@
+2026-03-24 16:24:27 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 16:24:27 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 16:24:27 | INFO     | Dinamo Rent ERP.repositories.database | Usuario admin creado con contraseña por defecto.
+2026-03-24 16:24:27 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 16:24:28 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_16-24-28.db
+2026-03-24 16:25:26 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 16:25:26 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 16:25:26 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 16:25:27 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_16-25-27.db
+2026-03-24 19:10:52 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 19:10:52 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 19:10:52 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 19:10:54 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_19-10-54.db
+2026-03-24 19:12:34 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-24 19:12:34 | WARNING  | Dinamo Rent ERP.__main__       | Módulo no encontrado (usando QWidget de relleno): No module named 'modules'
+2026-03-24 19:12:34 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-24 19:14:03 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 19:14:03 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 19:14:03 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 19:14:04 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_19-14-04.db
+2026-03-24 21:16:35 | INFO     | Dinamo Rent ERP.repositories.database | Motor de base de datos: MySQL
+2026-03-24 21:29:47 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-24 21:29:47 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 21:29:47 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 21:29:47 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 21:29:49 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_21-29-49.db
+2026-03-24 21:30:18 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-24 21:30:27 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-24 21:30:31 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-24 21:32:56 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-24 21:32:57 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-24 21:32:57 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-24 21:32:58 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-24 21:32:59 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-24 21:32:59 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-24 21:33:04 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-24 21:34:28 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-24 21:34:28 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 21:34:28 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 21:34:28 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 21:34:30 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_21-34-30.db
+2026-03-24 21:34:40 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-24 21:35:43 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-24 21:35:43 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 21:35:43 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 21:35:43 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 21:35:44 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_21-35-44.db
+2026-03-24 21:36:12 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-24 21:39:54 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-24 21:40:15 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-24 21:40:15 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 21:40:15 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 21:40:15 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 21:40:17 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_21-40-17.db
+2026-03-24 21:40:26 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-24 21:40:26 | WARNING  | Dinamo Rent ERP.__main__       | Módulo no encontrado (usando QWidget de relleno): No module named 'modules'
+2026-03-24 21:40:26 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-24 21:43:31 | INFO     | Dinamo Rent ERP.__main__       | Sesión cerrada: admin
+2026-03-24 21:56:09 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-24 21:56:09 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 21:56:09 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 21:56:09 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 21:56:10 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_21-56-10.db
+2026-03-24 21:56:22 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-24 21:56:22 | WARNING  | Dinamo Rent ERP.__main__       | Módulo no encontrado (usando QWidget de relleno): No module named 'database'
+2026-03-24 21:56:22 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-24 21:57:52 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-24 21:57:52 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 21:57:52 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 21:57:52 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 21:57:54 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_21-57-54.db
+2026-03-24 21:58:06 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-24 21:58:06 | WARNING  | Dinamo Rent ERP.__main__       | Módulo no encontrado (usando QWidget de relleno): No module named 'database'
+2026-03-24 21:58:06 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-24 21:59:07 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-24 21:59:07 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 21:59:07 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 21:59:07 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 21:59:08 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_21-59-08.db
+2026-03-24 21:59:20 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-24 21:59:20 | WARNING  | Dinamo Rent ERP.__main__       | Módulo no encontrado (usando QWidget de relleno): No module named 'utils'
+2026-03-24 21:59:20 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-24 22:00:33 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-24 22:00:33 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 22:00:33 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 22:00:33 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 22:00:34 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_22-00-34.db
+2026-03-24 22:00:44 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-24 22:00:44 | WARNING  | Dinamo Rent ERP.__main__       | Módulo no encontrado (usando QWidget de relleno): No module named 'utils'
+2026-03-24 22:00:45 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-24 22:01:35 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-24 22:01:35 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 22:01:35 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 22:01:35 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 22:01:36 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_22-01-36.db
+2026-03-24 22:01:46 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-24 22:01:46 | WARNING  | Dinamo Rent ERP.__main__       | Módulo no encontrado (usando QWidget de relleno): No module named 'utils'
+2026-03-24 22:01:46 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-24 22:02:28 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-24 22:02:28 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 22:02:28 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 22:02:28 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 22:02:30 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_22-02-30.db
+2026-03-24 22:02:41 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-24 22:02:41 | WARNING  | Dinamo Rent ERP.__main__       | Módulo no encontrado (usando QWidget de relleno): No module named 'utils'
+2026-03-24 22:02:41 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-24 22:28:09 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-24 22:28:09 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-24 22:28:09 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-24 22:28:09 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-24 22:28:11 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-24_22-28-11.db
+2026-03-24 22:28:21 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-24 22:28:21 | WARNING  | Dinamo Rent ERP.__main__       | Módulo no encontrado (usando QWidget de relleno): No module named 'utils'
+2026-03-24 22:28:21 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-25 08:52:53 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 08:52:53 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 08:52:53 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 08:52:53 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 08:52:57 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_08-52-57.db
+2026-03-25 08:53:07 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 08:53:07 | WARNING  | Dinamo Rent ERP.__main__       | Módulo no encontrado (usando QWidget de relleno): No module named 'utils'
+2026-03-25 08:53:08 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-25 08:57:09 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 08:57:09 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 08:57:09 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 08:57:09 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 08:57:10 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_08-57-10.db
+2026-03-25 08:57:22 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 08:57:23 | ERROR    | Dinamo Rent ERP.__main__       | Error en login: No module named 'utils'
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\views\rentas_view.py", line 19, in <module>
+    from modules import utils
+  File "G:\Dinamo_Rent\modules\utils.py", line 8, in <module>
+    import jinja2
+ModuleNotFoundError: No module named 'jinja2'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\main_qt.py", line 232, in _login
+    self._main = MainWindow(session)
+                 ~~~~~~~~~~^^^^^^^^^
+  File "G:\Dinamo_Rent\main_qt.py", line 285, in __init__
+    self._inicializar_vistas()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 371, in _inicializar_vistas
+    Clientes, Autos, Mantenimiento, Usuarios, Informes) = _cargar_vistas()
+                                                          ~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 42, in _cargar_vistas
+    from views.rentas_view         import RentasWidget
+  File "G:\Dinamo_Rent\views\rentas_view.py", line 21, in <module>
+    import utils
+ModuleNotFoundError: No module named 'utils'
+2026-03-25 09:14:00 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 09:14:00 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 09:14:00 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 09:14:00 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 09:14:01 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_09-14-01.db
+2026-03-25 09:14:17 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-25 09:14:27 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 09:14:33 | ERROR    | Dinamo Rent ERP.__main__       | Error en login: cannot import name 'MantenimientoRepository' from 'repositories.reserva_repository' (G:\Dinamo_Rent\repositories\reserva_repository.py)
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\main_qt.py", line 232, in _login
+    self._main = MainWindow(session)
+                 ~~~~~~~~~~^^^^^^^^^
+  File "G:\Dinamo_Rent\main_qt.py", line 285, in __init__
+    self._inicializar_vistas()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 371, in _inicializar_vistas
+    Clientes, Autos, Mantenimiento, Usuarios, Informes) = _cargar_vistas()
+                                                          ~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 43, in _cargar_vistas
+    from views.reservas_view       import ReservasWidget
+  File "G:\Dinamo_Rent\views\reservas_view.py", line 16, in <module>
+    from services.services_extra import ReservaService
+  File "G:\Dinamo_Rent\services\services_extra.py", line 15, in <module>
+    from repositories.reserva_repository import ReservaRepository, MantenimientoRepository
+ImportError: cannot import name 'MantenimientoRepository' from 'repositories.reserva_repository' (G:\Dinamo_Rent\repositories\reserva_repository.py)
+2026-03-25 09:21:09 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 09:21:09 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 09:21:09 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 09:21:09 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 09:21:10 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_09-21-10.db
+2026-03-25 09:21:19 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 09:21:27 | ERROR    | Dinamo Rent ERP.__main__       | Error en login: cannot import name 'MantenimientoRepository' from 'repositories.reserva_repository' (G:\Dinamo_Rent\repositories\reserva_repository.py)
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\main_qt.py", line 232, in _login
+    self._main = MainWindow(session)
+                 ~~~~~~~~~~^^^^^^^^^
+  File "G:\Dinamo_Rent\main_qt.py", line 285, in __init__
+    self._inicializar_vistas()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 371, in _inicializar_vistas
+    Clientes, Autos, Mantenimiento, Usuarios, Informes) = _cargar_vistas()
+                                                          ~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 43, in _cargar_vistas
+    from views.reservas_view       import ReservasWidget
+  File "G:\Dinamo_Rent\views\reservas_view.py", line 16, in <module>
+    from services.services_extra import ReservaService
+  File "G:\Dinamo_Rent\services\services_extra.py", line 15, in <module>
+    from repositories.reserva_repository import ReservaRepository, MantenimientoRepository
+ImportError: cannot import name 'MantenimientoRepository' from 'repositories.reserva_repository' (G:\Dinamo_Rent\repositories\reserva_repository.py)
+2026-03-25 09:39:23 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 09:39:23 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 09:39:23 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 09:39:23 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 09:39:25 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_09-39-25.db
+2026-03-25 09:39:36 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 09:39:37 | ERROR    | Dinamo Rent ERP.__main__       | Error en login: not all arguments converted during string formatting
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\main_qt.py", line 232, in _login
+    self._main = MainWindow(session)
+                 ~~~~~~~~~~^^^^^^^^^
+  File "G:\Dinamo_Rent\main_qt.py", line 285, in __init__
+    self._inicializar_vistas()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 375, in _inicializar_vistas
+    self.stack.addWidget(W())
+                         ~^^
+  File "G:\Dinamo_Rent\views\calendario_view.py", line 23, in __init__
+    self.cargar_calendario()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\views\calendario_view.py", line 106, in cargar_calendario
+    rentas = RentaService.obtener_para_calendario(self.mes_vista, self.anio_vista)
+  File "G:\Dinamo_Rent\services\services.py", line 280, in obtener_para_calendario
+    return RentaRepository.obtener_para_calendario(mes, anio)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "G:\Dinamo_Rent\repositories\renta_repository.py", line 53, in obtener_para_calendario
+    cur = _execute(conn, sql, (fecha_fin, fecha_ini, fecha_fin, fecha_ini))
+  File "G:\Dinamo_Rent\repositories\database.py", line 49, in _execute
+    cur.execute(sql, params or ())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 151, in execute
+    query = self.mogrify(query, args)
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 129, in mogrify
+    query = query % self._escape_args(args, conn)
+            ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TypeError: not all arguments converted during string formatting
+2026-03-25 09:44:23 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 09:44:23 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 09:44:23 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 09:44:23 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 09:44:24 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_09-44-24.db
+2026-03-25 09:44:33 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 09:44:34 | WARNING  | Dinamo Rent ERP.InformesWidget | Error mostrado al usuario: Error inesperado: not enough arguments for format string
+2026-03-25 09:44:38 | ERROR    | Dinamo Rent ERP.InformesWidget | Error inesperado en InformesWidget: not enough arguments for format string
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\views\base_widget.py", line 57, in ejecutar_seguro
+    resultado = func(*args, **kwargs)
+  File "G:\Dinamo_Rent\services\services.py", line 169, in balance_mensual
+    raw = RentaRepository.balance_mensual()
+  File "G:\Dinamo_Rent\repositories\renta_repository.py", line 247, in balance_mensual
+    ingresos = {r["mes"]: r["total"] for r in _fetchall(_execute(conn, sql_ing))}
+                                                        ~~~~~~~~^^^^^^^^^^^^^^^
+  File "G:\Dinamo_Rent\repositories\database.py", line 49, in _execute
+    cur.execute(sql, params or ())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 151, in execute
+    query = self.mogrify(query, args)
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 129, in mogrify
+    query = query % self._escape_args(args, conn)
+            ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TypeError: not enough arguments for format string
+2026-03-25 09:44:38 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-25 09:56:22 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 09:56:22 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 09:56:22 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 09:56:22 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 09:56:23 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_09-56-23.db
+2026-03-25 09:56:35 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 09:56:36 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-25 12:37:08 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 12:37:08 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 12:37:08 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 12:37:08 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 12:37:08 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-25 12:37:10 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_12-37-10.db
+2026-03-25 12:37:20 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 12:37:21 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-25 13:00:21 | INFO     | Dinamo Rent ERP.__main__       | Backup automático a las 13:00
+2026-03-25 13:00:21 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_13-00-21.db
+2026-03-25 15:32:40 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 15:32:40 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 15:32:40 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 15:32:40 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 15:32:40 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-25 15:32:41 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_15-32-41.db
+2026-03-25 15:32:57 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 15:32:58 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-25 17:17:06 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 17:17:06 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 17:17:06 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 17:17:07 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 17:17:07 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-25 17:17:08 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_17-17-08.db
+2026-03-25 17:17:16 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-25 17:17:21 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 17:17:22 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-25 18:30:10 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 18:30:10 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 18:30:10 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 18:30:10 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 18:30:10 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-25 18:30:12 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_18-30-11.db
+2026-03-25 18:30:24 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 18:30:26 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-25 20:32:58 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 20:32:58 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 20:32:58 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 21:14:08 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 21:14:08 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 21:14:08 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 21:28:55 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 21:28:55 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 21:28:55 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 21:28:55 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 21:28:55 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-25 21:28:57 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_21-28-57.db
+2026-03-25 21:29:09 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 21:29:11 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-25 21:47:04 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 21:47:04 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 21:47:04 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 21:47:04 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 21:47:04 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-25 21:47:06 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_21-47-06.db
+2026-03-25 21:47:17 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 21:47:18 | ERROR    | Dinamo Rent ERP.__main__       | Error en login: not enough values to unpack (expected 10, got 9)
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\main_qt.py", line 233, in _login
+    self._main = MainWindow(session)
+                 ~~~~~~~~~~^^^^^^^^^
+  File "G:\Dinamo_Rent\main_qt.py", line 287, in __init__
+    self._inicializar_vistas()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 372, in _inicializar_vistas
+    (Dashboard, Calendario, Rentas, Reservas,
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     Clientes, Autos, Mantenimiento, Usuarios, Informes, Comparendos) = _cargar_vistas()
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: not enough values to unpack (expected 10, got 9)
+2026-03-25 21:52:44 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 21:52:44 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 21:52:44 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 21:52:45 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 21:52:45 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-25 21:52:46 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_21-52-46.db
+2026-03-25 21:52:56 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 21:52:57 | ERROR    | Dinamo Rent ERP.__main__       | Error en login: (1267, "Illegal mix of collations (utf8mb4_general_ci,IMPLICIT) and (utf8mb4_unicode_ci,IMPLICIT) for operation '='")
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\main_qt.py", line 233, in _login
+    self._main = MainWindow(session)
+                 ~~~~~~~~~~^^^^^^^^^
+  File "G:\Dinamo_Rent\main_qt.py", line 287, in __init__
+    self._inicializar_vistas()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 377, in _inicializar_vistas
+    self.stack.addWidget(W())
+                         ~^^
+  File "G:\Dinamo_Rent\views\comparendos_view.py", line 151, in __init__
+    self.cargar_datos()
+    ~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\views\comparendos_view.py", line 167, in cargar_datos
+    multas = ComparendoService.listar()
+  File "G:\Dinamo_Rent\services\services_extra.py", line 235, in listar
+    return ComparendoRepository.obtener_todos()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\repositories\comparendo_repository.py", line 22, in obtener_todos
+    return _fetchall(_execute(conn, sql))
+                     ~~~~~~~~^^^^^^^^^^^
+  File "G:\Dinamo_Rent\repositories\database.py", line 49, in _execute
+    cur.execute(sql, params or ())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 826, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.OperationalError: (1267, "Illegal mix of collations (utf8mb4_general_ci,IMPLICIT) and (utf8mb4_unicode_ci,IMPLICIT) for operation '='")
+2026-03-25 21:59:31 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-25 21:59:31 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-25 21:59:31 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-25 21:59:31 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-25 21:59:31 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-25 21:59:32 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-25_21-59-32.db
+2026-03-25 21:59:43 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-25 21:59:44 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-26 07:38:18 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-26 07:38:18 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-26 07:38:18 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-26 07:38:18 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-26 07:38:19 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-26 07:38:20 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-26_07-38-20.db
+2026-03-26 07:38:33 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-26 07:38:38 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-26 08:20:06 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-26 08:20:06 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-26 08:20:06 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-26 08:20:06 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-26 08:20:06 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-26 08:20:08 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-26_08-20-08.db
+2026-03-26 08:20:19 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-26 08:20:20 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-26 13:12:46 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-26 13:12:46 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-26 13:12:46 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-26 13:12:46 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-26 13:12:46 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-26 13:12:47 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-26_13-12-47.db
+2026-03-26 13:13:01 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-26 13:13:02 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-26 16:32:45 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-26 16:32:45 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-26 16:32:45 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-26 16:32:45 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-26 16:32:45 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-26 16:32:46 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-26_16-32-46.db
+2026-03-26 16:33:04 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-26 16:33:05 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-26 18:33:12 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-26 18:33:12 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-26 18:33:12 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-26 18:34:32 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-26 18:34:32 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-26 18:34:32 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-26 18:34:32 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-26 18:34:33 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-26 18:34:35 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-26_18-34-35.db
+2026-03-26 18:34:47 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-26 18:34:54 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-26 19:00:54 | INFO     | Dinamo Rent ERP.__main__       | Backup automático a las 19:00
+2026-03-26 19:00:54 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-26_19-00-54.db
+2026-03-27 13:05:22 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-27 13:05:22 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-27 13:05:22 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-27 13:06:51 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-27 13:06:51 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-27 13:06:51 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-27 13:06:51 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-27 13:06:52 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-27 13:06:55 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-27_13-06-55.db
+2026-03-27 13:25:47 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-27 13:25:54 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-27 23:43:43 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-27 23:43:43 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-27 23:43:43 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-27 23:46:32 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-27 23:46:32 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-27 23:46:32 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-27 23:46:32 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-27 23:46:33 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-27 23:46:35 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-27_23-46-35.db
+2026-03-27 23:46:51 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-27 23:46:57 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-27 23:50:28 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-27 23:50:28 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-27 23:50:28 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-27 23:50:28 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-27 23:50:28 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-27 23:50:30 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-27_23-50-30.db
+2026-03-28 00:11:03 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 00:11:03 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 00:11:03 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 00:11:03 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 00:11:03 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 00:11:04 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_00-11-04.db
+2026-03-28 14:03:30 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 14:03:30 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 14:03:30 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 14:03:30 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 14:03:31 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 14:03:34 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_14-03-34.db
+2026-03-28 14:04:16 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 14:04:24 | ERROR    | Dinamo Rent ERP.__main__       | Error en login: No module named 'utils'
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\views\reservas_view.py", line 20, in <module>
+    from modules import utils
+ModuleNotFoundError: No module named 'modules'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\main_qt.py", line 235, in _login
+    self._main = MainWindow(session)
+                 ~~~~~~~~~~^^^^^^^^^
+  File "G:\Dinamo_Rent\main_qt.py", line 291, in __init__
+    self._inicializar_vistas()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 377, in _inicializar_vistas
+    Clientes, Autos, Mantenimiento, Usuarios, Informes, Comparendos, Alertas, Gastos) = _cargar_vistas()
+                                                                                        ~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 43, in _cargar_vistas
+    from views.reservas_view       import ReservasWidget
+  File "G:\Dinamo_Rent\views\reservas_view.py", line 22, in <module>
+    import utils
+ModuleNotFoundError: No module named 'utils'
+2026-03-28 14:06:11 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 14:06:11 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 14:06:11 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 14:06:11 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 14:06:11 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 14:06:13 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_14-06-13.db
+2026-03-28 14:06:23 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 14:06:25 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 17:19:06 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 17:19:06 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 17:19:06 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 17:19:06 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 17:19:07 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 17:19:10 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_17-19-09.db
+2026-03-28 17:19:22 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 17:19:22 | ERROR    | Dinamo Rent ERP.__main__       | Error en login: name 'QBrush' is not defined
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\main_qt.py", line 235, in _login
+    self._main = MainWindow(session)
+                 ~~~~~~~~~~^^^^^^^^^
+  File "G:\Dinamo_Rent\main_qt.py", line 293, in __init__
+    self._menu = self._crear_menu(session.get("rol", ""))
+                 ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "G:\Dinamo_Rent\main_qt.py", line 378, in _crear_menu
+    item.setForeground(QBrush(QColor("#90caf9")))  # Azul claro pastel
+                       ^^^^^^
+NameError: name 'QBrush' is not defined
+2026-03-28 17:23:16 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 17:23:16 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 17:23:16 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 17:23:16 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 17:23:16 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 17:23:18 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_17-23-18.db
+2026-03-28 17:23:27 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 17:23:34 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 17:41:21 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 17:41:21 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 17:41:21 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 17:41:21 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 17:41:21 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 17:41:22 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_17-41-22.db
+2026-03-28 17:41:34 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 17:41:35 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 17:53:04 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 17:53:04 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 17:53:04 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 17:53:04 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 17:53:04 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 17:53:05 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_17-53-05.db
+2026-03-28 17:53:18 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 17:53:19 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 18:40:42 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 18:40:42 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 18:40:42 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 18:40:42 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 18:40:42 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 18:40:44 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_18-40-44.db
+2026-03-28 18:40:57 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 18:40:59 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 19:00:59 | INFO     | Dinamo Rent ERP.__main__       | Backup automático a las 19:00
+2026-03-28 19:00:59 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_19-00-59.db
+2026-03-28 19:51:10 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 19:51:10 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 19:51:10 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 19:51:10 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 19:51:10 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 19:51:12 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_19-51-12.db
+2026-03-28 19:51:24 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 19:51:25 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 19:56:20 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 19:56:20 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 19:56:20 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 19:56:20 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 19:56:20 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 19:56:21 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_19-56-21.db
+2026-03-28 19:56:33 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 19:56:35 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 20:00:22 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 20:00:22 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 20:00:22 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 20:00:22 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 20:00:22 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 20:00:23 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_20-00-23.db
+2026-03-28 20:00:34 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 20:00:36 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 20:08:14 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 20:08:14 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 20:08:14 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 20:08:14 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 20:08:14 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 20:08:16 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_20-08-16.db
+2026-03-28 20:08:25 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 20:08:25 | ERROR    | Dinamo Rent ERP.__main__       | Error en login: 'MenuCategory' object has no attribute 'expanded'
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\main_qt.py", line 236, in _login
+    self._main = MainWindow(session)
+                 ~~~~~~~~~~^^^^^^^^^
+  File "G:\Dinamo_Rent\main_qt.py", line 491, in __init__
+    self._menu = self._crear_menu_colapsable(session.get("rol", ""))
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "G:\Dinamo_Rent\main_qt.py", line 586, in _crear_menu_colapsable
+    cat = MenuCategory(title, icon, filtered_items, rol)
+  File "G:\Dinamo_Rent\main_qt.py", line 298, in __init__
+    self._update_arrow()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 352, in _update_arrow
+    arrow = "▼" if self.expanded else "▶"
+                   ^^^^^^^^^^^^^
+AttributeError: 'MenuCategory' object has no attribute 'expanded'
+2026-03-28 20:11:48 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 20:11:48 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 20:11:48 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 20:11:48 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 20:11:48 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 20:11:49 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_20-11-49.db
+2026-03-28 20:11:59 | WARNING  | Dinamo Rent ERP.services.services | Intento de login fallido: admin
+2026-03-28 20:12:07 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 20:12:09 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 20:27:33 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 20:27:33 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 20:27:33 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 20:27:33 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 20:27:33 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 20:27:35 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_20-27-35.db
+2026-03-28 20:27:46 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 20:27:48 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 21:57:35 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 21:57:35 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 21:57:35 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 21:57:35 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 21:57:35 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 21:57:36 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_21-57-36.db
+2026-03-28 21:57:51 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 21:57:52 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 22:10:32 | INFO     | Dinamo Rent ERP.__main__       | Sesión cerrada: admin
+2026-03-28 22:11:10 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 22:11:10 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 22:11:10 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 22:11:10 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 22:11:10 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 22:11:12 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_22-11-12.db
+2026-03-28 22:11:23 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 22:11:25 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 22:47:27 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 22:47:27 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 22:47:27 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 22:47:27 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 22:47:27 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 22:47:29 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_22-47-29.db
+2026-03-28 22:47:38 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 22:47:40 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 23:01:45 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 23:01:45 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 23:01:45 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 23:01:45 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 23:01:45 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 23:01:47 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_23-01-47.db
+2026-03-28 23:02:00 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 23:02:02 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 23:26:08 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 23:26:08 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 23:26:08 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 23:26:09 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 23:26:09 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 23:26:10 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_23-26-10.db
+2026-03-28 23:26:32 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 23:26:33 | WARNING  | Dinamo Rent ERP.InformesWidget | Error mostrado al usuario: Error inesperado: not enough arguments for format string
+2026-03-28 23:26:38 | ERROR    | Dinamo Rent ERP.InformesWidget | Error inesperado en InformesWidget: not enough arguments for format string
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\views\base_widget.py", line 57, in ejecutar_seguro
+    resultado = func(*args, **kwargs)
+  File "G:\Dinamo_Rent\services\services_extra.py", line 430, in balance_mensual_real
+    resultados = InformeRepository.obtener_balance_consolidado()
+  File "G:\Dinamo_Rent\repositories\informe_repository.py", line 47, in obtener_balance_consolidado
+    return _fetchall(_execute(conn, sql))
+                     ~~~~~~~~^^^^^^^^^^^
+  File "G:\Dinamo_Rent\repositories\database.py", line 49, in _execute
+    cur.execute(sql, params or ())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 151, in execute
+    query = self.mogrify(query, args)
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 129, in mogrify
+    query = query % self._escape_args(args, conn)
+            ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TypeError: not enough arguments for format string
+2026-03-28 23:26:38 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 23:29:43 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 23:29:43 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 23:29:43 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 23:29:43 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 23:29:43 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 23:29:44 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_23-29-44.db
+2026-03-28 23:29:56 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 23:29:58 | WARNING  | Dinamo Rent ERP.InformesWidget | Error mostrado al usuario: Error inesperado: (1146, "Table 'dinamo_rent.pagos' doesn't exist")
+2026-03-28 23:30:08 | ERROR    | Dinamo Rent ERP.InformesWidget | Error inesperado en InformesWidget: (1146, "Table 'dinamo_rent.pagos' doesn't exist")
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\views\base_widget.py", line 57, in ejecutar_seguro
+    resultado = func(*args, **kwargs)
+  File "G:\Dinamo_Rent\services\services_extra.py", line 430, in balance_mensual_real
+    resultados = InformeRepository.obtener_balance_consolidado()
+  File "G:\Dinamo_Rent\repositories\informe_repository.py", line 48, in obtener_balance_consolidado
+    return _fetchall(_execute(conn, sql))
+                     ~~~~~~~~^^^^^^^^^^^
+  File "G:\Dinamo_Rent\repositories\database.py", line 49, in _execute
+    cur.execute(sql, params or ())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 826, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1146, "Table 'dinamo_rent.pagos' doesn't exist")
+2026-03-28 23:30:08 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 23:34:38 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 23:34:38 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 23:34:38 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 23:34:38 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 23:34:38 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 23:34:39 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_23-34-39.db
+2026-03-28 23:34:49 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 23:34:51 | WARNING  | Dinamo Rent ERP.InformesWidget | Error mostrado al usuario: Error inesperado: (1146, "Table 'dinamo_rent.mantenimientos' doesn't exist")
+2026-03-28 23:34:59 | ERROR    | Dinamo Rent ERP.InformesWidget | Error inesperado en InformesWidget: (1146, "Table 'dinamo_rent.mantenimientos' doesn't exist")
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\views\base_widget.py", line 57, in ejecutar_seguro
+    resultado = func(*args, **kwargs)
+  File "G:\Dinamo_Rent\services\services_extra.py", line 430, in balance_mensual_real
+    resultados = InformeRepository.obtener_balance_consolidado()
+  File "G:\Dinamo_Rent\repositories\informe_repository.py", line 48, in obtener_balance_consolidado
+    return _fetchall(_execute(conn, sql))
+                     ~~~~~~~~^^^^^^^^^^^
+  File "G:\Dinamo_Rent\repositories\database.py", line 49, in _execute
+    cur.execute(sql, params or ())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 826, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1146, "Table 'dinamo_rent.mantenimientos' doesn't exist")
+2026-03-28 23:35:00 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 23:37:18 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 23:37:18 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 23:37:18 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 23:37:18 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 23:37:18 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 23:37:19 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_23-37-19.db
+2026-03-28 23:37:30 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 23:37:32 | WARNING  | Dinamo Rent ERP.InformesWidget | Error mostrado al usuario: Error inesperado: (1146, "Table 'dinamo_rent.mantenimientos' doesn't exist")
+2026-03-28 23:37:39 | ERROR    | Dinamo Rent ERP.InformesWidget | Error inesperado en InformesWidget: (1146, "Table 'dinamo_rent.mantenimientos' doesn't exist")
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\views\base_widget.py", line 57, in ejecutar_seguro
+    resultado = func(*args, **kwargs)
+  File "G:\Dinamo_Rent\services\services_extra.py", line 430, in balance_mensual_real
+    resultados = InformeRepository.obtener_balance_consolidado()
+  File "G:\Dinamo_Rent\repositories\informe_repository.py", line 48, in obtener_balance_consolidado
+    return _fetchall(_execute(conn, sql))
+                     ~~~~~~~~^^^^^^^^^^^
+  File "G:\Dinamo_Rent\repositories\database.py", line 49, in _execute
+    cur.execute(sql, params or ())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 826, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1146, "Table 'dinamo_rent.mantenimientos' doesn't exist")
+2026-03-28 23:37:40 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-28 23:51:51 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-28 23:51:51 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-28 23:51:51 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-28 23:51:52 | WARNING  | Dinamo Rent ERP.repositories.database | Error al añadir columna mantenimiento_vehiculos.pieza_varias_obs: (1146, "Table 'dinamo_rent.mantenimiento_vehiculos' doesn't exist")
+2026-03-28 23:51:52 | WARNING  | Dinamo Rent ERP.repositories.database | Error al añadir columna mantenimiento_vehiculos.pieza_varias_fecha: (1146, "Table 'dinamo_rent.mantenimiento_vehiculos' doesn't exist")
+2026-03-28 23:51:52 | WARNING  | Dinamo Rent ERP.repositories.database | Error al añadir columna mantenimiento_vehiculos.pieza_varias_tipo: (1146, "Table 'dinamo_rent.mantenimiento_vehiculos' doesn't exist")
+2026-03-28 23:51:52 | WARNING  | Dinamo Rent ERP.repositories.database | Error al añadir columna mantenimiento_vehiculos.cost_varios: (1146, "Table 'dinamo_rent.mantenimiento_vehiculos' doesn't exist")
+2026-03-28 23:51:52 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-28 23:51:52 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-28 23:51:53 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-28_23-51-53.db
+2026-03-28 23:52:04 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-28 23:52:06 | WARNING  | Dinamo Rent ERP.DashboardWidget | Error mostrado al usuario: Error inesperado: (1146, "Table 'dinamo_rent.mantenimiento_vehiculos' doesn't exist")
+2026-03-28 23:52:13 | ERROR    | Dinamo Rent ERP.DashboardWidget | Error inesperado en DashboardWidget: (1146, "Table 'dinamo_rent.mantenimiento_vehiculos' doesn't exist")
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\views\base_widget.py", line 57, in ejecutar_seguro
+    resultado = func(*args, **kwargs)
+  File "G:\Dinamo_Rent\services\services.py", line 61, in obtener_alertas
+    for auto in AutoRepository.obtener_alertas_flota():
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\repositories\auto_repository.py", line 198, in obtener_alertas_flota
+    cur = _execute(conn, sql)
+  File "G:\Dinamo_Rent\repositories\database.py", line 49, in _execute
+    cur.execute(sql, params or ())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 826, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1146, "Table 'dinamo_rent.mantenimiento_vehiculos' doesn't exist")
+2026-03-28 23:52:13 | WARNING  | Dinamo Rent ERP.InformesWidget | Error mostrado al usuario: Error inesperado: (1146, "Table 'dinamo_rent.mantenimiento_vehiculos' doesn't exist")
+2026-03-28 23:52:17 | ERROR    | Dinamo Rent ERP.InformesWidget | Error inesperado en InformesWidget: (1146, "Table 'dinamo_rent.mantenimiento_vehiculos' doesn't exist")
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\views\base_widget.py", line 57, in ejecutar_seguro
+    resultado = func(*args, **kwargs)
+  File "G:\Dinamo_Rent\services\services.py", line 212, in roi_flota
+    for r in _fetchall(_execute(conn, """
+                       ~~~~~~~~^^^^^^^^^^
+        SELECT placa, SUM(total_mantenimiento) as total
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        FROM mantenimiento_vehiculos GROUP BY placa
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    """)):
+    ^^^^
+  File "G:\Dinamo_Rent\repositories\database.py", line 49, in _execute
+    cur.execute(sql, params or ())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 826, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1146, "Table 'dinamo_rent.mantenimiento_vehiculos' doesn't exist")
+2026-03-28 23:52:17 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-29 00:14:12 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-29 00:14:12 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-29 00:14:12 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-29 00:14:12 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-29 00:14:12 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-29 00:14:13 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-29_00-14-13.db
+2026-03-29 00:14:23 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-29 00:14:24 | ERROR    | Dinamo Rent ERP.__main__       | Error en login: (1146, "Table 'dinamo_rent.mantenimientos' doesn't exist")
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\main_qt.py", line 236, in _login
+    self._main = MainWindow(session)
+                 ~~~~~~~~~~^^^^^^^^^
+  File "G:\Dinamo_Rent\main_qt.py", line 506, in __init__
+    self._inicializar_vistas()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 650, in _inicializar_vistas
+    self.stack.addWidget(W())
+                         ~^^
+  File "G:\Dinamo_Rent\views\mantenimiento_view.py", line 201, in __init__
+    self.cargar_historial()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\views\mantenimiento_view.py", line 216, in cargar_historial
+    historial = MantenimientoService.listar_historial(50)
+  File "G:\Dinamo_Rent\services\services_extra.py", line 93, in listar_historial
+    return MantenimientoRepository.obtener_historial(limite)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "G:\Dinamo_Rent\repositories\mantenimiento_repository.py", line 17, in obtener_historial
+    cur = _execute(conn, """
+        SELECT pieza_varias_fecha, placa, pieza_varias_tipo,
+    ...<2 lines>...
+        ORDER BY id DESC LIMIT %s
+    """, (limite,))
+  File "G:\Dinamo_Rent\repositories\database.py", line 49, in _execute
+    cur.execute(sql, params or ())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 826, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1146, "Table 'dinamo_rent.mantenimientos' doesn't exist")
+2026-03-29 00:16:50 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-29 00:16:50 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-29 00:16:50 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-29 00:16:51 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-29 00:16:51 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-29 00:16:52 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-29_00-16-52.db
+2026-03-29 00:17:01 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-29 00:17:03 | ERROR    | Dinamo Rent ERP.__main__       | Error en login: (1146, "Table 'dinamo_rent.mantenimientos' doesn't exist")
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\main_qt.py", line 236, in _login
+    self._main = MainWindow(session)
+                 ~~~~~~~~~~^^^^^^^^^
+  File "G:\Dinamo_Rent\main_qt.py", line 506, in __init__
+    self._inicializar_vistas()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 650, in _inicializar_vistas
+    self.stack.addWidget(W())
+                         ~^^
+  File "G:\Dinamo_Rent\views\mantenimiento_view.py", line 201, in __init__
+    self.cargar_historial()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\views\mantenimiento_view.py", line 216, in cargar_historial
+    historial = MantenimientoService.listar_historial(50)
+  File "G:\Dinamo_Rent\services\services_extra.py", line 93, in listar_historial
+    return MantenimientoRepository.obtener_historial(limite)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "G:\Dinamo_Rent\repositories\mantenimiento_repository.py", line 17, in obtener_historial
+    cur = _execute(conn, """
+        SELECT pieza_varias_fecha, placa, pieza_varias_tipo,
+    ...<2 lines>...
+        ORDER BY id DESC LIMIT %s
+    """, (limite,))
+  File "G:\Dinamo_Rent\repositories\database.py", line 49, in _execute
+    cur.execute(sql, params or ())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 153, in execute
+    result = self._query(query)
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\cursors.py", line 322, in _query
+    conn.query(q)
+    ~~~~~~~~~~^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 575, in query
+    self._affected_rows = self._read_query_result(unbuffered=unbuffered)
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 826, in _read_query_result
+    result.read()
+    ~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 1203, in read
+    first_packet = self.connection._read_packet()
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\connections.py", line 782, in _read_packet
+    packet.raise_for_error()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\protocol.py", line 219, in raise_for_error
+    err.raise_mysql_exception(self._data)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\pymysql\err.py", line 150, in raise_mysql_exception
+    raise errorclass(errno, errval)
+pymysql.err.ProgrammingError: (1146, "Table 'dinamo_rent.mantenimientos' doesn't exist")
+2026-03-29 00:21:16 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-29 00:21:16 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-29 00:21:16 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-29 00:21:16 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-29 00:21:16 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-29 00:21:17 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-29_00-21-17.db
+2026-03-29 00:21:28 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-29 00:21:30 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-03-29 00:23:12 | INFO     | Dinamo Rent ERP.repositories.database | Base de datos: MySQL
+2026-03-29 00:23:12 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-03-29 00:23:12 | INFO     | Dinamo Rent ERP.repositories.database | Aplicando migraciones de base de datos...
+2026-03-29 00:23:12 | INFO     | Dinamo Rent ERP.repositories.database | Migraciones completadas.
+2026-03-29 00:23:12 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-03-29 00:23:13 | INFO     | Dinamo Rent ERP.services.services | Backup creado: Backup_Dinamo_2026-03-29_00-23-13.db
+2026-03-29 00:23:23 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-03-29 00:23:25 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-04-12 21:54:53 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-04-12 21:54:53 | INFO     | Dinamo Rent ERP.__main__       | Inicializando base de datos con SQLAlchemy...
+2026-04-12 21:54:54 | INFO     | Dinamo Rent ERP.core.database_sa | Database tables created successfully
+2026-04-12 22:22:30 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-04-12 22:22:30 | INFO     | Dinamo Rent ERP.__main__       | Inicializando base de datos con SQLAlchemy...
+2026-04-12 22:22:30 | INFO     | Dinamo Rent ERP.core.database_sa | Database tables created successfully
+2026-04-12 22:22:30 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-04-12 22:22:31 | ERROR    | Dinamo Rent ERP.services.services | Error creando backup: [WinError 2] El sistema no puede encontrar el archivo especificado
+2026-04-12 22:22:40 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-04-12 22:22:44 | WARNING  | Dinamo Rent ERP.InformesWidget | Error mostrado al usuario: Error inesperado: Textual SQL expression '\n                SELECT\n ...' should be explicitly declared as text('\n                SELECT\n ...')
+2026-04-12 22:22:50 | ERROR    | Dinamo Rent ERP.InformesWidget | Error inesperado en InformesWidget: Textual SQL expression '\n                SELECT\n ...' should be explicitly declared as text('\n                SELECT\n ...')
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\views\base_widget.py", line 57, in ejecutar_seguro
+    resultado = func(*args, **kwargs)
+  File "G:\Dinamo_Rent\services\services_extra.py", line 516, in balance_mensual_real
+    resultados = InformeRepositorySA.obtener_balance_consolidado()
+  File "G:\Dinamo_Rent\repositories\repositories_sa.py", line 549, in obtener_balance_consolidado
+    result = session.execute(sql)
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        _add_event=_add_event,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\sqlalchemy\orm\session.py", line 2147, in _execute_internal
+    statement = coercions.expect(roles.StatementRole, statement)
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\sqlalchemy\sql\coercions.py", line 396, in expect
+    resolved = impl._literal_coercion(
+        element, argname=argname, **kw
+    )
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\sqlalchemy\sql\coercions.py", line 622, in _literal_coercion
+    return self._text_coercion(element, argname, **kw)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\sqlalchemy\sql\coercions.py", line 615, in _text_coercion
+    return _no_text_coercion(element, argname)
+  File "D:\Users\Core-i7Pc\AppData\Local\Programs\Python\Python314\Lib\site-packages\sqlalchemy\sql\coercions.py", line 585, in _no_text_coercion
+    raise exc_cls(
+    ...<7 lines>...
+    ) from err
+sqlalchemy.exc.ArgumentError: Textual SQL expression '\n                SELECT\n ...' should be explicitly declared as text('\n                SELECT\n ...')
+2026-04-12 22:22:50 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-04-12 22:57:43 | INFO     | Dinamo Rent ERP.__main__       | ═══ Arrancando Dinamo Rent ERP v3.2.0 ═══
+2026-04-12 22:57:43 | INFO     | Dinamo Rent ERP.__main__       | Inicializando base de datos con SQLAlchemy...
+2026-04-12 22:57:43 | INFO     | Dinamo Rent ERP.core.database_sa | Database tables created successfully
+2026-04-12 22:57:43 | INFO     | Dinamo Rent ERP.__main__       | Hoja de estilos global (QSS) cargada con éxito.
+2026-04-12 22:57:45 | ERROR    | Dinamo Rent ERP.services.services | Error creando backup: [WinError 2] El sistema no puede encontrar el archivo especificado
+2026-04-12 22:57:59 | INFO     | Dinamo Rent ERP.services.services | Login exitoso: admin (rol=Administrador)
+2026-04-12 22:58:00 | INFO     | Dinamo Rent ERP.__main__       | Sesión iniciada: admin (rol=Administrador)
+2026-04-12 23:00:00 | INFO     | Dinamo Rent ERP.__main__       | Backup automático a las 23:00
+2026-04-12 23:00:00 | ERROR    | Dinamo Rent ERP.services.services | Error creando backup: [WinError 2] El sistema no puede encontrar el archivo especificado
