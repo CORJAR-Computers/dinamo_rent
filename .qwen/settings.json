@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python *)",
+      "Bash(py *)",
+      "Bash(mkdir *)",
+      "Bash(xcopy *)",
+      "Bash(del *)"
+    ]
+  },
+  "$version": 3
+}

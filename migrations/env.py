@@ -1,0 +1,123 @@
+"""
+Alembic environment configuration for Dinamo Rent ERP.
+
+This module configures the Alembic migration environment to work with
+SQLAlchemy models in both MySQL and SQLite databases.
+"""
+import os
+import sys
+from logging.config import fileConfig
+from pathlib import Path
+
+from sqlalchemy import engine_from_config, pool, create_engine
+from alembic import context
+
+# Add parent directory to path to import project modules
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+# Import configuration
+from core.config import DB_ENGINE, DB_MYSQL, DB_PATH
+from core.models import Base  # Import SQLAlchemy models
+
+# this is the Alembic Config object, which provides
+# access to the values within the .ini file in use.
+config = context.config
+
+# Interpret the config file for Python logging.
+# This line sets up loggers basically.
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
+
+# add your model's MetaData object here
+# for 'autogenerate' support
+target_metadata = Base.metadata
+
+# other values from the config, set by the needs of env.py,
+# can be acquired:
+# my_important_option = config.get_main_option("my_important_option")
+# ... etc.
+
+
+def get_database_url():
+    """
+    Generate database URL based on project configuration.
+    Supports both MySQL and SQLite.
+    """
+    if DB_ENGINE == "mysql":
+        # Build MySQL URL
+        mysql_config = DB_MYSQL
+        password = f":{mysql_config['password']}" if mysql_config['password'] else ""
+        return (
+            f"mysql+pymysql://{mysql_config['user']}{password}"
+            f"@{mysql_config['host']}:{mysql_config['port']}"
+            f"/{mysql_config['database']}"
+        )
+    else:
+        # Build SQLite URL
+        return f"sqlite:///{DB_PATH}"
+
+
+def run_migrations_offline() -> None:
+    """
+    Run migrations in 'offline' mode.
+
+    This configures the context with just a URL and not an Engine,
+    though an Engine is acceptable here as well. By skipping the Engine
+    creation we don't even need a DBAPI to be available.
+
+    Calls to context.execute() here emit the given string to the
+    script output.
+    """
+    url = get_database_url()
+    context.configure(
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+        render_as_batch=True,  # For SQLite compatibility
+        compare_type=True,
+        compare_server_default=True,
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+def run_migrations_online() -> None:
+    """
+    Run migrations in 'online' mode.
+
+    In this scenario we need to create an Engine and associate a connection
+    with the context.
+    """
+    # Get database URL
+    url = get_database_url()
+    
+    # For SQLite, we need to handle foreign keys specially
+    connectable = create_engine(
+        url,
+        poolclass=pool.NullPool if DB_ENGINE == "mysql" else None,
+    )
+
+    with connectable.connect() as connection:
+        # Enable foreign keys for SQLite
+        if DB_ENGINE != "mysql":
+            from sqlalchemy import text
+            connection.execute(text("PRAGMA foreign_keys = ON"))
+        
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            render_as_batch=True,  # For SQLite batch operations
+            compare_type=True,
+            compare_server_default=True,
+        )
+
+        with context.begin_transaction():
+            context.run_migrations()
+
+
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()
