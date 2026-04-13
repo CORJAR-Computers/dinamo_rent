@@ -586,3 +586,22 @@ Traceback (most recent call last):
 sqlalchemy.exc.ArgumentError: Textual SQL expression '\n                SELECT\n ...' should be explicitly declared as text('\n                SELECT\n ...')
 2026-04-12 22:57:45 | ERROR    | Dinamo Rent ERP.services.services | Error creando backup: [WinError 2] El sistema no puede encontrar el archivo especificado
 2026-04-12 23:00:00 | ERROR    | Dinamo Rent ERP.services.services | Error creando backup: [WinError 2] El sistema no puede encontrar el archivo especificado
+2026-04-13 09:40:57 | ERROR    | Dinamo Rent ERP.services.services | Error creando backup: [WinError 2] El sistema no puede encontrar el archivo especificado
+2026-04-13 09:41:17 | ERROR    | Dinamo Rent ERP.__main__       | Error en login: type object 'DashboardService' has no attribute 'obtener_activas'
+Traceback (most recent call last):
+  File "G:\Dinamo_Rent\main_qt.py", line 260, in _login
+    self._main = MainWindow(session)
+                 ~~~~~~~~~~^^^^^^^^^
+  File "G:\Dinamo_Rent\main_qt.py", line 530, in __init__
+    self._inicializar_vistas()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\main_qt.py", line 674, in _inicializar_vistas
+    self.stack.addWidget(W())
+                         ~^^
+  File "G:\Dinamo_Rent\views\dashboard_view.py", line 87, in __init__
+    self.cargar_datos()
+    ~~~~~~~~~~~~~~~~~^^
+  File "G:\Dinamo_Rent\views\dashboard_view.py", line 192, in cargar_datos
+    rentas = self.ejecutar_seguro(DashboardService.obtener_activas) or []
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'DashboardService' has no attribute 'obtener_activas'

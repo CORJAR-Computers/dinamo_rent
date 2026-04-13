@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QBrush, QFont
 
-from services.services import RentaService
+from services.financial_service import FinancialService
 from services.services_extra import InformeService
 from views.base_widget import BaseWidget
 
@@ -121,7 +121,7 @@ class InformesWidget(BaseWidget):
 
         # 2. Cargar ROI por Vehículo (Mantenemos la función original intacta)
         self.tbl_roi.setRowCount(0)
-        roi = self.ejecutar_seguro(RentaService.roi_flota) or []
+        roi = self.ejecutar_seguro(FinancialService.roi_flota) or []
         for r in roi:
             row = self.tbl_roi.rowCount()
             self.tbl_roi.insertRow(row)
@@ -168,7 +168,7 @@ class InformesWidget(BaseWidget):
         try:
             # Traer los datos limpios para Excel
             balance = InformeService.balance_mensual_real()
-            roi     = RentaService.roi_flota()
+            roi     = FinancialService.roi_flota()
 
             df_bal = (
                 __import__("pandas").DataFrame(balance)
