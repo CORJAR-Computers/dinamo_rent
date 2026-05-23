@@ -1,6 +1,8 @@
 """Authentication service with enhanced security."""
 
-from core.exceptions import CredencialesInvalidas, CuentaBloqueadaError, RateLimitExceededError
+from typing import Optional
+
+from core.exceptions import CredencialesInvalidas, CuentaBloqueadaError, RateLimitExceededError, ValidacionError
 from core.logger import get_logger, get_audit_logger
 from core.security import SecurityManager, SessionManager, login_tracker
 from repositories.repositories_sa import UsuarioRepositorySA
@@ -95,6 +97,61 @@ class AuthService:
             "failed_attempts": login_tracker._failed_attempts.get(username, 0),
             "remaining_attempts": login_tracker.get_remaining_attempts(username),
         }
+
+    @staticmethod
+    def cambiar_password_obligatorio(
+        username: str, current_password: str, new_password: str
+    ) -> None:
+        """
+        Cambio de contraseña obligatorio (debe_cambiar_password = True).
+
+        1. Verifica la contraseña actual
+        2. Valida que la nueva no sea igual a la actual
+        3. Valida fortaleza de la nueva contraseña
+        4. Actualiza hash + limpia flag debe_cambiar_password
+        """
+        from core.database_sa import get_session
+        from core.models import Usuario
+
+        if not username or not current_password or not new_password:
+            raise CredencialesInvalidas(mensaje_usuario="Todos los campos son obligatorios.")
+
+        # 1. Obtener usuario con hash actual
+        usuario = UsuarioRepositorySA.obtener_por_username(username)
+        if not usuario:
+            raise CredencialesInvalidas(mensaje_usuario="Usuario no encontrado.")
+
+        # 2. Verificar contraseña actual
+        if not SecurityManager.verify_password(usuario["password"], current_password):
+            log.warning("Intento de cambio de contraseña con contraseña actual incorrecta: %s", username)
+            audit.warning("CAMBIO CONTRASEÑA FALLIDO: usuario=%s (contraseña actual incorrecta)", username)
+            raise CredencialesInvalidas(mensaje_usuario="La contraseña actual no es correcta.")
+
+        # 3. No puede ser igual a la actual
+        if current_password == new_password:
+            raise ValidacionError(
+                mensaje_usuario="La nueva contraseña debe ser diferente a la actual."
+            )
+
+        # 4. Validar fortaleza
+        errors = SecurityManager.validate_password_strength(new_password)
+        if errors:
+            error_msg = "; ".join(errors)
+            raise ValidacionError(
+                detalle=f"Contraseña débil: {error_msg}",
+                mensaje_usuario=f"La contraseña no cumple los requisitos: {error_msg}"
+            )
+
+        # 5. Actualizar en base de datos
+        with get_session() as session:
+            user = session.query(Usuario).filter(Usuario.username == username).first()
+            if not user:
+                raise CredencialesInvalidas(mensaje_usuario="Usuario no encontrado.")
+            user.password = SecurityManager.hash_password(new_password)
+            user.debe_cambiar_password = 0
+
+        log.info("Contraseña cambiada exitosamente (cambio obligatorio): %s", username)
+        audit.info("CAMBIO CONTRASEÑA OBLIGATORIO: usuario=%s", username)
 
     @staticmethod
     def unlock_account(username: str) -> bool:

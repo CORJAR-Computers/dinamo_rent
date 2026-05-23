@@ -197,9 +197,17 @@ class UsuariosWidget(BaseWidget):
         self.txt_buscar = QLineEdit()
         edit_search(self.txt_buscar)
         self.txt_buscar.setPlaceholderText("Buscar usuario...")
-        self.txt_buscar.setMinimumWidth(250)
+        self.txt_buscar.setMinimumWidth(220)
         self.txt_buscar.textChanged.connect(self._filtrar)
         top.addWidget(self.txt_buscar)
+
+        self.cmb_filtro = QComboBox()
+        self.cmb_filtro.addItems(["Todos los usuarios", "🔒 Pendiente de cambio"])
+        self.cmb_filtro.setCurrentIndex(0)
+        self.cmb_filtro.setMinimumWidth(180)
+        input_combo(self.cmb_filtro)
+        self.cmb_filtro.currentIndexChanged.connect(self._filtrar)
+        top.addWidget(self.cmb_filtro)
 
         btn_new = QPushButton("+ Crear Usuario")
         btn_success(btn_new)
@@ -223,7 +231,7 @@ class UsuariosWidget(BaseWidget):
         self.cargar_usuarios()
 
     def _configurar_tabla(self):
-        cols = ["Usuario", "Nombre Completo", "Rol", "Email", "Estado", "Ultimo Acceso"]
+        cols = ["Usuario", "Nombre Completo", "Rol", "Email", "Estado", "Último Acceso", "Debe Cambiar"]
         self.tabla.setColumnCount(len(cols))
         self.tabla.setHorizontalHeaderLabels(cols)
         self.tabla.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -255,6 +263,9 @@ class UsuariosWidget(BaseWidget):
             estado = "Activo" if u.get("activo") == 1 else "Inactivo"
             display_name = u.get("nombre") or ""
 
+            debe_cambiar = u.get("debe_cambiar_password", False)
+            indicador = "🔒 Sí" if debe_cambiar else ""
+
             items = [
                 u.get("username", ""),
                 display_name,
@@ -262,6 +273,7 @@ class UsuariosWidget(BaseWidget):
                 u.get("email", ""),
                 estado,
                 u.get("ultimo_acceso", "") or "Nunca",
+                indicador,
             ]
 
             for j, val in enumerate(items):
@@ -275,22 +287,40 @@ class UsuariosWidget(BaseWidget):
                     fnt.setBold(True)
                     it.setFont(fnt)
 
+                if j == 6 and debe_cambiar:  # Columna Debe Cambiar
+                    it.setForeground(QBrush(QColor("#d97706")))  # amber-600
+                    fnt = QFont(it.font())
+                    fnt.setBold(True)
+                    it.setFont(fnt)
+                    it.setToolTip("Este usuario debe cambiar su contraseña en el próximo inicio de sesión")
+
                 self.tabla.setItem(i, j, it)
 
     # ── Filtro ─────────────────────────────────────────────────
 
     def _filtrar(self):
+        # 1. Aplicar filtro por estado (Todos / Pendiente de cambio)
         txt = self.txt_buscar.text().lower()
-        if not txt:
-            self._pintar_filas(self._lista)
-            return
-        filtrados = [
-            u for u in self._lista
-            if txt in str(u.get("username", "")).lower()
-            or txt in str(u.get("nombre", "")).lower()
-            or txt in str(u.get("email", "")).lower()
-            or txt in str(u.get("rol", "")).lower()
-        ]
+        filtro_estado = self.cmb_filtro.currentIndex()  # 0 = Todos, 1 = Pendiente
+
+        filtrados = self._lista
+
+        if filtro_estado == 1:
+            filtrados = [
+                u for u in filtrados
+                if u.get("debe_cambiar_password", False)
+            ]
+
+        # 2. Aplicar filtro por texto
+        if txt:
+            filtrados = [
+                u for u in filtrados
+                if txt in str(u.get("username", "")).lower()
+                or txt in str(u.get("nombre", "")).lower()
+                or txt in str(u.get("email", "")).lower()
+                or txt in str(u.get("rol", "")).lower()
+            ]
+
         self._pintar_filas(filtrados)
 
     # ── Acciones ───────────────────────────────────────────────
@@ -320,13 +350,44 @@ class UsuariosWidget(BaseWidget):
 
         menu = QMenu(self)
         ac_edit = menu.addAction("Editar usuario")
+        menu.addSeparator()
+        ac_force = menu.addAction("🔒 Forzar cambio de contraseña")
+        ac_force.setToolTip("El usuario deberá cambiar su contraseña en el próximo inicio de sesión")
+        menu.addSeparator()
         ac_del = menu.addAction("Eliminar usuario")
 
         acc = menu.exec(self.tabla.viewport().mapToGlobal(pos))
         if acc == ac_edit:
             self._editar_usuario(row, 0)
+        elif acc == ac_force:
+            self._forzar_cambio_password(username)
         elif acc == ac_del:
             self._eliminar(username)
+
+    def _forzar_cambio_password(self, username: str):
+        """Fuerza al usuario a cambiar su contraseña en el próximo login."""
+        # Obtener datos del usuario para mostrar información
+        usuario = next((u for u in self._lista if u.get("username") == username), None) or {}
+        nombre = usuario.get("nombre", username)
+
+        respuesta = ModernMessageBox.question(
+            self, "Forzar Cambio de Contraseña",
+            f"¿Estás seguro de forzar el cambio de contraseña para '{nombre}'?\n\n"
+            f"El usuario deberá cambiar su contraseña en el próximo inicio de sesión.\n"
+            f"Esta acción no afecta la contraseña actual, solo obliga al usuario a cambiarla.",
+        )
+        if respuesta == QDialog.Accepted:
+            try:
+                UsuarioService.forzar_cambio_password(
+                    username, session_id=self._session_id
+                )
+                self.mostrar_exito(
+                    f"Cambio de contraseña forzado para '{nombre}'.\n"
+                    f"El usuario deberá cambiar su contraseña al iniciar sesión."
+                )
+                self.cargar_usuarios()
+            except DinamoBaseError as e:
+                self.mostrar_error(str(e))
 
     def _eliminar(self, username: str):
         respuesta = ModernMessageBox.question(
