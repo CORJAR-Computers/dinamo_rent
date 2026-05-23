@@ -1,4 +1,3 @@
-from views.components import ModernMessageBox
 """
 views/clientes_view.py — Directorio de clientes
 
@@ -19,6 +18,10 @@ from core.config import TIPOS_DOC, ESTADOS_CLIENTE, COLOR_ESTADO_ACTIVO, COLOR_E
 from core.exceptions import DinamoBaseError
 from services.cliente_service import ClienteService
 from views.base_widget import BaseWidget
+from views.components.form_validators import (
+    FormValidator, Required, Email, Phone, make_error_label,
+)
+from views.components import ModernMessageBox
 from views.styles import (
     btn_primary, btn_success, btn_danger, btn_default, btn_icon, lbl_title, edit_search,
     input_field, input_combo, input_date, table_widget, dialog_background, dialog_header_style, dialog_body_style, tab_widget_pane_style,
@@ -191,6 +194,10 @@ class ClienteFormDialog(QDialog):
 
         root.addWidget(body)
 
+        # ── Validador de formulario ──────────────────────────────────────────
+        self._validator = FormValidator()
+        self._construir_validacion()
+
         if datos:
             self._cargar()
 
@@ -276,10 +283,12 @@ class ClienteFormDialog(QDialog):
         self.txt_no_doc = QLineEdit(); self.txt_no_doc.setPlaceholderText("Número único de documento")
         input_combo(self.cmb_tipo_doc)
         input_field(self.txt_no_doc)
+        self._error_no_doc = make_error_label()
         grid_doc.addWidget(_make_label("Tipo de Documento:"), 1, 0)
         grid_doc.addWidget(self.cmb_tipo_doc, 1, 1)
         grid_doc.addWidget(_make_label("No. Documento", required=True), 2, 0)
         grid_doc.addWidget(self.txt_no_doc, 2, 1)
+        grid_doc.addWidget(self._error_no_doc, 3, 0, 1, 2)
 
         card_cont, grid_cont = _make_card("Contacto", self, "📞")
         self.txt_celular = QLineEdit(); self.txt_celular.setPlaceholderText("Ej: 300 000 0000")
@@ -288,12 +297,16 @@ class ClienteFormDialog(QDialog):
         input_field(self.txt_celular)
         input_field(self.txt_celular2)
         input_field(self.txt_email)
+        self._error_celular = make_error_label()
+        self._error_email = make_error_label()
         grid_cont.addWidget(_make_label("Celular Principal"), 1, 0)
         grid_cont.addWidget(self.txt_celular, 1, 1)
-        grid_cont.addWidget(_make_label("Celular Secundario"), 2, 0)
-        grid_cont.addWidget(self.txt_celular2, 2, 1)
-        grid_cont.addWidget(_make_label("Email"), 3, 0)
-        grid_cont.addWidget(self.txt_email, 3, 1)
+        grid_cont.addWidget(self._error_celular, 2, 0, 1, 2)
+        grid_cont.addWidget(_make_label("Celular Secundario"), 3, 0)
+        grid_cont.addWidget(self.txt_celular2, 3, 1)
+        grid_cont.addWidget(_make_label("Email"), 4, 0)
+        grid_cont.addWidget(self.txt_email, 4, 1)
+        grid_cont.addWidget(self._error_email, 5, 0, 1, 2)
 
         outer.addWidget(card_doc, 0, 0)
         outer.addWidget(card_cont, 1, 0)
@@ -304,10 +317,12 @@ class ClienteFormDialog(QDialog):
         self.txt_apellidos = QLineEdit(); self.txt_apellidos.setPlaceholderText("Apellidos del cliente")
         input_field(self.txt_nombres)
         input_field(self.txt_apellidos)
+        self._error_nombres = make_error_label()
         grid_nom.addWidget(_make_label("Nombres", required=True), 1, 0)
         grid_nom.addWidget(self.txt_nombres, 1, 1)
-        grid_nom.addWidget(_make_label("Apellidos"), 2, 0)
-        grid_nom.addWidget(self.txt_apellidos, 2, 1)
+        grid_nom.addWidget(self._error_nombres, 2, 0, 1, 2)
+        grid_nom.addWidget(_make_label("Apellidos"), 3, 0)
+        grid_nom.addWidget(self.txt_apellidos, 3, 1)
 
         card_geo, grid_geo = _make_card("Ubicación", self, "🌍")
         self.txt_nacion = QLineEdit(); self.txt_nacion.setPlaceholderText("Ej: Colombiana")
@@ -457,6 +472,7 @@ class ClienteFormDialog(QDialog):
             pass
 
     def _cargar(self):
+        self._validator.clear_all()
         d = self._datos
         self.cmb_tipo_doc.setCurrentText(str(d.get("tipo_doc", "Cedula")))
         self.txt_no_doc.setText(str(d.get("no_doc", "")))
@@ -481,11 +497,20 @@ class ClienteFormDialog(QDialog):
             try: self.date_venc_lic.setDate(datetime.strptime(str(venc)[:10], "%Y-%m-%d").date())
             except ValueError: pass
 
+    def _construir_validacion(self) -> None:
+        """Registra campos en el FormValidator."""
+        self._validator.add_field(self.txt_no_doc, [Required()], "Documento",
+                                  error_label=self._error_no_doc)
+        self._validator.add_field(self.txt_nombres, [Required()], "Nombres",
+                                  error_label=self._error_nombres)
+        self._validator.add_field(self.txt_email, [Email()], "Email",
+                                  error_label=self._error_email)
+        self._validator.add_field(self.txt_celular, [Phone()], "Celular",
+                                  error_label=self._error_celular)
+
     def _guardar(self):
-        if not self.txt_no_doc.text().strip() or not self.txt_nombres.text().strip():
-            ModernMessageBox.warning(self, "Validacion", "Documento y Nombres son obligatorios")
-            if not self.txt_no_doc.text().strip(): self.txt_no_doc.setFocus()
-            else: self.txt_nombres.setFocus()
+        if not self._validator.validate_all():
+            self._validator.focus_first_error()
             return
         datos = {
             "tipo_doc": self.cmb_tipo_doc.currentText(), "no_doc": self.txt_no_doc.text().strip(),
