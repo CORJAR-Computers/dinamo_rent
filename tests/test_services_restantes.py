@@ -243,6 +243,52 @@ class TestUsuarioService:
         with pytest.raises(PermisoInsuficiente):
             UsuarioService.listar()
 
+    # ── forzar_cambio_password ────────────────────────────────────────────
+
+    def test_forzar_cambio_password_ok(self):
+        """forzar_cambio_password() sets debe_cambiar_password=True on user."""
+        sid = _crear_admin_session()
+        username = _next_username()
+
+        # Crear usuario (debe_cambiar_password defaults to 0)
+        UsuarioService.crear({
+            "username": username,
+            "nombre": "Forced User",
+            "password_raw": "StrongPass123!",
+            "rol": "Operador",
+        }, session_id=sid)
+
+        # Forzar cambio de contraseña
+        UsuarioService.forzar_cambio_password(username, session_id=sid)
+
+        # Verificar que el flag se activó
+        usuarios = UsuarioService.listar(session_id=sid)
+        usuario = next(u for u in usuarios if u["username"] == username)
+        assert usuario["debe_cambiar_password"] is True
+
+    def test_forzar_cambio_password_admin_denied(self):
+        """forzar_cambio_password() raises NegocioError for 'admin' user."""
+        sid = _crear_admin_session()
+        with pytest.raises(NegocioError, match="Administrador Principal"):
+            UsuarioService.forzar_cambio_password("admin", session_id=sid)
+
+    def test_forzar_cambio_password_sin_sesion_lanza_error(self):
+        """forzar_cambio_password() without session raises PermisoInsuficiente."""
+        with pytest.raises(PermisoInsuficiente):
+            UsuarioService.forzar_cambio_password("some_user")
+
+    def test_forzar_cambio_password_username_vacio(self):
+        """forzar_cambio_password() raises ValidacionError for empty username."""
+        sid = _crear_admin_session()
+        with pytest.raises(ValidacionError, match="Nombre de usuario"):
+            UsuarioService.forzar_cambio_password("", session_id=sid)
+
+    def test_forzar_cambio_password_usuario_inexistente(self):
+        """forzar_cambio_password() raises RegistroNoEncontrado for non-existent user."""
+        sid = _crear_admin_session()
+        with pytest.raises(RegistroNoEncontrado):
+            UsuarioService.forzar_cambio_password("nonexistent_user_xyz", session_id=sid)
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # AuthService Tests
@@ -359,6 +405,68 @@ class TestAuthService:
         status = AuthService.get_login_status(username)
         assert status["failed_attempts"] >= 1
 
+    # ── cambiar_password_obligatorio ───────────────────────────────────────
+
+    def test_cambiar_password_obligatorio_ok(self):
+        """cambiar_password_obligatorio() updates password and clears debe_cambiar_password flag."""
+        username = _next_username()
+        old_pwd = "OldPass123!"
+        new_pwd = "NewStr0ng!"
+        self._crear_usuario_en_bd(username, old_pwd)
+
+        # Ejecutar cambio obligatorio
+        AuthService.cambiar_password_obligatorio(username, old_pwd, new_pwd)
+
+        # Verificar que puede iniciar sesión con la nueva contraseña
+        result = AuthService.login(username, new_pwd)
+        assert result["success"] is True
+
+        # Verificar que debe_cambiar_password ahora es False
+        assert result["debe_cambiar_password"] is False
+
+    def test_cambiar_password_obligatorio_password_actual_incorrecta(self):
+        """cambiar_password_obligatorio() raises CredencialesInvalidas when current password is wrong."""
+        username = _next_username()
+        self._crear_usuario_en_bd(username, "RealPass123!")
+
+        with pytest.raises(CredencialesInvalidas, match="contraseña actual no es correcta"):
+            AuthService.cambiar_password_obligatorio(
+                username, "WrongPass456!", "NewStr0ng!"
+            )
+
+    def test_cambiar_password_obligatorio_igual_a_actual(self):
+        """cambiar_password_obligatorio() raises ValidacionError when new password equals current."""
+        username = _next_username()
+        same_pwd = "SamePass123!"
+        self._crear_usuario_en_bd(username, same_pwd)
+
+        with pytest.raises(ValidacionError, match="diferente a la actual"):
+            AuthService.cambiar_password_obligatorio(
+                username, same_pwd, same_pwd
+            )
+
+    def test_cambiar_password_obligatorio_password_debil(self):
+        """cambiar_password_obligatorio() raises ValidacionError for weak new password."""
+        username = _next_username()
+        self._crear_usuario_en_bd(username, "RealPass123!")
+
+        with pytest.raises(ValidacionError, match="[Cc]ontraseña [Dd]ébil"):
+            AuthService.cambiar_password_obligatorio(
+                username, "RealPass123!", "123"  # Too short, no uppercase, no special
+            )
+
+    def test_cambiar_password_obligatorio_campos_vacios(self):
+        """cambiar_password_obligatorio() raises CredencialesInvalidas for empty fields."""
+        with pytest.raises(CredencialesInvalidas, match="obligatorios"):
+            AuthService.cambiar_password_obligatorio("", "", "")
+
+    def test_cambiar_password_obligatorio_usuario_inexistente(self):
+        """cambiar_password_obligatorio() raises CredencialesInvalidas for non-existent user."""
+        with pytest.raises(CredencialesInvalidas, match="no encontrado"):
+            AuthService.cambiar_password_obligatorio(
+                "ghost_user_xyz", "AnyPass123!", "NewStr0ng!"
+            )
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DashboardService Tests
@@ -376,8 +484,8 @@ class TestDashboardService:
         assert isinstance(kpi["rentas_activas"], int)
         assert isinstance(kpi["autos_disponibles"], int)
         assert isinstance(kpi["total_flota"], int)
-        assert isinstance(kpi["ingresos_mes"], float)
-        assert isinstance(kpi["pagos_pendientes"], float)
+        assert isinstance(kpi["ingresos_mes"], (int, float))
+        assert isinstance(kpi["pagos_pendientes"], (int, float))
         assert kpi["rentas_activas"] >= 0
         assert kpi["total_flota"] >= 0
 
