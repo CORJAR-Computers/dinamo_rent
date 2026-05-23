@@ -90,6 +90,28 @@ class UsuarioService:
 
     @staticmethod
     @require_role(*ROLES_CON_USUARIOS)
+    def forzar_cambio_password(username: str, session_id: str = None) -> None:
+        """
+        Activa el flag debe_cambiar_password para un usuario.
+        En su próximo inicio de sesión, se le exigirá cambiar la contraseña.
+        """
+        requerir(username, "Nombre de usuario")
+
+        if username == "admin":
+            raise NegocioError(
+                mensaje_usuario="No se puede forzar el cambio de contraseña del Administrador Principal desde aquí. El admin debe cambiarla al iniciar sesión si está configurado."
+            )
+
+        update_data = UsuarioUpdate(
+            username=username,
+            debe_cambiar_password=True,
+        )
+        UsuarioRepositorySA.actualizar(update_data)
+        log.info("Cambio de contraseña forzado para: %s", username)
+        audit.info("CAMBIO CONTRASEÑA FORZADO: usuario=%s (por administrador)", username)
+
+    @staticmethod
+    @require_role(*ROLES_CON_USUARIOS)
     def eliminar(username: str, session_id: str = None) -> None:
         if username == "admin":
             raise NegocioError(mensaje_usuario="No se puede eliminar el Administrador Principal.")

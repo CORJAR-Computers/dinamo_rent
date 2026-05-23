@@ -57,6 +57,7 @@ class UsuarioUpdate(BaseSchema):
     email: Optional[str] = Field(None, max_length=100)
     activo: Optional[bool] = None
     password_raw: Optional[str] = Field(None, min_length=6, max_length=100)
+    debe_cambiar_password: Optional[bool] = None
 
 
 class UsuarioResponse(UsuarioBase):

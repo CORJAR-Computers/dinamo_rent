@@ -11,7 +11,7 @@ os.environ["G_MESSAGES_DEBUG"] = "none"
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLineEdit, QPushButton, QLabel, QFrame, QStackedWidget,
+    QLineEdit, QPushButton, QLabel, QFrame, QStackedWidget, QDialog,
     QProgressBar, QGraphicsDropShadowEffect,
     QToolButton, QScrollArea, QSizePolicy
 )
@@ -341,6 +341,17 @@ class LoginWindow(QMainWindow):
         client_ip = self._obtener_ip()
         try:
             session = AuthService.login(user, pwd, ip=client_ip)
+
+            # Si debe cambiar contraseña, mostrar diálogo obligatorio
+            if session.get("debe_cambiar_password"):
+                from views.force_change_password_dialog import ForceChangePasswordDialog
+                dlg = ForceChangePasswordDialog(self, session)
+                if dlg.exec() != QDialog.Accepted:
+                    self.lbl_error.setText("Debes cambiar tu contraseña para acceder.")
+                    return
+                # Actualizar flag en sesión
+                session["debe_cambiar_password"] = False
+
             self._main = MainWindow(session)
             self._main.show()
             self.close()
