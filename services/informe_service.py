@@ -1,11 +1,11 @@
-"""
-informe_service.py — Servicio de Informes Gerenciales
+"""Management reports service with RBAC protection."""
 
-Extraido de services_extra.py como parte de F1B (Reestructuración de Services).
-"""
-from typing import List, Dict
+from typing import List
 
 from core.logger import get_logger, get_audit_logger
+from core.schemas import BalanceMensualItemResponse
+from core.rbac import require_role
+from core.config import ROLES_CON_INFORMES
 from repositories.repositories_sa import InformeRepositorySA
 
 log = get_logger(__name__)
@@ -15,11 +15,9 @@ audit = get_audit_logger()
 class InformeService:
 
     @staticmethod
-    def balance_mensual_real() -> List[Dict]:
-        """
-        Balance consolidado mensual con ingresos, taller y caja menor.
-        Usa la query SQL consolidada del repositorio.
-        """
+    @require_role(*ROLES_CON_INFORMES)
+    def balance_mensual_real(session_id: str = None) -> List[BalanceMensualItemResponse]:
+        """Monthly consolidated balance with income, workshop, and petty cash."""
         resultados = InformeRepositorySA.obtener_balance_consolidado()
 
         balance_procesado = []

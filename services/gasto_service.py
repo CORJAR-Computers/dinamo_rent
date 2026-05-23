@@ -1,9 +1,5 @@
-"""
-gasto_service.py — Servicio de Gastos y Caja Menor
+"""Expense and petty cash service."""
 
-Extraido de services_extra.py como parte de F1B (Reestructuración de Services).
-F1A: Ahora soporta vincular gastos a vehículos vía campo placa.
-"""
 from typing import List, Dict
 
 from core.exceptions import ValidacionError
@@ -24,7 +20,6 @@ class GastoService:
 
     @staticmethod
     def listar_por_placa(placa: str) -> List[Dict]:
-        """Obtiene todos los gastos vinculados a un vehículo."""
         placa = validar_placa(placa)
         return GastoRepositorySA.obtener_por_placa(placa)
 
@@ -39,7 +34,6 @@ class GastoService:
         if monto <= 0:
             raise ValidacionError("El monto del gasto debe ser mayor a cero.")
 
-        # Validar placa si viene (es opcional)
         placa_gasto = datos.get("placa")
         if placa_gasto:
             placa_gasto = validar_placa(placa_gasto)

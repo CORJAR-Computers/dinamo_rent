@@ -9,8 +9,62 @@ from datetime import date, datetime
 from typing import Any
 
 from core.exceptions import (
-    CampoRequerido, PlacaInvalida, FechaInvalida, RangoInvalido, ValidacionError
+    CampoRequerido, PlacaInvalida, FechaInvalida, RangoInvalido, ValidacionError, InputSanitizationError
 )
+
+
+# ─── Seguridad - Sanitización ─────────────────────────────────────────────────
+
+def sanitize_for_sql(value: str) -> str:
+    """
+    Sanitiza valores para prevenir inyección SQL básica.
+    Aunque SQLAlchemy ya protege, esta es una capa adicional.
+    """
+    if not value:
+        return ""
+
+    # Escapar comillas simples (principal vector SQL injection)
+    value = value.replace("'", "''")
+
+    # Eliminar caracteres de control
+    value = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', value)
+
+    return value.strip()
+
+
+def validate_no_xss(value: str, max_length: int = 500) -> str:
+    """
+    Valida que el valor no contenga scripts o HTML peligroso.
+    """
+    if not value:
+        return ""
+
+    if len(value) > max_length:
+        value = value[:max_length]
+
+    # Patrones peligrosos XSS
+    dangerous_patterns = [
+        r'<script',
+        r'javascript:',
+        r'on\w+\s*=',  # onclick=, onload=, etc
+        r'<iframe',
+        r'<object',
+        r'<embed',
+        r'<form',
+        r'eval\s*\(',
+        r'document\.',
+        r'window\.',
+    ]
+
+    value_lower = value.lower()
+    for pattern in dangerous_patterns:
+        if re.search(pattern, value_lower, re.IGNORECASE):
+            raise InputSanitizationError(
+                detalle=f"Patrón XSS detectado: {pattern}",
+                mensaje_usuario="El texto contiene caracteres no permitidos."
+            )
+
+    return value.strip()
 
 
 # ─── Texto ────────────────────────────────────────────────────────────────────

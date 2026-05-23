@@ -28,8 +28,16 @@ python-dotenv>=1.0.0
 # DBUtils>=3.0.0
 
 # Optional: For PDF generation (if needed later)
-# jinja2>=3.1.0
-# weasyprint>=60.0
+jinja2>=3.1.0
+weasyprint>=60.0
+reportlab>=3.6.0
+
+# Optional: For Excel export in informes
+pandas>=2.0.0
+openpyxl>=3.1.0
 
 # Optional: For logging enhancement
 # python-json-logger>=2.0.0
+
+# Security: Encryption for backups and sensitive data
+cryptography>=41.0.0

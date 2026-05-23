@@ -1,16 +1,13 @@
-"""
-comparendo_service.py — Servicio de Comparendos / Multas
+"""Traffic ticket / fine service."""
 
-Extraido de services_extra.py como parte de F1B (Reestructuración de Services).
-"""
 from typing import List, Dict
+from datetime import datetime as dt_datetime
 
 from core.exceptions import ValidacionError
 from core.logger import get_logger, get_audit_logger
 from core.validators import requerir
-from core.schemas import ComparendoCreate, ComparendoUpdate
+from core.schemas import ComparendoCreate, ComparendoRegistroResponse
 from repositories.repositories_sa import ComparendoRepositorySA
-from datetime import datetime as dt_datetime
 
 log = get_logger(__name__)
 audit = get_audit_logger()
@@ -23,22 +20,17 @@ class ComparendoService:
         return ComparendoRepositorySA.obtener_todos()
 
     @staticmethod
-    def registrar(datos: dict) -> dict:
-        """
-        Registra la multa e intenta vincularla a un cliente automáticamente.
-        Retorna un dict con el resultado de la búsqueda.
-        """
+    def registrar(datos: dict) -> ComparendoRegistroResponse:
+        """Register a ticket and auto-link it to a client/rental if possible."""
         placa = requerir(datos.get("placa"), "Placa del Vehículo")
         fecha_str = requerir(datos.get("fecha"), "Fecha de Infracción")
         hora_str = requerir(datos.get("hora"), "Hora de Infracción")
 
-        # 1. Armar el datetime exacto de la infracción
         try:
             infraccion_dt = dt_datetime.strptime(f"{fecha_str} {hora_str}", "%Y-%m-%d %H:%M")
         except ValueError as e:
             raise ValidacionError(f"Fecha/hora inválida: {str(e)}")
 
-        # 2. Buscar en el historial de la placa quién tenía el auto
         rentas = ComparendoRepositorySA.buscar_historial_rentas_placa(placa)
 
         cliente_encontrado = None
@@ -62,11 +54,9 @@ class ComparendoService:
                 log.warning(f"Error parseando fechas de renta {r['id']}: {e}")
                 continue
 
-        # 3. Asignar los IDs encontrados
         datos["id_cliente"] = cliente_encontrado
         datos["id_renta"] = renta_encontrada
 
-        # 4. Validar y guardar
         try:
             comparendo_validado = ComparendoCreate(
                 placa=placa,

@@ -1,18 +1,15 @@
-"""
-mantenimiento_service.py — Servicio de Mantenimiento de Vehículos
+"""Vehicle maintenance service with atomic transactions."""
 
-Extraido de services_extra.py como parte de F1B (Reestructuración de Services).
-"""
 import datetime
 from typing import List, Dict
-from decimal import Decimal
+from datetime import datetime as dt_datetime
 
 from core.exceptions import ValidacionError
 from core.logger import get_logger, get_audit_logger
 from core.validators import validar_placa
 from core.schemas import MantenimientoCreate
+from core.unit_of_work import UnitOfWork
 from repositories.repositories_sa import MantenimientoRepositorySA
-from datetime import datetime as dt_datetime
 
 log = get_logger(__name__)
 audit = get_audit_logger()
@@ -30,16 +27,11 @@ class MantenimientoService:
 
     @staticmethod
     def registrar(datos: dict) -> None:
-        """
-        Registra un servicio y actualiza el auto.
-        datos debe tener: placa, tipo, fecha, costo, obs, km_actual, prox_km,
-                          accion_estado ('mantener'|'mantenimiento'|'disponible')
-        """
+        """Register maintenance and update vehicle atomically via UnitOfWork."""
         placa = validar_placa(datos.get("placa", ""))
         if not datos.get("tipo"):
             raise ValidacionError(mensaje_usuario="Seleccione el tipo de servicio.")
 
-        # 1. Insertar historial con validación Pydantic
         mant_data = {
             "placa": placa,
             "pieza_varias_tipo": datos["tipo"],
@@ -56,9 +48,6 @@ class MantenimientoService:
         except Exception as e:
             raise ValidacionError(f"Datos de mantenimiento inválidos: {str(e)}")
 
-        MantenimientoRepositorySA.insertar(mant_validado)
-
-        # 2. Actualizar campos del auto
         campos_auto: dict = {"kilometraje": datos.get("km_actual", 0)}
 
         tipo = datos["tipo"]
@@ -71,18 +60,19 @@ class MantenimientoService:
                 fecha_base = dt_datetime.strptime(str(datos.get("fecha"))[:10], "%Y-%m-%d")
                 campos_auto["vencimiento_tecnico"] = (
                     fecha_base + datetime.timedelta(days=365)
-                ).strftime("%Y-%m-%d")
+                ).date()
             except (ValueError, TypeError):
                 pass
 
-        # Cambio de estado opcional
         accion = datos.get("accion_estado", "mantener")
         if accion == "mantenimiento":
             campos_auto["estado"] = "Mantenimiento"
         elif accion == "disponible":
             campos_auto["estado"] = "Disponible"
 
-        MantenimientoRepositorySA.actualizar_auto(placa, campos_auto)
+        with UnitOfWork() as uow:
+            MantenimientoRepositorySA.insertar(mant_validado, session=uow.session)
+            MantenimientoRepositorySA.actualizar_auto(placa, campos_auto, session=uow.session)
 
         audit.info("Mantenimiento registrado: placa=%s, tipo=%s, costo=%s",
                    placa, tipo, datos.get("costo"))

@@ -1,15 +1,16 @@
 """
-cliente_repository_sa.py — Cliente Repository with SQLAlchemy 2.0
-"""
-from typing import List, Optional, Dict
+cliente_repository_sa.py — Repositorio de Clientes
 
-from sqlalchemy.orm import Session
-from sqlalchemy import func, or_
+F1C: Extraído y completado para separación de responsabilidades.
+"""
+from typing import List, Dict
+
+from sqlalchemy import or_
 
 from core.database_sa import get_session
 from core.models import Cliente
 from core.schemas import ClienteCreate, ClienteUpdate
-from core.exceptions import RegistroNoEncontrado, DuplicadoError
+from core.exceptions import RegistroNoEncontrado
 from core.logger import get_logger
 
 log = get_logger(__name__)
@@ -18,57 +19,77 @@ log = get_logger(__name__)
 class ClienteRepositorySA:
 
     @staticmethod
-    def obtener_todos() -> List[Dict]:
-        with get_session() as session:
-            clientes = session.query(Cliente).order_by(Cliente.nombre_completo).all()
-            return [ClienteRepositorySA._to_dict(c) for c in clientes]
-
-    @staticmethod
-    def obtener_por_id(cliente_id: int) -> Optional[Dict]:
-        with get_session() as session:
-            cliente = session.query(Cliente).filter(Cliente.id == cliente_id).first()
-            return ClienteRepositorySA._to_dict(cliente) if cliente else None
-
-    @staticmethod
     def buscar(termino: str = "") -> List[Dict]:
+        """Busca clientes por nombre, documento, celular o email."""
         with get_session() as session:
             query = session.query(Cliente)
-            
             if termino:
-                termino_busqueda = f"%{termino}%"
+                like = f"%{termino}%"
                 query = query.filter(
                     or_(
-                        Cliente.nombre_completo.ilike(termino_busqueda),
-                        Cliente.no_doc.ilike(termino_busqueda),
-                        Cliente.celular.ilike(termino_busqueda),
-                        Cliente.email.ilike(termino_busqueda),
+                        Cliente.nombre_completo.like(like),
+                        Cliente.no_doc.like(like),
+                        Cliente.celular.like(like),
+                        Cliente.email.like(like),
                     )
                 )
-            
             clientes = query.order_by(Cliente.nombre_completo).all()
             return [ClienteRepositorySA._to_dict(c) for c in clientes]
 
     @staticmethod
-    def obtener_por_documento(no_doc: str) -> Optional[Dict]:
+    def obtener_por_id(id_cliente: int) -> Dict:
+        """Obtiene un cliente por su ID."""
         with get_session() as session:
-            cliente = session.query(Cliente).filter(Cliente.no_doc == no_doc).first()
-            return ClienteRepositorySA._to_dict(cliente) if cliente else None
+            cliente = session.query(Cliente).filter(Cliente.id == id_cliente).first()
+            if not cliente:
+                raise RegistroNoEncontrado(f"Cliente #{id_cliente} no encontrado.")
+            return ClienteRepositorySA._to_dict(cliente)
+
+    @staticmethod
+    def obtener_valores_unicos(campo: str) -> List[str]:
+        """Obtiene una lista de valores únicos para un campo específico (ej. pais, ciudad)."""
+        if not hasattr(Cliente, campo):
+            return []
+
+        with get_session() as session:
+            columna = getattr(Cliente, campo)
+            resultados = session.query(columna).filter(
+                columna.isnot(None),
+                columna != ""
+            ).distinct().order_by(columna).all()
+            return [r[0] for r in resultados]
+
+    @staticmethod
+    def obtener_regiones_por_pais(pais: str) -> List[str]:
+        with get_session() as session:
+            resultados = session.query(Cliente.estado_region).filter(
+                Cliente.pais == pais,
+                Cliente.estado_region.isnot(None),
+                Cliente.estado_region != ""
+            ).distinct().order_by(Cliente.estado_region).all()
+            return [r[0] for r in resultados]
+
+    @staticmethod
+    def obtener_ciudades_por_region(pais: str, region: str) -> List[str]:
+        with get_session() as session:
+            resultados = session.query(Cliente.ciudad).filter(
+                Cliente.pais == pais,
+                Cliente.estado_region == region,
+                Cliente.ciudad.isnot(None),
+                Cliente.ciudad != ""
+            ).distinct().order_by(Cliente.ciudad).all()
+            return [r[0] for r in resultados]
 
     @staticmethod
     def insertar(datos: ClienteCreate) -> int:
+        """Inserta un nuevo cliente. Retorna el ID."""
         with get_session() as session:
-            # Check for duplicate document
-            if datos.no_doc:
-                existing = session.query(Cliente).filter(Cliente.no_doc == datos.no_doc).first()
-                if existing:
-                    raise DuplicadoError(f"Cliente con documento '{datos.no_doc}' ya existe.")
-            
             nuevo_cliente = Cliente(
                 tipo_doc=datos.tipo_doc,
                 no_doc=datos.no_doc,
                 nombres=datos.nombres,
                 apellidos=datos.apellidos,
-                nombre_completo=datos.nombre_completo or f"{datos.nombres or ''} {datos.apellidos or ''}".strip(),
+                nombre_completo=datos.nombre_completo,
                 celular=datos.celular,
                 celular2=datos.celular2,
                 email=datos.email,
@@ -85,47 +106,30 @@ class ClienteRepositorySA:
                 vencimiento_licencia=datos.vencimiento_licencia,
                 estado=datos.estado,
             )
-            
             session.add(nuevo_cliente)
             session.flush()
-            log.info("Cliente creado: %s (%s)", nuevo_cliente.nombre_completo, datos.no_doc)
+            log.info("Cliente creado: id=%s, nombre=%s", nuevo_cliente.id, datos.nombre_completo)
             return nuevo_cliente.id
 
     @staticmethod
     def actualizar(datos: ClienteUpdate) -> None:
+        """
+        Actualiza los campos de un cliente existente.
+
+        F1C: ClienteUpdate ahora incluye id como campo requerido
+        para identificar el registro a actualizar.
+        """
         with get_session() as session:
             cliente = session.query(Cliente).filter(Cliente.id == datos.id).first()
-            
             if not cliente:
                 raise RegistroNoEncontrado(f"Cliente #{datos.id} no encontrado.")
-            
+
             update_fields = datos.model_dump(exclude_unset=True, exclude={'id'})
-            for field, value in update_fields.items():
-                if hasattr(cliente, field):
-                    setattr(cliente, field, value)
-            
-            # Update nombre_completo if nombres/apellidos changed
-            if datos.nombres or datos.apellidos:
-                cliente.nombre_completo = f"{cliente.nombres or ''} {cliente.apellidos or ''}".strip()
-            
-            log.info("Cliente actualizado: %s", cliente.nombre_completo)
+            for campo, valor in update_fields.items():
+                if hasattr(cliente, campo):
+                    setattr(cliente, campo, valor)
 
-    @staticmethod
-    def eliminar(cliente_id: int) -> None:
-        with get_session() as session:
-            cliente = session.query(Cliente).filter(Cliente.id == cliente_id).first()
-            
-            if not cliente:
-                raise RegistroNoEncontrado(f"Cliente #{cliente_id} no encontrado.")
-            
-            session.delete(cliente)
-            log.info("Cliente eliminado: %s", cliente.nombre_completo)
-
-    @staticmethod
-    def contar_por_estado() -> Dict[str, int]:
-        with get_session() as session:
-            resultados = session.query(Cliente.estado, func.count(Cliente.id)).group_by(Cliente.estado).all()
-            return {estado: cantidad for estado, cantidad in resultados}
+            log.info("Cliente actualizado: id=%s", datos.id)
 
     @staticmethod
     def _to_dict(cliente: Cliente) -> Dict:
@@ -152,4 +156,5 @@ class ClienteRepositorySA:
             'vencimiento_licencia': cliente.vencimiento_licencia,
             'estado': cliente.estado,
             'created_at': cliente.created_at,
+            'updated_at': cliente.updated_at,
         }

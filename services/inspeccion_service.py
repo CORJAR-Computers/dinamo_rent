@@ -1,8 +1,5 @@
-"""
-inspeccion_service.py — Servicio de Inspecciones
+"""Vehicle inspection service."""
 
-Extraido de services_extra.py como parte de F1B (Reestructuración de Services).
-"""
 from typing import List, Dict
 
 from core.exceptions import ValidacionError

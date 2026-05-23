@@ -1,14 +1,6 @@
-"""
-renta_service.py — Servicio de Rentas (CRUD y operaciones)
+"""Rental service with atomic transactions."""
 
-Extraido de services.py como parte de F1B (Reestructuración de Services).
-La lógica financiera (cálculos, balances, ROI) se movió a financial_service.py.
-Los KPIs se movieron a dashboard_service.py.
-El balance_mensual() duplicado se eliminó (usar InformeService.balance_mensual_real()).
-"""
-import datetime
 from typing import List, Dict
-from decimal import Decimal
 
 from core.exceptions import (
     VehiculoNoDisponible, RentaYaCerrada, ClienteEnListaNegra,
@@ -16,7 +8,8 @@ from core.exceptions import (
 )
 from core.logger import get_logger, get_audit_logger
 from core.validators import validar_placa
-from core.schemas import RentaCreate, RentaCierre
+from core.schemas import RentaCreate, RentaCierre, RentaDetalleResponse
+from core.unit_of_work import UnitOfWork
 from repositories.repositories_sa import (
     AutoRepositorySA,
     RentaRepositorySA,
@@ -31,6 +24,7 @@ class RentaService:
 
     @staticmethod
     def crear(datos: dict) -> int:
+        """Create a rental and mark vehicle as rented (atomic)."""
         placa = validar_placa(datos.get("placa", ""))
         auto = AutoRepositorySA.obtener_por_placa(placa)
 
@@ -43,20 +37,19 @@ class RentaService:
         if datos.get("estado_cliente") == "Lista Negra":
             raise ClienteEnListaNegra()
 
-        # Calcular total si no viene
         if not datos.get("total"):
             datos["total"] = FinancialService.calcular_total_renta(datos)
 
         datos["placa"] = placa
 
-        # Validar con Pydantic
         try:
             renta_validada = RentaCreate(**datos)
         except Exception as e:
             raise ValidacionError(f"Datos de renta inválidos: {str(e)}")
 
-        id_renta = RentaRepositorySA.insertar(renta_validada)
-        AutoRepositorySA.cambiar_estado(placa, "Rentado")
+        with UnitOfWork() as uow:
+            id_renta = RentaRepositorySA.insertar(renta_validada, session=uow.session)
+            AutoRepositorySA.cambiar_estado(placa, "Rentado", session=uow.session)
 
         audit.info("Renta creada: id=%s, placa=%s, cliente=%s",
                    id_renta, placa, datos.get("nombre_cliente"))
@@ -64,6 +57,7 @@ class RentaService:
 
     @staticmethod
     def cerrar(id_renta: int, datos_cierre: dict) -> float:
+        """Close a rental and mark vehicle as available (atomic)."""
         renta = RentaRepositorySA.obtener_por_id(id_renta)
 
         if renta.get("estado") == "Finalizado":
@@ -72,17 +66,28 @@ class RentaService:
         gran_total = FinancialService.calcular_total_cierre(renta, datos_cierre)
         datos_cierre["total"] = gran_total
 
-        # Crear objeto Pydantic para cierre
+        # Parse km_final to float for updating auto's kilometraje
+        km_final_str = datos_cierre.get("km_final", "")
+        km_final_float = None
+        if km_final_str:
+            try:
+                km_final_float = float(km_final_str.replace(",", ""))
+            except ValueError:
+                km_final_float = None
+        datos_cierre["km_final_float"] = km_final_float
+
         try:
             cierre_validado = RentaCierre(**datos_cierre)
         except Exception as e:
             raise ValidacionError(f"Datos de cierre inválidos: {str(e)}")
 
-        RentaRepositorySA.cerrar_renta(id_renta, cierre_validado)
-        AutoRepositorySA.cambiar_estado(
-            renta["placa"], "Disponible",
-            kilometraje=datos_cierre.get("km_final_float"),
-        )
+        with UnitOfWork() as uow:
+            RentaRepositorySA.cerrar_renta(id_renta, cierre_validado, session=uow.session)
+            AutoRepositorySA.cambiar_estado(
+                renta["placa"], "Disponible",
+                kilometraje=km_final_float,
+                session=uow.session,
+            )
 
         audit.info("Renta cerrada: id=%s, total=%.0f, placa=%s",
                    id_renta, gran_total, renta["placa"])
@@ -105,20 +110,23 @@ class RentaService:
     @staticmethod
     def cambiar_vehiculo(id_renta: int, placa_actual: str, km_actual: float,
                          estado_actual: str, placa_nueva: str, motivo: str) -> None:
-        # 1. Liberar auto anterior
-        AutoRepositorySA.cambiar_estado(placa_actual, estado_actual, km_actual)
-        # 2. Ocupar nuevo auto
-        AutoRepositorySA.cambiar_estado(placa_nueva, "Rentado")
-        # 3. Actualizar la renta
+        """Swap vehicle on an active rental (atomic: 3 operations)."""
         nota = f"\n[CAMBIO VEHÍCULO: de {placa_actual} a {placa_nueva}. Motivo: {motivo}]"
-        RentaRepositorySA.actualizar_placa(id_renta, placa_nueva, nota)
+
+        with UnitOfWork() as uow:
+            AutoRepositorySA.cambiar_estado(placa_actual, estado_actual, km_actual,
+                                            session=uow.session)
+            AutoRepositorySA.cambiar_estado(placa_nueva, "Rentado",
+                                            session=uow.session)
+            RentaRepositorySA.actualizar_placa(id_renta, placa_nueva, nota,
+                                               session=uow.session)
+
         audit.info("Cambio de vehículo renta %s: %s -> %s", id_renta, placa_actual, placa_nueva)
 
     @staticmethod
-    def obtener_datos_documento(id_renta: int) -> Dict:
+    def obtener_datos_documento(id_renta: int) -> RentaDetalleResponse:
         return RentaRepositorySA.obtener_datos_documento(id_renta)
 
     @staticmethod
-    def obtener_para_calendario(mes: int, anio: int) -> List[Dict]:
-        """Obtiene las rentas activas y reservas confirmadas para el mes y año dados."""
+    def obtener_para_calendario(mes: int, anio: int) -> List[RentaDetalleResponse]:
         return RentaRepositorySA.obtener_para_calendario(mes, anio)

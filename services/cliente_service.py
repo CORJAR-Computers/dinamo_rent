@@ -1,8 +1,5 @@
-"""
-cliente_service.py — Servicio de Clientes
+"""Client service."""
 
-Extraido de services.py como parte de F1B (Reestructuración de Services).
-"""
 from typing import List, Dict
 
 from core.exceptions import ValidacionError
@@ -41,9 +38,34 @@ class ClienteService:
 
         cliente_id = datos.get("id")
         if cliente_id:
-            update_data = ClienteUpdate(id=cliente_id, **datos)
+            datos_upd = {k: v for k, v in datos.items() if k != "id"}
+            update_data = ClienteUpdate(id=cliente_id, **datos_upd)
             ClienteRepositorySA.actualizar(update_data)
         else:
             ClienteRepositorySA.insertar(cliente_validado)
 
         audit.info("Cliente guardado: %s (%s)", datos.get("nombres"), datos.get("no_doc"))
+
+    @staticmethod
+    def obtener_opciones_geograficas() -> dict:
+        from core.config import PAISES_DEFECTO
+
+        paises_db = ClienteRepositorySA.obtener_valores_unicos("pais")
+        regiones_db = ClienteRepositorySA.obtener_valores_unicos("estado_region")
+        ciudades_db = ClienteRepositorySA.obtener_valores_unicos("ciudad")
+
+        paises_combinados = sorted(list(set(PAISES_DEFECTO + paises_db)))
+
+        return {
+            "paises": paises_combinados,
+            "regiones": regiones_db,
+            "ciudades": ciudades_db
+        }
+
+    @staticmethod
+    def obtener_regiones_por_pais(pais: str) -> List[str]:
+        return ClienteRepositorySA.obtener_regiones_por_pais(pais)
+
+    @staticmethod
+    def obtener_ciudades_por_region(pais: str, region: str) -> List[str]:
+        return ClienteRepositorySA.obtener_ciudades_por_region(pais, region)
