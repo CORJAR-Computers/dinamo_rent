@@ -61,3 +61,8 @@ build/
 # ── Testing ───────────────────────────────────────────────────────
 .coverage
 htmlcov/
+test_*.png
+test_*.jpg
+
+# ── Scripts auxiliares (no commiteables) ────────────────────────────
+nvidia.py
