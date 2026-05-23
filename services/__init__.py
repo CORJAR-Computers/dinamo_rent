@@ -1,12 +1,5 @@
-"""
-services/__init__.py — Importación centralizada de todos los servicios
+"""Centralized import of all services."""
 
-F1B: Punto de entrada único para importar servicios.
-Los archivos individuales se pueden importar directamente o desde aquí.
-
-Usage:
-    from services import AutoService, RentaService, FinancialService
-"""
 from services.auto_service import AutoService
 from services.cliente_service import ClienteService
 from services.renta_service import RentaService

@@ -10,6 +10,11 @@ F1A Changes applied:
   - ComparendoResponse: Agregado relaciones con renta/cliente
   - GastoResponse: Agregado updated_at
 
+F1C Changes applied:
+  - AutoUpdate: Agregado campo placa (identificador del registro a actualizar)
+  - ClienteUpdate: Agregado campo id (identificador del registro a actualizar)
+  - UsuarioUpdate: Agregado campo username (identificador del registro a actualizar)
+
 Usage:
     from core.schemas import UsuarioCreate, AutoSchema, RentaCreate, etc.
 """
@@ -17,7 +22,7 @@ from datetime import date, time, datetime
 from typing import Optional
 from decimal import Decimal
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 
 
 # =====================================================================
@@ -46,6 +51,7 @@ class UsuarioCreate(UsuarioBase):
 
 
 class UsuarioUpdate(BaseSchema):
+    username: str = Field(..., min_length=3, max_length=50, pattern=r'^[a-zA-Z0-9_]+$')
     nombre: Optional[str] = Field(None, max_length=100)
     rol: Optional[str] = Field(None, max_length=50)
     email: Optional[str] = Field(None, max_length=100)
@@ -99,6 +105,7 @@ class AutoCreate(AutoBase):
 
 
 class AutoUpdate(BaseSchema):
+    placa: str = Field(..., min_length=6, max_length=20, pattern=r'^[A-Z0-9]+$')
     marca: Optional[str] = Field(None, max_length=80)
     modelo: Optional[str] = Field(None, max_length=80)
     version: Optional[str] = Field(None, max_length=80)
@@ -157,14 +164,13 @@ class ClienteBase(BaseSchema):
     vencimiento_licencia: Optional[date] = None
     estado: str = Field(default='Activo', max_length=30)
 
-    @field_validator('nombre_completo')
-    @classmethod
-    def generar_nombre(cls, v: str, info) -> str:
-        if not v and info.data.get('nombres'):
-            nombres = info.data.get('nombres', '')
-            apellidos = info.data.get('apellidos', '')
-            return f"{nombres} {apellidos}".strip()
-        return v
+    @model_validator(mode='after')
+    def generar_nombre_completo(self):
+        if not self.nombre_completo and self.nombres:
+            nombres = self.nombres or ''
+            apellidos = self.apellidos or ''
+            self.nombre_completo = f"{nombres} {apellidos}".strip()
+        return self
 
 
 class ClienteCreate(ClienteBase):
@@ -172,6 +178,7 @@ class ClienteCreate(ClienteBase):
 
 
 class ClienteUpdate(BaseSchema):
+    id: int = Field(..., gt=0)
     tipo_doc: Optional[str] = Field(None, max_length=30)
     no_doc: Optional[str] = Field(None, max_length=30)
     nombres: Optional[str] = Field(None, max_length=100)
@@ -301,7 +308,7 @@ class ReservaCreate(ReservaBase):
     pass
 
 
-class ReservaUpdate(BaseSchema):                                       # NUEVO
+class ReservaUpdate(BaseSchema):
     """Schema para actualizacion parcial de reservas."""
     id_cliente: Optional[int] = Field(None, gt=0)
     nombre_cliente: Optional[str] = Field(None, max_length=200)
@@ -421,7 +428,7 @@ class PagoResponse(PagoBase):
 # =====================================================================
 
 class GastoBase(BaseSchema):
-    placa: Optional[str] = Field(None, min_length=6, max_length=20)    # NUEVO: FK a Auto
+    placa: Optional[str] = Field(None, min_length=6, max_length=20)
     fecha: date
     categoria: str = Field(..., max_length=50)
     descripcion: str = Field(..., max_length=200)
@@ -486,3 +493,120 @@ class LoginResponse(BaseSchema):
     username: str
     nombre: str
     rol: str
+
+
+# =====================================================================
+# COMPOSITE RESPONSE SCHEMAS (F1E)
+# =====================================================================
+# Schemas para tipar los retornos de los servicios compuestos.
+# Los servicios individuales (Auto, Cliente, etc.) ya usan sus *Response
+# propios. Estos son para Dashboard, Financial, RentaDocumento y
+# ComparendoRegistro que retornan estructuras compuestas.
+
+class RentaDetalleResponse(RentaBase):
+    """Respuesta extendida de Renta con campos de cierre."""
+    id: int
+    fecha_devolucion_real: Optional[date] = None
+    hora_devolucion_real: Optional[time] = None
+    km_final: Optional[str] = None
+    tanque_final: Optional[str] = None
+    created_at: datetime
+
+    # Datos del auto (si relación existe)
+    auto_marca: Optional[str] = None
+    auto_modelo: Optional[str] = None
+    auto_color: Optional[str] = None
+    auto_tipo: Optional[str] = None
+    auto_transmision: Optional[str] = None
+    auto_combustible: Optional[str] = None
+
+    # Datos del cliente (si relación existe)
+    cliente_celular: Optional[str] = None
+    cliente_email: Optional[str] = None
+    cliente_direccion: Optional[str] = None
+    cliente_no_licencia: Optional[str] = None
+    cliente_tipo_licencia: Optional[str] = None
+
+
+class KpiGlobalesResponse(BaseSchema):
+    """Respuesta de KPIs globales del Dashboard."""
+    rentas_activas: int = 0
+    autos_disponibles: int = 0
+    autos_rentados: int = 0
+    autos_mantenimiento: int = 0
+    total_flota: int = 0
+    ocupacion_flota: float = 0.0
+    ingresos_mes: float = 0.0
+    pagos_pendientes: float = 0.0
+
+
+class ResumenFinancieroResponse(BaseSchema):
+    """Respuesta del resumen financiero mensual."""
+    mes: str
+    ingresos_mes: float = 0.0
+    egresos_taller_mes: float = 0.0
+    gastos_caja_mes: float = 0.0
+    utilidad_mes: float = 0.0
+
+
+class RoiVehiculoResponse(BaseSchema):
+    """Respuesta del ROI de un vehículo individual."""
+    placa: str
+    vehiculo: str
+    ingresos: float = 0.0
+    mantenimiento: float = 0.0
+    gastos: float = 0.0
+    costos_fijos: float = 0.0
+    utilidad: float = 0.0
+    roi_pct: float = 0.0
+    equilibrio_dias: float = 0.0
+
+
+class BalanceMensualItemResponse(BaseSchema):
+    """Respuesta de un item del balance mensual."""
+    mes: str
+    ingresos: float = 0.0
+    taller: float = 0.0
+    caja_menor: float = 0.0
+    utilidad: float = 0.0
+
+
+class AlertaClienteResponse(BaseSchema):
+    """Respuesta de alerta para clientes (rentas por vencer)."""
+    titulo: str
+    cliente: str
+    celular: Optional[str] = None
+    fecha: str
+    mensaje_whatsapp: str
+
+
+class AlertaInternaResponse(BaseSchema):
+    """Respuesta de alerta interna (documentos, mantenimiento)."""
+    titulo: str
+    nivel: str = "Advertencia"
+    descripcion: str
+
+
+class AlertasResponse(BaseSchema):
+    """Respuesta consolidada de todas las alertas."""
+    clientes: list[AlertaClienteResponse] = []
+    internas: list[AlertaInternaResponse] = []
+
+
+class CalendarioItemResponse(BaseSchema):
+    """Respuesta de item del calendario (renta o reserva)."""
+    tipo: str                          # 'renta' o 'reserva'
+    id: int
+    placa: Optional[str] = None
+    cliente: Optional[str] = None
+    fecha_recogida: Optional[date] = None
+    fecha_retorno: Optional[date] = None
+    estado: str
+
+
+class ComparendoRegistroResponse(BaseSchema):
+    """Respuesta del registro de comparendo con vinculación automática."""
+    id_comparendo: int
+    vinculado: bool
+    id_renta: Optional[int] = None
+    id_cliente: Optional[int] = None

@@ -1,18 +1,21 @@
 """
-renta_repository_sa.py — Renta Repository with SQLAlchemy 2.0
+renta_repository_sa.py — Repositorio de Rentas
+
+F1C: Extraído y completado para separación de responsabilidades.
+F1D: Métodos críticos ahora aceptan parámetro `session` para soporte
+     de UnitOfWork. Si session es provisto, lo usa (transacción compartida).
+     Si no, crea su propia sesión (comportamiento original).
 """
-from typing import List, Optional, Dict
-from datetime import date, datetime
-from decimal import Decimal
+from typing import List, Dict
 
-from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, and_
+from sqlalchemy.orm import Session
 
-from core.database_sa import get_session
-from core.models import Renta, Auto, Cliente
-from core.schemas import RentaCreate, RentaCierre, RentaUpdate
+from core.models import Renta, Reserva
+from core.schemas import RentaCreate, RentaCierre
 from core.exceptions import RegistroNoEncontrado
 from core.logger import get_logger
+from core.unit_of_work import session_scope
 
 log = get_logger(__name__)
 
@@ -20,77 +23,15 @@ log = get_logger(__name__)
 class RentaRepositorySA:
 
     @staticmethod
-    def obtener_activas() -> List[Dict]:
-        with get_session() as session:
-            rentas = session.query(Renta).filter(
-                Renta.estado == 'Activo'
-            ).order_by(Renta.fecha_retorno).all()
-            return [RentaRepositorySA._to_dict(r) for r in rentas]
+    def insertar(datos: RentaCreate, session: Session = None) -> int:
+        """Inserta una nueva renta. Retorna el ID.
 
-    @staticmethod
-    def obtener_por_id(id_renta: int) -> Optional[Dict]:
-        with get_session() as session:
-            renta = session.query(Renta).filter(Renta.id == id_renta).first()
-            
-            if not renta:
-                raise RegistroNoEncontrado(f"Renta #{id_renta} no encontrada.")
-            
-            return RentaRepositorySA._to_dict(renta)
-
-    @staticmethod
-    def obtener_para_calendario(mes: int, anio: int) -> List[Dict]:
-        from core.models import Reserva
-        
-        fecha_ini = date(anio, mes, 1)
-        if mes == 12:
-            fecha_fin = date(anio + 1, 1, 1)
-        else:
-            fecha_fin = date(anio, mes + 1, 1)
-        
-        with get_session() as session:
-            # Rentas activas
-            rentas = session.query(Renta).filter(
-                and_(
-                    Renta.estado == 'Activo',
-                    Renta.fecha_recogida < fecha_fin,
-                    Renta.fecha_retorno >= fecha_ini
-                )
-            ).all()
-            
-            resultados = []
-            for r in rentas:
-                resultados.append({
-                    'placa': r.placa,
-                    'fecha_recogida': r.fecha_recogida,
-                    'fecha_retorno': r.fecha_retorno,
-                    'tipo': 'Renta',
-                    'nombre_cliente': r.nombre_cliente,
-                })
-            
-            # Reservas confirmadas
-            reservas = session.query(Reserva).filter(
-                and_(
-                    Reserva.estado == 'Confirmada',
-                    Reserva.placa_asignada.isnot(None),
-                    Reserva.fecha_recogida < fecha_fin,
-                    Reserva.fecha_retorno >= fecha_ini
-                )
-            ).all()
-            
-            for r in reservas:
-                resultados.append({
-                    'placa': r.placa_asignada,
-                    'fecha_recogida': r.fecha_recogida,
-                    'fecha_retorno': r.fecha_retorno,
-                    'tipo': 'Reserva',
-                    'nombre_cliente': r.nombre_cliente,
-                })
-            
-            return resultados
-
-    @staticmethod
-    def insertar(datos: RentaCreate) -> int:
-        with get_session() as session:
+        Args:
+            datos: Datos validados de la renta (Pydantic RentaCreate)
+            session: Sesión de UnitOfWork (opcional). Si no se pasa,
+                     crea su propia sesión con commit automático.
+        """
+        with session_scope(session) as s:
             nueva_renta = Renta(
                 placa=datos.placa.upper(),
                 id_cliente=datos.id_cliente,
@@ -126,147 +67,202 @@ class RentaRepositorySA:
                 tanque_salida=datos.tanque_salida,
                 id_reserva=datos.id_reserva,
             )
-            
-            session.add(nueva_renta)
-            session.flush()
-            log.info("Renta creada: id=%s, placa=%s, cliente=%s", 
+            s.add(nueva_renta)
+            s.flush()
+            log.info("Renta creada: id=%s, placa=%s, cliente=%s",
                      nueva_renta.id, datos.placa, datos.nombre_cliente)
             return nueva_renta.id
 
     @staticmethod
-    def cerrar_renta(id_renta: int, datos_cierre: RentaCierre) -> None:
-        with get_session() as session:
-            renta = session.query(Renta).filter(Renta.id == id_renta).first()
-            
+    def obtener_por_id(id_renta: int, session: Session = None) -> Dict:
+        """Obtiene una renta por su ID."""
+        with session_scope(session) as s:
+            renta = s.query(Renta).filter(Renta.id == id_renta).first()
             if not renta:
                 raise RegistroNoEncontrado(f"Renta #{id_renta} no encontrada.")
-            
+            return RentaRepositorySA._to_dict(renta)
+
+    @staticmethod
+    def obtener_activas(session: Session = None) -> List[Dict]:
+        """Obtiene todas las rentas con estado 'Activo'."""
+        with session_scope(session) as s:
+            rentas = s.query(Renta).filter(
+                Renta.estado == 'Activo'
+            ).order_by(Renta.fecha_recogida.desc()).all()
+            return [RentaRepositorySA._to_dict(r) for r in rentas]
+
+    @staticmethod
+    def obtener_activas_filtradas(filtro: str, session: Session = None) -> List[Dict]:
+        """Obtiene rentas activas aplicando filtros de fecha directamente en la BD."""
+        from datetime import date, timedelta
+        with session_scope(session) as s:
+            query = s.query(Renta).filter(Renta.estado == 'Activo')
+            hoy = date.today()
+
+            if filtro == "Vencen Hoy":
+                query = query.filter(func.date(Renta.fecha_retorno) == hoy)
+            elif filtro == "Retrasadas (Vencidas)":
+                query = query.filter(func.date(Renta.fecha_retorno) < hoy)
+            elif filtro == "Entregas de Mañana":
+                manana = hoy + timedelta(days=1)
+                query = query.filter(func.date(Renta.fecha_retorno) == manana)
+
+            rentas = query.order_by(Renta.fecha_recogida.desc()).all()
+            return [RentaRepositorySA._to_dict(r) for r in rentas]
+
+    @staticmethod
+    def cerrar_renta(id_renta: int, datos_cierre: RentaCierre, session: Session = None) -> None:
+        """Cierra una renta registrando la devolución.
+
+        Args:
+            id_renta: ID de la renta a cerrar
+            datos_cierre: Datos del cierre validados (Pydantic RentaCierre)
+            session: Sesión de UnitOfWork (opcional)
+        """
+        with session_scope(session) as s:
+            renta = s.query(Renta).filter(Renta.id == id_renta).first()
+            if not renta:
+                raise RegistroNoEncontrado(f"Renta #{id_renta} no encontrada.")
+
             renta.estado = 'Finalizado'
             renta.fecha_devolucion_real = datos_cierre.fecha_devolucion_real
             renta.hora_devolucion_real = datos_cierre.hora_devolucion_real
             renta.km_final = datos_cierre.km_final
             renta.tanque_final = datos_cierre.tanque_final
-            renta.total = datos_cierre.total
-            renta.observaciones = (renta.observaciones or '') + '\n' + datos_cierre.nota_cierre
-            
-            log.info("Renta #%s cerrada. Total: %s", id_renta, datos_cierre.total)
+
+            # Agregar nota de cierre a observaciones
+            nota = datos_cierre.nota_cierre or ''
+            if nota:
+                obs_previas = renta.observaciones or ''
+                renta.observaciones = f"{obs_previas}\n{nota}".strip() if obs_previas else nota
+
+            # Agregar otros cobros al total
+            otros = float(datos_cierre.otros_cobros or 0)
+            if otros > 0:
+                renta.total = float(renta.total or 0) + otros
+                renta.saldo_pendiente = max(0, float(renta.total or 0) - float(renta.abono or 0))
+
+            log.info("Renta cerrada: id=%s", id_renta)
 
     @staticmethod
-    def extender(id_renta: int, nueva_fecha: date, nueva_hora: datetime, 
-                 nuevos_dias: int, nuevo_total: Decimal, nuevo_saldo: Decimal) -> None:
-        with get_session() as session:
-            renta = session.query(Renta).filter(Renta.id == id_renta).first()
-            
+    def extender(id_renta: int, nueva_fecha: str, nueva_hora: str,
+                 nuevos_dias: int, nuevo_total: float, nuevo_saldo: float,
+                 session: Session = None) -> None:
+        """Extiende una renta activa con nueva fecha de retorno."""
+        with session_scope(session) as s:
+            renta = s.query(Renta).filter(Renta.id == id_renta).first()
             if not renta:
                 raise RegistroNoEncontrado(f"Renta #{id_renta} no encontrada.")
-            
+
             renta.fecha_retorno = nueva_fecha
             renta.hora_retorno = nueva_hora
             renta.dias_calculados = nuevos_dias
             renta.total = nuevo_total
             renta.saldo_pendiente = nuevo_saldo
-            
-            log.info("Renta #%s extendida hasta %s", id_renta, nueva_fecha)
+
+            log.info("Renta extendida: id=%s, nueva fecha=%s", id_renta, nueva_fecha)
 
     @staticmethod
-    def obtener_datos_documento(id_renta: int) -> Dict:
-        with get_session() as session:
-            renta = session.query(Renta).options(
-                joinedload(Renta.auto_rel),
-                joinedload(Renta.cliente_rel)
-            ).filter(Renta.id == id_renta).first()
-            
-            if not renta:
-                raise RegistroNoEncontrado(f"No se pudo generar documento para la renta #{id_renta}")
-            
-            data = RentaRepositorySA._to_dict(renta)
-            
-            # Add auto data
-            if renta.auto_rel:
-                data.update({
-                    'auto_marca': renta.auto_rel.marca,
-                    'auto_modelo': renta.auto_rel.modelo,
-                    'auto_color': renta.auto_rel.color,
-                    'auto_tipo': renta.auto_rel.tipo,
-                    'auto_combustible': renta.auto_rel.combustible,
-                    'auto_cilindraje': renta.auto_rel.cilindraje,
-                    'auto_version': renta.auto_rel.version,
-                    'auto_placa': renta.auto_rel.placa,
-                })
-            
-            # Add cliente data
-            if renta.cliente_rel:
-                data.update({
-                    'documento_cliente': renta.cliente_rel.no_doc,
-                    'direccion': renta.cliente_rel.dir_residencia,
-                    'celular': renta.cliente_rel.celular,
-                    'email': renta.cliente_rel.email,
-                    'licencia_numero': renta.cliente_rel.no_licencia,
-                    'tipo_licencia': renta.cliente_rel.tipo_licencia,
-                })
-            
-            return data
+    def actualizar_placa(id_renta: int, placa_nueva: str, nota: str,
+                         session: Session = None) -> None:
+        """Actualiza la placa del vehículo asignado a una renta.
 
-    @staticmethod
-    def actualizar_placa(id_renta: int, nueva_placa: str, nota: str) -> None:
-        with get_session() as session:
-            renta = session.query(Renta).filter(Renta.id == id_renta).first()
-            
+        Args:
+            id_renta: ID de la renta
+            placa_nueva: Nueva placa a asignar
+            nota: Nota de cambio para agregar a observaciones
+            session: Sesión de UnitOfWork (opcional)
+        """
+        with session_scope(session) as s:
+            renta = s.query(Renta).filter(Renta.id == id_renta).first()
             if not renta:
                 raise RegistroNoEncontrado(f"Renta #{id_renta} no encontrada.")
-            
-            renta.placa = nueva_placa.upper()
-            renta.observaciones = (renta.observaciones or '') + '\n' + nota
+
+            renta.placa = placa_nueva.upper()
+            obs_previas = renta.observaciones or ''
+            renta.observaciones = f"{obs_previas}\n{nota}".strip() if obs_previas else nota
+
+            log.info("Renta %s: placa actualizada a %s", id_renta, placa_nueva)
 
     @staticmethod
-    def kpi_globales() -> Dict:
-        with get_session() as session:
-            total = session.query(func.count(Renta.id)).scalar()
-            activas = session.query(func.count(Renta.id)).filter(Renta.estado == 'Activo').scalar()
-            ingresos = session.query(func.coalesce(func.sum(Renta.total), 0)).scalar()
-            
-            return {
-                'total_rentas': total,
-                'rentas_activas': activas,
-                'ingresos_totales': float(ingresos),
-            }
+    def obtener_datos_documento(id_renta: int, session: Session = None) -> Dict:
+        """
+        Obtiene los datos completos de una renta para generar documentos (contratos, recibos).
+        Incluye datos del cliente y vehículo via JOIN.
+        """
+        with session_scope(session) as s:
+            renta = s.query(Renta).filter(Renta.id == id_renta).first()
+            if not renta:
+                raise RegistroNoEncontrado(f"Renta #{id_renta} no encontrada.")
+
+            resultado = RentaRepositorySA._to_dict(renta)
+
+            # Agregar datos del auto si existe la relación
+            if renta.auto_rel:
+                auto = renta.auto_rel
+                resultado['auto_marca'] = auto.marca
+                resultado['auto_modelo'] = auto.modelo
+                resultado['auto_color'] = auto.color
+                resultado['auto_tipo'] = auto.tipo
+                resultado['auto_transmision'] = auto.transmision
+                resultado['auto_combustible'] = auto.combustible
+
+            # Agregar datos del cliente si existe la relación
+            if renta.cliente_rel:
+                cliente = renta.cliente_rel
+                resultado['cliente_celular'] = cliente.celular
+                resultado['cliente_email'] = cliente.email
+                resultado['cliente_direccion'] = cliente.dir_residencia or cliente.dir_temporal
+                resultado['cliente_no_licencia'] = cliente.no_licencia
+                resultado['cliente_tipo_licencia'] = cliente.tipo_licencia
+
+            return resultado
 
     @staticmethod
-    def balance_mensual() -> Dict:
-        with get_session() as session:
-            from core.models import MantenimientoVehiculo
-            
-            # Ingresos por mes
-            ingresos_query = session.query(
-                func.date_format(Renta.fecha_recogida, '%Y-%m').label('mes'),
-                func.sum(Renta.total).label('total')
-            ).filter(
-                Renta.estado != 'Cancelado'
-            ).group_by('mes').all()
-            
-            ingresos = {row.mes: float(row.total or 0) for row in ingresos_query}
-            
-            # Egresos (mantenimiento) por mes
-            egresos_query = session.query(
-                func.date_format(MantenimientoVehiculo.created_at, '%Y-%m').label('mes'),
-                func.sum(MantenimientoVehiculo.total_mantenimiento).label('total')
-            ).group_by('mes').all()
-            
-            egresos = {row.mes: float(row.total or 0) for row in egresos_query}
-            
-            # Autos con costo fijo
-            autos = session.query(Auto).filter(Auto.costo_fijo_mensual > 0).all()
-            autos_data = [{
-                'placa': a.placa,
-                'costo_fijo_mensual': float(a.costo_fijo_mensual or 0),
-                'fecha_real': a.fecha_ingreso or a.created_at,
-            } for a in autos]
-            
-            return {
-                'ingresos': ingresos,
-                'egresos': egresos,
-                'autos': autos_data,
-            }
+    def obtener_para_calendario(mes: int, anio: int, session: Session = None) -> List[Dict]:
+        """Obtiene rentas activas y reservas para mostrar en el calendario del mes dado."""
+        with session_scope(session) as s:
+            # Rentas activas del mes
+            rentas = s.query(Renta).filter(
+                and_(
+                    Renta.estado == 'Activo',
+                    func.month(Renta.fecha_recogida) == mes,
+                    func.year(Renta.fecha_recogida) == anio,
+                )
+            ).all()
+
+            # Reservas confirmadas del mes
+            reservas = s.query(Reserva).filter(
+                and_(
+                    Reserva.estado == 'Confirmada',
+                    func.month(Reserva.fecha_recogida) == mes,
+                    func.year(Reserva.fecha_recogida) == anio,
+                )
+            ).all()
+
+            resultado = []
+            for r in rentas:
+                resultado.append({
+                    'tipo': 'renta',
+                    'id': r.id,
+                    'placa': r.placa,
+                    'cliente': r.nombre_cliente,
+                    'fecha_recogida': r.fecha_recogida,
+                    'fecha_retorno': r.fecha_retorno,
+                    'estado': r.estado,
+                })
+            for rv in reservas:
+                resultado.append({
+                    'tipo': 'reserva',
+                    'id': rv.id,
+                    'placa': rv.placa_asignada,
+                    'cliente': rv.nombre_cliente,
+                    'fecha_recogida': rv.fecha_recogida,
+                    'fecha_retorno': rv.fecha_retorno,
+                    'estado': rv.estado,
+                })
+
+            return resultado
 
     @staticmethod
     def _to_dict(renta: Renta) -> Dict:
@@ -306,7 +302,7 @@ class RentaRepositorySA:
             'hora_devolucion_real': renta.hora_devolucion_real,
             'km_final': renta.km_final,
             'tanque_final': renta.tanque_final,
-            'km_salida': renta.km_salida,
+            'km_salida': float(renta.km_salida or 0),
             'tanque_salida': renta.tanque_salida,
             'id_reserva': renta.id_reserva,
             'created_at': renta.created_at,

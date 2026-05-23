@@ -1,164 +1,159 @@
+from views.components import ModernMessageBox
 """
 views/gastos_view.py — Vista para el registro de Caja Menor y Egresos Operativos.
+
+Mejoras UI/UX:
+  - Hereda de BaseWidget
+  - Sin estilos inline — todo por QSS (cssClass)
+  - Sin emojis en labels/botones
+  - Colores desde config.py
+  - Font bold corregido
+  - Usa QGroupBox en vez de QFrame con inline styles
 """
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QTableWidget, QTableWidgetItem,
-    QPushButton, QHeaderView, QLabel, QComboBox, QMessageBox,
-    QDateEdit, QDoubleSpinBox, QGroupBox, QLineEdit, QAbstractItemView, QSizePolicy,
-    QFrame
+    QVBoxLayout, QGridLayout, QTableWidget, QTableWidgetItem,
+    QPushButton, QHeaderView, QLabel, QComboBox,
+    QDateEdit, QDoubleSpinBox, QGroupBox, QLineEdit, QAbstractItemView, QWidget,
 )
-from PySide6.QtCore import Qt, QDate
-from PySide6.QtGui import QColor, QBrush
+from PySide6.QtCore import QDate
+from PySide6.QtGui import QColor, QBrush, QFont
 
-from services.services_extra import GastoService
+from core.config import COLOR_PELIGRO
+from services.gasto_service import GastoService
 from core.exceptions import DinamoBaseError
+from views.base_widget import BaseWidget
+from views.styles import btn_danger, lbl_section, group_box, input_date, input_spinbox, input_field, input_combo, table_widget
+
+# ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
+_NAV   = "#1a3558"
+_BLUE  = "#2563eb"
+_BG    = "#f1f5f9"
+_SURF  = "#ffffff"
+_BORD  = "#cbd5e1"
+_TEXT  = "#1e293b"
+_MUTED = "#64748b"
 
 
-class GastosWidget(QWidget):
-    def __init__(self):
-        super().__init__()
+class GastosWidget(BaseWidget):
+    """Panel de Control de Gastos y Caja Menor."""
+
+    def __init__(self, session_id: str = None):
+        super().__init__(session_id=session_id)
         self._setup_ui()
         self.cargar_datos()
 
     def _setup_ui(self):
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(12)
+        self.setStyleSheet(f"QWidget {{ background: {_BG}; }} QLabel {{ color: {_TEXT}; }}")
 
-        # --- CABECERA ---
-        top = QHBoxLayout()
-        lbl_titulo = QLabel("💸 Control de Gastos y Caja Menor")
-        lbl_titulo.setStyleSheet("font-size: 20px; font-weight: bold;")
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
 
-        btn_ref = QPushButton("Actualizar Lista")
-        btn_ref.clicked.connect(self.cargar_datos)
+        from views.layouts.form_helpers import create_banner
+        banner = create_banner("💸", "Control de Gastos y Caja Menor", "Registro de Egresos Operativos y de Oficina", self.cargar_datos)
+        main_layout.addWidget(banner)
 
-        top.addWidget(lbl_titulo)
-        top.addStretch()
-        top.addWidget(btn_ref)
-        layout.addLayout(top)
+        content = QWidget()
+        content.setStyleSheet(f"QWidget {{ background: {_BG}; }}")
+        c_lay = QVBoxLayout(content)
+        c_lay.setContentsMargins(20, 16, 20, 16)
+        c_lay.setSpacing(14)
+        main_layout.addWidget(content, stretch=1)
 
-        # --- FORMULARIO NUEVO GASTO (CON ENCABEZADO PERSONALIZADO) ---
-        # SOLUCIÓN: Usar un contenedor con borde en lugar de QGroupBox con título
-        contenedor_form = QFrame()
-        contenedor_form.setFrameShape(QFrame.Shape.StyledPanel)
-        contenedor_form.setFrameShadow(QFrame.Shadow.Plain)
-        contenedor_form.setStyleSheet("""
-            QFrame {
-                border: 1px solid #c0c0c0;
-                border-radius: 6px;
-                background-color: #f8f9fa;
-            }
-        """)
-
-        # Layout vertical para el título + grid
-        contenedor_layout = QVBoxLayout(contenedor_form)
-        contenedor_layout.setContentsMargins(0, 0, 0, 0)
-        contenedor_layout.setSpacing(0)
-
-        # --- TÍTULO PERSONALIZADO (reemplaza el título del QGroupBox) ---
-        lbl_subtitulo = QLabel("➕ Registrar nuevo Gasto")
-        lbl_subtitulo.setStyleSheet("""
-            font-weight: bold;
-            font-size: 13px;
-            color: #1565c0;
-            padding: 10px 15px 5px 15px;
-            background-color: transparent;
-        """)
-        contenedor_layout.addWidget(lbl_subtitulo)
-
-        # --- GRID CON LOS CAMPOS ---
-        grid_widget = QWidget()
-        grid = QGridLayout(grid_widget)
-        grid.setContentsMargins(15, 10, 15, 15)
-        grid.setHorizontalSpacing(0)
+        # ── Formulario nuevo gasto ──
+        gb_form = QGroupBox("Registrar Nuevo Gasto")
+        group_box(gb_form)
+        grid = QGridLayout()
+        grid.setHorizontalSpacing(20)
         grid.setVerticalSpacing(10)
 
-        # --- Widgets ---
+        # Widgets del formulario
         self.d_fecha = QDateEdit(QDate.currentDate())
         self.d_fecha.setCalendarPopup(True)
         self.d_fecha.setMinimumHeight(32)
+        input_date(self.d_fecha)
 
         self.sp_monto = QDoubleSpinBox()
         self.sp_monto.setRange(1, 100_000_000)
         self.sp_monto.setPrefix("$ ")
         self.sp_monto.setMinimumHeight(32)
+        input_spinbox(self.sp_monto)
 
         self.txt_comp = QLineEdit()
-        self.txt_comp.setPlaceholderText("Nº Factura/Recibo (Opcional)")
+        self.txt_comp.setPlaceholderText("N Factura/Recibo (Opcional)")
         self.txt_comp.setMinimumHeight(32)
+        input_field(self.txt_comp)
 
         self.cmb_categoria = QComboBox()
         self.cmb_categoria.setMinimumHeight(32)
+        input_combo(self.cmb_categoria)
         self.cmb_categoria.addItems([
             "Lavadero y Aseo",
             "Parqueadero / Peajes",
             "Mantenimiento Menor",
-            "Papelería y Oficina",
+            "Papeleria y Oficina",
             "Servicios e Internet",
             "Impuestos y Seguros",
-            "Nómina / Comisiones",
-            "Otros"
+            "Nomina / Comisiones",
+            "Otros",
         ])
 
         self.txt_desc = QLineEdit()
-        self.txt_desc.setPlaceholderText("Ej: Lavado del vehículo ABC-123")
+        self.txt_desc.setPlaceholderText("Ej: Lavado del vehiculo ABC-123")
         self.txt_desc.setMinimumHeight(32)
+        input_field(self.txt_desc)
 
-        btn_save = QPushButton("💾  Registrar Salida de Dinero")
+        btn_save = QPushButton("Registrar Salida de Dinero")
+        btn_danger(btn_save)
         btn_save.setMinimumHeight(36)
-        btn_save.setProperty("cssClass", "danger")
-        btn_save.clicked.connect(self.guardar)
+        btn_save.clicked.connect(self._guardar)
 
-        # --- Colocar widgets en el grid ---
-        # col 0 = Fecha/Categoria | col 1 = separador | col 2 = Monto/Desc | col 3 = separador | col 4 = Comp/Botón
+        # Colocar widgets en el grid
+        # Fila 0: Labels
+        grid.addWidget(QLabel("Fecha:"),       0, 0)
+        grid.addWidget(QLabel("Monto:"),       0, 1)
+        grid.addWidget(QLabel("Comprobante:"), 0, 2)
 
-        # Etiquetas fila 0
-        grid.addWidget(QLabel("Fecha:"),        0, 0, Qt.AlignmentFlag.AlignLeft)
-        grid.addWidget(QLabel("Monto Pagado:"), 0, 2, Qt.AlignmentFlag.AlignLeft)
-        grid.addWidget(QLabel("Comprobante:"),  0, 4, Qt.AlignmentFlag.AlignLeft)
+        # Fila 1: Campos
+        grid.addWidget(self.d_fecha,    1, 0)
+        grid.addWidget(self.sp_monto,   1, 1)
+        grid.addWidget(self.txt_comp,   1, 2)
 
-        # Campos fila 1
-        grid.addWidget(self.d_fecha,   1, 0)
-        grid.addWidget(self.sp_monto,  1, 2)
-        grid.addWidget(self.txt_comp,  1, 4)
+        # Fila 2: Labels
+        grid.addWidget(QLabel("Categoria:"),    2, 0)
+        grid.addWidget(QLabel("Descripcion:"),  2, 1)
 
-        # Etiquetas fila 2
-        grid.addWidget(QLabel("Categoría:"),   2, 0, Qt.AlignmentFlag.AlignLeft)
-        grid.addWidget(QLabel("Descripción:"), 2, 2, Qt.AlignmentFlag.AlignLeft)
-
-        # Campos fila 3
+        # Fila 3: Campos + boton
         grid.addWidget(self.cmb_categoria, 3, 0)
-        grid.addWidget(self.txt_desc,      3, 2)
-        grid.addWidget(btn_save,           3, 4)
+        grid.addWidget(self.txt_desc,      3, 1)
+        grid.addWidget(btn_save,           3, 2)
 
-        # Columnas separadoras de 20px
-        grid.setColumnMinimumWidth(1, 20)
-        grid.setColumnMinimumWidth(3, 20)
-
-        # Stretch de columnas de contenido
+        # Stretch de columnas
         grid.setColumnStretch(0, 2)
-        grid.setColumnStretch(2, 3)
-        grid.setColumnStretch(4, 2)
+        grid.setColumnStretch(1, 3)
+        grid.setColumnStretch(2, 2)
 
-        contenedor_layout.addWidget(grid_widget)
-        layout.addWidget(contenedor_form)
+        gb_form.setLayout(grid)
+        c_lay.addWidget(gb_form)
 
-        # --- TABLA DE HISTORIAL ---
+        # ── Tabla historial ──
         lbl_hist = QLabel("Historial de Gastos Recientes")
-        lbl_hist.setStyleSheet("font-weight: bold; font-size: 13px;")
-        layout.addWidget(lbl_hist)
+        lbl_section(lbl_hist)
+        c_lay.addWidget(lbl_hist)
 
         self.tbl = QTableWidget()
-        cols = ["ID", "Fecha", "Categoría", "Descripción", "Comprobante", "Monto"]
+        self.tbl.setAlternatingRowColors(True)
+        table_widget(self.tbl)
+        cols = ["ID", "Fecha", "Categoria", "Descripcion", "Comprobante", "Monto"]
         self.tbl.setColumnCount(len(cols))
         self.tbl.setHorizontalHeaderLabels(cols)
         self.tbl.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.tbl.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tbl.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.tbl.verticalHeader().setVisible(False)
-        self.tbl.setAlternatingRowColors(True)
-        layout.addWidget(self.tbl)
+        c_lay.addWidget(self.tbl)
+
+    # ── Carga de datos ─────────────────────────────────────────
 
     def cargar_datos(self):
         self.tbl.setRowCount(0)
@@ -166,39 +161,47 @@ class GastosWidget(QWidget):
             gastos = GastoService.listar_recientes()
             for i, g in enumerate(gastos):
                 self.tbl.insertRow(i)
-                monto = float(g.get('monto', 0))
+                monto = float(g.get("monto", 0))
 
-                self.tbl.setItem(i, 0, QTableWidgetItem(str(g.get('id', ''))))
-                self.tbl.setItem(i, 1, QTableWidgetItem(str(g.get('fecha', ''))))
-                self.tbl.setItem(i, 2, QTableWidgetItem(str(g.get('categoria', ''))))
-                self.tbl.setItem(i, 3, QTableWidgetItem(str(g.get('descripcion', ''))))
-                self.tbl.setItem(i, 4, QTableWidgetItem(str(g.get('comprobante', ''))))
+                self.tbl.setItem(i, 0, QTableWidgetItem(str(g.get("id", ""))))
+                self.tbl.setItem(i, 1, QTableWidgetItem(str(g.get("fecha", ""))))
+                self.tbl.setItem(i, 2, QTableWidgetItem(str(g.get("categoria", ""))))
+                self.tbl.setItem(i, 3, QTableWidgetItem(str(g.get("descripcion", ""))))
+                self.tbl.setItem(i, 4, QTableWidgetItem(str(g.get("comprobante", ""))))
 
+                # Monto en rojo y negrita
                 it_monto = QTableWidgetItem(f"$ {monto:,.0f}")
-                it_monto.setForeground(QBrush(QColor("#c62828")))
-                font = it_monto.font()
-                font.setBold(True)
-                it_monto.setFont(font)
+                it_monto.setForeground(QBrush(QColor(COLOR_PELIGRO)))
+                fnt = QFont(it_monto.font())
+                fnt.setBold(True)
+                it_monto.setFont(fnt)
                 self.tbl.setItem(i, 5, it_monto)
 
         except DinamoBaseError as e:
-            QMessageBox.warning(self, "Error", str(e))
+            self.mostrar_error(str(e))
 
-    def guardar(self):
+    # ── Guardar ────────────────────────────────────────────────
+
+    def _guardar(self):
         datos = {
-            "fecha": self.d_fecha.date().toString("yyyy-MM-dd"),
-            "categoria": self.cmb_categoria.currentText(),
-            "monto": self.sp_monto.value(),
-            "descripcion": self.txt_desc.text().strip(),
-            "comprobante": self.txt_comp.text().strip()
+            "fecha":        self.d_fecha.date().toString("yyyy-MM-dd"),
+            "categoria":    self.cmb_categoria.currentText(),
+            "monto":        self.sp_monto.value(),
+            "descripcion":  self.txt_desc.text().strip(),
+            "comprobante":  self.txt_comp.text().strip(),
         }
 
         if not datos["descripcion"]:
-            return QMessageBox.warning(self, "Faltan datos", "Por favor ingrese una descripción del gasto.")
+            ModernMessageBox.warning(
+                self, "Faltan datos",
+                "Por favor ingrese una descripcion del gasto."
+            )
+            self.txt_desc.setFocus()
+            return
 
         try:
             GastoService.registrar(datos)
-            QMessageBox.information(self, "Éxito", "Gasto registrado correctamente en caja.")
+            self.mostrar_exito("Gasto registrado correctamente en caja.")
 
             self.txt_desc.clear()
             self.txt_comp.clear()
@@ -206,4 +209,4 @@ class GastosWidget(QWidget):
 
             self.cargar_datos()
         except DinamoBaseError as e:
-            QMessageBox.critical(self, "Error", str(e))
+            self.mostrar_error(str(e))

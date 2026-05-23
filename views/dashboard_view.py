@@ -1,203 +1,299 @@
 """
-dashboard_view.py — Panel principal / Dashboard
-
-Solo construye la UI y llama a los servicios para obtener datos operativos.
+dashboard_view.py — Panel principal / Dashboard (Tema: Dinamo Pro)
 """
 from datetime import datetime
 
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QTableWidgetItem, QHeaderView, QScrollArea, QAbstractItemView,
-    QMessageBox, QComboBox, QPushButton
+    QTableWidgetItem, QComboBox, QTableWidget, QWidget,
 )
-from PySide6.QtCore import Qt, QDate
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QBrush, QFont
 
-from core.config import COLOR_PRIMARIO
 from services.dashboard_service import DashboardService
 from services.auto_service import AutoService
 from views.base_widget import BaseWidget
+import views.styles as styles
+from core.config import (
+    COLOR_EXITO, COLOR_PRIMARIO, COLOR_ALERTA, COLOR_PELIGRO
+)
 
-_ESTILO_TARJETA = """
-    QFrame { background-color: white; border-radius: 10px; border: 1px solid #e0e0e0; }
-    QFrame:hover { border: 1px solid #b0bec5; }
+# ── Paleta coherente con clientes_view ────────────────────────────────
+_NAV   = "#1a3558"
+_BLUE  = "#2563eb"
+_BG    = "#f1f5f9"
+_SURF  = "#ffffff"
+_BORD  = "#cbd5e1"
+_TEXT  = "#1e293b"
+_MUTED = "#64748b"
+
+_DASH_STYLE = f"""
+QWidget {{
+    font-family: 'Segoe UI', sans-serif;
+}}
+QFrame[dashcard="true"] {{
+    background: {_SURF};
+    border: 1px solid {_BORD};
+    border-radius: 10px;
+}}
+QLabel {{
+    color: {_TEXT};
+}}
+QComboBox {{
+    border: 1px solid {_BORD};
+    border-radius: 6px;
+    padding: 5px 10px;
+    background: {_SURF};
+    color: {_TEXT};
+    font-size: 9pt;
+    min-height: 28px;
+}}
+QComboBox::drop-down {{
+    border: none;
+    padding-right: 8px;
+}}
+QComboBox:focus {{
+    border-color: {_BLUE};
+}}
 """
 
-class _KpiCard(QFrame):
-    def __init__(self, titulo: str, color: str, icono: str = "📊"):
-        super().__init__()
-        self.setStyleSheet(f"""
-            QFrame {{
-                background-color: white; border-radius: 12px;
-                border-left: 6px solid {color};
-                border-right: 1px solid #e0e0e0;
-                border-top: 1px solid #e0e0e0;
-                border-bottom: 1px solid #e0e0e0;
-            }}
-        """)
-        self.setFixedHeight(110)
-        lay = QVBoxLayout(self)
-        lay.setContentsMargins(20, 15, 20, 15)
 
-        h = QHBoxLayout()
-        lbl_t = QLabel(titulo.upper())
-        lbl_t.setStyleSheet("color:#78909c;font-size:11px;font-weight:bold;letter-spacing:1px;border:none;")
-        lbl_i = QLabel(icono)
-        lbl_i.setStyleSheet("font-size:20px;border:none;background:transparent;")
-        h.addWidget(lbl_t); h.addStretch(); h.addWidget(lbl_i)
+class _KpiCard(QFrame):
+    """Tarjeta KPI con banda de gradiente superior y valor prominente."""
+
+    def __init__(self, titulo: str, icono: str, color: str, color_end: str = ""):
+        super().__init__()
+        self.setProperty("dashcard", "true")
+        color_end = color_end or color
+        self.setMinimumHeight(110)
+        self.setMaximumHeight(130)
+
+        root = QVBoxLayout(self)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(0)
+
+        # ── Banda superior con gradiente de color ──
+        banner = QWidget()
+        banner.setFixedHeight(6)
+        banner.setStyleSheet(f"""
+            background: qlineargradient(x1:0,y1:0,x2:1,y2:0,
+                stop:0 {color}, stop:1 {color_end});
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        """)
+        root.addWidget(banner)
+
+        # ── Cuerpo del card ──
+        body = QWidget()
+        body.setStyleSheet("QWidget { background: transparent; }")
+        body_lay = QHBoxLayout(body)
+        body_lay.setContentsMargins(18, 12, 18, 14)
+        body_lay.setSpacing(12)
+
+        # Columna izquierda: texto
+        left = QVBoxLayout()
+        left.setSpacing(4)
+
+        lbl_titulo = QLabel(titulo.upper())
+        lbl_titulo.setStyleSheet(
+            f"QLabel {{ font-size:8.5pt; font-weight:700; color:{_MUTED}; letter-spacing:0.8px; }}"
+        )
 
         self.lbl_valor = QLabel("—")
         self.lbl_valor.setStyleSheet(
-            f"color:{color};font-size:32px;font-weight:bold;border:none;"
+            f"QLabel {{ color:{color}; font-size:30pt; font-weight:700; letter-spacing:-1px; }}"
         )
-        self.lbl_valor.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
-        lay.addLayout(h)
-        lay.addWidget(self.lbl_valor)
+        left.addWidget(lbl_titulo)
+        left.addWidget(self.lbl_valor)
+        left.addStretch()
+        body_lay.addLayout(left, stretch=1)
+
+        # Icono decorativo derecho
+        lbl_ico = QLabel(icono)
+        lbl_ico.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lbl_ico.setFixedSize(44, 44)
+        lbl_ico.setStyleSheet(f"""
+            QLabel {{
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:1,
+                    stop:0 {color}22, stop:1 {color}44);
+                border-radius: 22px;
+                font-size: 20px;
+            }}
+        """)
+        body_lay.addWidget(lbl_ico)
+
+        root.addWidget(body)
 
     def set_value(self, v: str):
         self.lbl_valor.setText(v)
 
 
-class DashboardWidget(BaseWidget):
-    """Panel general con KPIs operativos, alertas y rentas con filtros."""
+def _section_header(texto: str, icono: str = "") -> QWidget:
+    """Encabezado de sección con línea de acento izquierda y gradiente."""
+    w = QWidget()
+    w.setStyleSheet("QWidget { background: transparent; }")
+    lay = QHBoxLayout(w)
+    lay.setContentsMargins(0, 0, 0, 8)
+    lay.setSpacing(8)
 
-    def __init__(self):
-        super().__init__()
-        self._todas_las_rentas = [] # Caché para los filtros
+    # Barra de acento
+    bar = QFrame()
+    bar.setFixedWidth(4)
+    bar.setFixedHeight(20)
+    bar.setStyleSheet(f"""
+        background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
+            stop:0 {_BLUE}, stop:1 {_NAV});
+        border-radius: 2px;
+    """)
+    lay.addWidget(bar)
+
+    if icono:
+        lbl_i = QLabel(icono)
+        lbl_i.setStyleSheet(f"QLabel {{ font-size:14px; color:{_BLUE}; background:transparent; }}")
+        lay.addWidget(lbl_i)
+
+    lbl = QLabel(texto)
+    lbl.setStyleSheet(
+        f"QLabel {{ font-size:11pt; font-weight:700; color:{_NAV}; background:transparent; letter-spacing:0.2px; }}"
+    )
+    lay.addWidget(lbl)
+    lay.addStretch()
+    return w
+
+
+def _apply_table_style(tbl: QTableWidget):
+    """Aplica estilo refinado coherente con la paleta Dinamo Pro."""
+    styles.table_widget(tbl)
+    tbl.setStyleSheet(tbl.styleSheet() + f"""
+        QTableWidget {{
+            background: {_SURF};
+            border: 1px solid {_BORD};
+            border-radius: 6px;
+            gridline-color: #e2e8f0;
+        }}
+        QHeaderView::section {{
+            background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
+                stop:0 {_NAV}, stop:1 #1e3f6e);
+            color: #ffffff;
+            font-size: 9pt;
+            font-weight: 700;
+            padding: 7px 10px;
+            border: none;
+            letter-spacing: 0.3px;
+        }}
+        QTableWidget::item {{
+            padding: 5px 8px;
+        }}
+        QTableWidget::item:alternate {{
+            background: #f8fafc;
+        }}
+    """)
+
+
+class DashboardWidget(BaseWidget):
+    """Panel general con KPIs, alertas y rentas — Dinamo Pro."""
+
+    def __init__(self, session_id: str = None):
+        super().__init__(session_id=session_id)
+        self._todas_las_rentas = []
+        self.setStyleSheet(_DASH_STYLE)
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
-
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.Shape.NoFrame)
-        scroll.setStyleSheet("background-color:#f4f6f8;")
-
-        self._content = QFrame()
-        self._content.setStyleSheet("background-color:#f4f6f8;")
-        self._lay = QVBoxLayout(self._content)
-        self._lay.setContentsMargins(25, 25, 25, 25)
-        self._lay.setSpacing(20)
-
-        scroll.setWidget(self._content)
-        main_layout.addWidget(scroll)
+        main_layout.setSpacing(0)
+        self.setLayout(main_layout)
 
         self._construir_ui()
         self.cargar_datos()
 
     def _construir_ui(self):
-        # --- Encabezado ---
-        header = QHBoxLayout()
-        lbl = QLabel("Tablero de Operaciones")
-        lbl.setStyleSheet("font-size:26px;font-weight:900;color:#1a237e;")
+        # ── Banner superior ──────────────────────────────────────────────
+        from views.layouts.form_helpers import create_banner
+        banner = create_banner("📊", "Tablero de Operaciones", "Resumen en tiempo real de la flota", self.cargar_datos)
+        self.layout().addWidget(banner)
 
-        btn_ref = QPushButton("🔄 Actualizar Tablero")
-        btn_ref.setProperty("cssClass", "primary")
-        btn_ref.setFixedSize(160, 35)
-        btn_ref.clicked.connect(self.cargar_datos)
+        # ── Área de contenido ────────────────────────────────────────────
+        content = QWidget()
+        content.setStyleSheet(f"QWidget {{ background: {_BG}; }}")
+        c_lay = QVBoxLayout(content)
+        c_lay.setContentsMargins(22, 18, 22, 18)
+        c_lay.setSpacing(16)
+        self.layout().addWidget(content, stretch=1)
 
-        lbl_fecha = QLabel(datetime.now().strftime("%d-%m-%Y"))
-        lbl_fecha.setStyleSheet("font-size:14px;color:#546e7a;font-weight:bold; margin-left: 15px;")
-
-        header.addWidget(lbl)
-        header.addStretch()
-        header.addWidget(btn_ref)
-        header.addWidget(lbl_fecha)
-        self._lay.addLayout(header)
-
-        # --- KPIs (100% Operativos, sin finanzas) ---
-        kpi_row = QHBoxLayout(); kpi_row.setSpacing(15)
-        self.card_disp    = _KpiCard("Disponibles",    "#2E7D32", "✅") # Verde
-        self.card_activas = _KpiCard("Rentas Activas", "#1565C0", "🚗") # Azul
-        self.card_taller  = _KpiCard("En Taller",      "#EF6C00", "🔧") # Naranja
-        self.card_alertas = _KpiCard("Alertas",        "#C62828", "⚠️") # Rojo
-
+        # ── KPIs ─────────────────────────────────────────────────────────
+        kpi_row = QHBoxLayout()
+        kpi_row.setSpacing(14)
+        self.card_disp    = _KpiCard("Disponibles",     "🟢", COLOR_EXITO,   "#22c55e")
+        self.card_activas = _KpiCard("Rentas Activas",  "🚗", COLOR_PRIMARIO, _BLUE)
+        self.card_taller  = _KpiCard("En Taller",       "🔧", COLOR_ALERTA,  "#f59e0b")
+        self.card_alertas = _KpiCard("Alertas Críticas","⚠️", COLOR_PELIGRO, "#ef4444")
         for c in (self.card_disp, self.card_activas, self.card_taller, self.card_alertas):
             kpi_row.addWidget(c)
-        self._lay.addLayout(kpi_row)
+        c_lay.addLayout(kpi_row)
 
-        # --- Sección central (Split View) ---
-        mid = QHBoxLayout(); mid.setSpacing(20)
+        # ── Sección media (Alertas + Rentas) ─────────────────────────────
+        mid = QHBoxLayout()
+        mid.setSpacing(14)
 
-        # 1. Alertas (Izquierda)
-        fr_al = QFrame(); fr_al.setStyleSheet(_ESTILO_TARJETA)
+        # -- Panel Alertas --
+        fr_al = QFrame()
+        fr_al.setProperty("dashcard", "true")
         lay_al = QVBoxLayout(fr_al)
-        lbl_al = QLabel("⚠️ Alertas de Flota y Vencimientos")
-        lbl_al.setStyleSheet("font-size:15px;font-weight:bold;color:#37474f;border:none;")
-        lay_al.addWidget(lbl_al)
+        lay_al.setContentsMargins(18, 16, 18, 16)
+        lay_al.setSpacing(10)
+        lay_al.addWidget(_section_header("Alertas de Flota y Vencimientos", "🔔"))
 
-        from PySide6.QtWidgets import QTableWidget
         self.tbl_alertas = QTableWidget()
-        self._estilizar(self.tbl_alertas, ["Placa", "Alerta", "Fecha/Detalle", "Estado"])
+        self.ajustar_tabla(self.tbl_alertas, ["Placa", "Alerta", "Detalle", "Estado"])
+        _apply_table_style(self.tbl_alertas)
         lay_al.addWidget(self.tbl_alertas)
 
-        # 2. Rentas activas + Filtros (Derecha)
-        fr_r = QFrame(); fr_r.setStyleSheet(_ESTILO_TARJETA)
+        # -- Panel Rentas --
+        fr_r = QFrame()
+        fr_r.setProperty("dashcard", "true")
         lay_r = QVBoxLayout(fr_r)
+        lay_r.setContentsMargins(18, 16, 18, 16)
+        lay_r.setSpacing(10)
 
-        header_rentas = QHBoxLayout()
-        lbl_r = QLabel("📋 Rentas  (doble clic → cerrar)")
-        lbl_r.setStyleSheet("font-size:15px;font-weight:bold;color:#37474f;border:none;")
+        hdr_r = QHBoxLayout()
+        hdr_r.setSpacing(10)
+        hdr_r.addWidget(_section_header("Rentas Activas", "📋"))
+        hdr_r.addStretch()
 
         self.cmb_filtro = QComboBox()
         self.cmb_filtro.addItems([
-            "Todas las Activas",
-            "Vencen Hoy",
-            "Retrasadas (Vencidas)",
-            "Entregas de Mañana"
+            "Todas las Activas", "Vencen Hoy",
+            "Retrasadas (Vencidas)", "Entregas de Mañana",
         ])
         self.cmb_filtro.currentIndexChanged.connect(self.filtrar_tabla)
-
-        header_rentas.addWidget(lbl_r)
-        header_rentas.addStretch()
-        header_rentas.addWidget(self.cmb_filtro)
-        lay_r.addLayout(header_rentas)
+        hdr_r.addWidget(self.cmb_filtro)
+        lay_r.addLayout(hdr_r)
 
         self.tbl_rentas = QTableWidget()
-        self._estilizar(self.tbl_rentas, ["ID", "Placa", "Cliente", "Retorno", "Días"])
-        self.tbl_rentas.setColumnHidden(0, True) # Ocultar ID
+        self.ajustar_tabla(self.tbl_rentas, ["ID", "Placa", "Cliente", "Retorno", "Días"])
+        _apply_table_style(self.tbl_rentas)
+        self.tbl_rentas.setColumnHidden(0, True)
         self.tbl_rentas.cellDoubleClicked.connect(self._abrir_cierre)
         lay_r.addWidget(self.tbl_rentas)
 
-        # Proporción: Alertas ocupa menos espacio que las Rentas (stretch 2 vs 3)
         mid.addWidget(fr_al, stretch=2)
         mid.addWidget(fr_r,  stretch=3)
-        self._lay.addLayout(mid)
-        self._lay.addStretch()
-
-    def _estilizar(self, tabla, columnas):
-        self.ajustar_tabla(tabla, columnas)
-        tabla.setStyleSheet("""
-            QTableWidget { border:none; gridline-color:#f0f0f0; }
-            QTableWidget::item { padding:5px; color:#37474f; }
-            QTableWidget::item:selected { background-color:#e3f2fd; color:#1565c0; }
-        """)
-        try:
-            tabla.horizontalHeader().setStyleSheet("""
-                QHeaderView::section {
-                    background-color:#fafafa; padding:8px; border:none;
-                    border-bottom:2px solid #e0e0e0; font-weight:bold; color:#546e7a;
-                }
-            """)
-        except Exception:
-            pass
+        c_lay.addLayout(mid, stretch=1)
 
     def cargar_datos(self):
-        # 1. Cargar KPIs Operativos
-        flota = self.ejecutar_seguro(AutoService.listar) or []
-        disp = sum(1 for a in flota if a.get("estado") == "Disponible")
-        taller = sum(1 for a in flota if a.get("estado") == "En Taller")
+        # Obtener KPIs del dashboard
+        kpis = self.ejecutar_seguro(DashboardService.kpi_globales) or {}
 
-        rentas = self.ejecutar_seguro(DashboardService.obtener_activas) or []
+        # Obtener alertas
         alertas = self.ejecutar_seguro(AutoService.obtener_alertas) or []
 
-        self.card_disp.set_value(str(disp))
-        self.card_activas.set_value(str(len(rentas)))
-        self.card_taller.set_value(str(taller))
+        # Actualizar tarjetas KPI
+        self.card_disp.set_value(str(kpis.get("autos_disponibles", 0)))
+        self.card_activas.set_value(str(kpis.get("rentas_activas", 0)))
+        self.card_taller.set_value(str(kpis.get("autos_mantenimiento", 0)))
         self.card_alertas.set_value(str(len(alertas)))
 
-        # 2. Cargar Tabla de Alertas
         self.tbl_alertas.setRowCount(0)
         for a in alertas:
             r = self.tbl_alertas.rowCount()
@@ -208,72 +304,54 @@ class DashboardWidget(BaseWidget):
 
             est = a.get("estado", "")
             it = QTableWidgetItem(est)
-            it.setFont(QFont("Arial", 8, QFont.Weight.Bold))
+            it.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
             critico = "VENCIDO" in est or "CRÍTICO" in est
-            it.setForeground(QBrush(QColor("#c62828" if critico else "#ef6c00")))
+            it.setForeground(QBrush(QColor(COLOR_PELIGRO if critico else COLOR_ALERTA)))
             self.tbl_alertas.setItem(r, 3, it)
 
-        # 3. Guardar Rentas en caché y aplicar el filtro
-        self._todas_las_rentas = rentas
         self.filtrar_tabla()
 
     def filtrar_tabla(self):
         self.tbl_rentas.setRowCount(0)
         filtro = self.cmb_filtro.currentText()
         hoy = datetime.now().date()
-        hoy_str = hoy.strftime("%Y-%m-%d")
 
-        rentas_filtradas = []
+        rentas_filtradas = self.ejecutar_seguro(DashboardService.obtener_activas_filtradas, filtro) or []
 
-        for r in self._todas_las_rentas:
-            fecha_ret_str = r.get("fecha_retorno", "")[:10]
-
-            if filtro == "Todas las Activas":
-                rentas_filtradas.append(r)
-            elif filtro == "Vencen Hoy" and fecha_ret_str == hoy_str:
-                rentas_filtradas.append(r)
-            elif filtro == "Retrasadas (Vencidas)":
-                if fecha_ret_str and fecha_ret_str < hoy_str:
-                    rentas_filtradas.append(r)
-            elif filtro == "Entregas de Mañana":
-                manana = QDate.currentDate().addDays(1).toString("yyyy-MM-dd")
-                if fecha_ret_str == manana:
-                    rentas_filtradas.append(r)
-
-        # Dibujar la tabla de rentas
         for renta in rentas_filtradas:
             row = self.tbl_rentas.rowCount()
             self.tbl_rentas.insertRow(row)
             self.tbl_rentas.setItem(row, 0, QTableWidgetItem(str(renta.get("id"))))
 
             placa = QTableWidgetItem(renta.get("placa", ""))
-            placa.setFont(QFont("Arial", 9, QFont.Weight.Bold))
+            placa.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
             self.tbl_rentas.setItem(row, 1, placa)
 
             self.tbl_rentas.setItem(row, 2, QTableWidgetItem(renta.get("nombre_cliente", "")))
-            self.tbl_rentas.setItem(row, 3, QTableWidgetItem(renta.get("fecha_retorno", "")))
+            fecha_ret = renta.get("fecha_retorno")
+            self.tbl_rentas.setItem(row, 3, QTableWidgetItem(fecha_ret.strftime("%Y-%m-%d") if fecha_ret else ""))
 
             try:
-                fr = datetime.strptime(renta.get("fecha_retorno", "")[:10], "%Y-%m-%d").date()
-                dias = (fr - hoy).days
-                txt = f"{dias} días" if dias >= 0 else f"Atrasado {abs(dias)}d"
+                if isinstance(fecha_ret, str):
+                    fr = datetime.strptime(fecha_ret[:10], "%Y-%m-%d").date()
+                else:
+                    fr = fecha_ret
+                dias = (fr - hoy).days if fr else 0
+                txt = f"{dias} días" if dias > 0 else ("Hoy" if dias == 0 else f"Atrasado {abs(dias)}d")
                 it = QTableWidgetItem(txt)
-                color = "red" if dias < 0 else ("orange" if dias == 0 else "green")
+                color = COLOR_PELIGRO if dias < 0 else (COLOR_ALERTA if dias == 0 else COLOR_EXITO)
                 it.setForeground(QBrush(QColor(color)))
-                if dias <= 0:
-                    it.setFont(QFont("Arial", 9, QFont.Weight.Bold))
+                if dias <= 0: it.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
                 self.tbl_rentas.setItem(row, 4, it)
-            except ValueError:
+            except (ValueError, TypeError):
                 self.tbl_rentas.setItem(row, 4, QTableWidgetItem("—"))
 
     def _abrir_cierre(self, row: int, _col: int):
-        item = self.tbl_rentas.item(row, 0) # La columna 0 es el ID (oculto)
-        if not item:
-            return
+        item = self.tbl_rentas.item(row, 0)
+        if not item: return
         try:
             from views.cierre_renta_view import CierreRentaDialog
             dlg = CierreRentaDialog(self, int(item.text()))
-            if dlg.exec():
-                self.cargar_datos() # Refrescar todo tras cerrar la renta
+            if dlg.exec(): self.cargar_datos()
         except Exception as e:
             self.mostrar_error(f"No se pudo abrir el cierre: {e}")

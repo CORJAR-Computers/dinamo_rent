@@ -10,7 +10,6 @@ Uso:
 """
 import logging
 import logging.handlers
-from pathlib import Path
 
 from core.config import LOGS_DIR, APP_NAME
 

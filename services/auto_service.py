@@ -1,12 +1,8 @@
-"""
-auto_service.py — Servicio de Vehículos
+"""Vehicle service."""
 
-Extraido de services.py como parte de F1B (Reestructuración de Services).
-"""
-from typing import List, Dict
 import datetime
+from typing import List, Dict
 
-from core.config import DIAS_ALERTA_SOAT, DIAS_ALERTA_TECNICO, KM_ALERTA_ACEITE_PREV
 from core.exceptions import NegocioError, ValidacionError
 from core.logger import get_logger, get_audit_logger
 from core.validators import validar_placa
@@ -46,7 +42,8 @@ class AutoService:
             raise ValidacionError(f"Datos de vehículo inválidos: {str(e)}")
 
         if AutoRepositorySA.existe(placa):
-            update_data = AutoUpdate(placa=placa, **datos)
+            datos_upd = {k: v for k, v in datos.items() if k != "placa"}
+            update_data = AutoUpdate(placa=placa, **datos_upd)
             AutoRepositorySA.actualizar(update_data)
             audit.info("Auto actualizado: %s por usuario del sistema", placa)
         else:
@@ -56,7 +53,7 @@ class AutoService:
     @staticmethod
     def obtener_alertas() -> List[Dict]:
         alertas: List[Dict] = []
-        hoy = datetime.date.today()
+        datetime.date.today()
 
         for alerta in AutoRepositorySA.obtener_alertas_flota():
             tipo = alerta.get('tipo')

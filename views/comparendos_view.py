@@ -1,222 +1,186 @@
+from views.components import ModernMessageBox
 """
-views/comparendos_view.py — Vista para la gestión de Multas y Comparendos.
+views/comparendos_view.py — Gestion de Multas y Comparendos. Estilos via views.styles.py.
 """
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
+    QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
     QPushButton, QHeaderView, QLabel, QDialog, QFormLayout,
-    QComboBox, QMessageBox, QDateEdit, QTimeEdit, QGroupBox, QDoubleSpinBox,
-    QTextEdit, QAbstractItemView, QMenu
+    QComboBox, QDateEdit, QTimeEdit, QGroupBox, QWidget,
+    QDoubleSpinBox, QTextEdit, QAbstractItemView, QMenu,
 )
 from PySide6.QtCore import Qt, QDate, QTime
-from PySide6.QtGui import QColor, QBrush, QAction, QCursor
+from PySide6.QtGui import QColor, QBrush, QFont
 
-from services.services import AutoService
-from services.services_extra import ComparendoService
+from core.config import COLOR_PELIGRO, COLOR_EXITO, COLOR_ALERTA
 from core.exceptions import DinamoBaseError
+from core.logger import get_logger
+from services.auto_service import AutoService
+from services.comparendo_service import ComparendoService
+from views.base_widget import BaseWidget
+from views.styles import (
+    btn_primary, btn_danger, btn_warning, btn_default, lbl_subtitle,
+    group_box, input_combo, input_date, input_spinbox, input_textedit, dialog_background, table_widget
+)
+
+# ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
+_NAV   = "#1a3558"
+_BLUE  = "#2563eb"
+_BG    = "#f1f5f9"
+_SURF  = "#ffffff"
+_BORD  = "#cbd5e1"
+_TEXT  = "#1e293b"
+_MUTED = "#64748b"
+
+log = get_logger(__name__)
 
 
-# =============================================================================
-# DIÁLOGO NUEVO COMPARENDO
-# =============================================================================
 class NuevoComparendoDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Registrar Foto-Multa / Comparendo")
-        self.setFixedSize(450, 500)
-        self._setup_ui()
-        self.cargar_autos()
+        self.setMinimumSize(450, 500)
+        dialog_background(self)
+        self._setup_ui(); self._cargar_autos()
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
+        titulo = QLabel("Registrar Nueva Infraccion")
+        lbl_subtitle(titulo); layout.addWidget(titulo)
 
         form_layout = QFormLayout()
-
-        self.cmb_placa = QComboBox()
-        self.cmb_placa.setEditable(True)
-
-        self.d_fecha = QDateEdit(QDate.currentDate())
-        self.d_fecha.setCalendarPopup(True)
-
-        self.t_hora = QTimeEdit(QTime.currentTime())
-
-        self.sp_monto = QDoubleSpinBox()
-        self.sp_monto.setRange(0, 100000000)
-        self.sp_monto.setPrefix("$ ")
-
-        self.txt_obs = QTextEdit()
-        self.txt_obs.setMaximumHeight(80)
-        self.txt_obs.setPlaceholderText("Lugar de la infracción, código, etc...")
-
-        form_layout.addRow("Placa del Vehículo:", self.cmb_placa)
-        form_layout.addRow("Fecha Infracción:", self.d_fecha)
-        form_layout.addRow("Hora Infracción:", self.t_hora)
+        self.cmb_placa = QComboBox(); self.cmb_placa.setEditable(True); input_combo(self.cmb_placa)
+        self.d_fecha = QDateEdit(QDate.currentDate()); self.d_fecha.setCalendarPopup(True); input_date(self.d_fecha)
+        self.t_hora = QTimeEdit(QTime.currentTime()); input_spinbox(self.t_hora)
+        self.sp_monto = QDoubleSpinBox(); self.sp_monto.setRange(0, 100_000_000); self.sp_monto.setPrefix("$ "); input_spinbox(self.sp_monto)
+        self.txt_obs = QTextEdit(); self.txt_obs.setMaximumHeight(80); self.txt_obs.setPlaceholderText("Lugar de la infraccion, codigo, etc..."); input_textedit(self.txt_obs)
+        form_layout.addRow("Placa del Vehiculo:", self.cmb_placa)
+        form_layout.addRow("Fecha Infraccion:", self.d_fecha)
+        form_layout.addRow("Hora Infraccion:", self.t_hora)
         form_layout.addRow("Monto de Multa:", self.sp_monto)
         form_layout.addRow("Observaciones:", self.txt_obs)
+        gb = QGroupBox("Datos de la Infraccion"); group_box(gb); gb.setLayout(form_layout); layout.addWidget(gb)
 
-        gb = QGroupBox("Datos de la Infracción")
-        gb.setLayout(form_layout)
-        layout.addWidget(gb)
-
-        # Botones
         h_btn = QHBoxLayout()
-        btn_cancel = QPushButton("Cancelar")
-        btn_cancel.setProperty("cssClass", "danger")
-        btn_cancel.clicked.connect(self.reject)
-
-        btn_save = QPushButton("Registrar y Buscar Culpable 🔍")
-        btn_save.setProperty("cssClass", "primary")
-        btn_save.clicked.connect(self.guardar)
-
-        h_btn.addStretch()
-        h_btn.addWidget(btn_cancel)
-        h_btn.addWidget(btn_save)
+        btn_cancel = QPushButton("Cancelar"); btn_danger(btn_cancel); btn_cancel.clicked.connect(self.reject)
+        btn_save = QPushButton("Registrar y Buscar Culpable"); btn_primary(btn_save); btn_save.clicked.connect(self._guardar)
+        h_btn.addStretch(); h_btn.addWidget(btn_cancel); h_btn.addWidget(btn_save)
         layout.addLayout(h_btn)
 
-    def cargar_autos(self):
+    def _cargar_autos(self):
         self.cmb_placa.addItem("Seleccione placa...", None)
         try:
-            autos = AutoService.listar()
-            for a in autos:
+            for a in AutoService.listar():
                 self.cmb_placa.addItem(f"{a['placa']} - {a['marca']}", userData=a['placa'])
-        except Exception:
-            pass
+        except Exception as e:
+            log.error("Error cargando autos en comparendos: %s", e, exc_info=True)
+            ModernMessageBox.warning(self, "Error", "No se pudo cargar la lista de vehículos.")
 
-    def guardar(self):
+    def _guardar(self):
         placa = self.cmb_placa.currentData()
         if not placa:
-            return QMessageBox.warning(self, "Error", "Debe seleccionar un vehículo.")
-
-        datos = {
-            "placa": placa,
-            "fecha": self.d_fecha.date().toString("yyyy-MM-dd"),
-            "hora": self.t_hora.time().toString("HH:mm"),
-            "monto": self.sp_monto.value(),
-            "observaciones": self.txt_obs.toPlainText()
-        }
-
+            placa = self.cmb_placa.currentText().strip()
+            if not placa or placa.lower().startswith("seleccione"):
+                placa = None
+        if not placa:
+            ModernMessageBox.warning(self, "Validacion", "Debe seleccionar un vehiculo.")
+            return
+        datos = {"placa": placa, "fecha": self.d_fecha.date().toString("yyyy-MM-dd"),
+                 "hora": self.t_hora.time().toString("HH:mm"), "monto": self.sp_monto.value(),
+                 "observaciones": self.txt_obs.toPlainText()}
         try:
             resultado = ComparendoService.registrar(datos)
-
-            # Mostrar la magia al usuario
             if resultado["vinculado"]:
-                mensaje = (
-                    "✅ ¡Comparendo Registrado!\n\n"
-                    "El sistema detectó automáticamente que el vehículo estaba "
-                    f"rentado (Renta #{resultado['id_renta']}).\n"
-                    "La multa ha sido vinculada al cliente correspondiente."
-                )
-                QMessageBox.information(self, "Cliente Encontrado", mensaje)
+                ModernMessageBox.success(self, "Cliente Encontrado",
+                    f"Comparendo Registrado!\n\nVinculado a Renta #{resultado['id_renta']}.")
             else:
-                mensaje = (
-                    "⚠️ Comparendo Registrado.\n\n"
-                    "El sistema NO encontró ninguna renta activa para esa fecha y hora. "
-                    "El comparendo quedó sin cliente asignado."
-                )
-                QMessageBox.warning(self, "Sin Asignar", mensaje)
-
+                ModernMessageBox.warning(self, "Sin Asignar", "Comparendo Registrado.\n\nSin renta activa para esa fecha.")
             self.accept()
         except DinamoBaseError as e:
-            QMessageBox.critical(self, "Error", str(e))
+            ModernMessageBox.error(self, "Error", str(e))
 
 
-# =============================================================================
-# WIDGET PRINCIPAL
-# =============================================================================
-class ComparendosWidget(QWidget):
-    def __init__(self):
-        super().__init__()
-        layout = QVBoxLayout(self)
+class ComparendosWidget(BaseWidget):
+    _COLOR_ESTADO = {"Pendiente": COLOR_PELIGRO, "Pagado": COLOR_EXITO, "Apelado": COLOR_ALERTA}
+
+    def __init__(self, session_id: str = None):
+        super().__init__(session_id=session_id)
+        self.setStyleSheet(f"QWidget {{ background: {_BG}; }} QLabel {{ color: {_TEXT}; }}")
+
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+        from views.layouts.form_helpers import create_banner
+        banner = create_banner("🚔", "Control de Comparendos y Fotomultas", "Gestion de multas y asignacion a clientes", self.cargar_datos)
+        main_layout.addWidget(banner)
+
+        content = QWidget()
+        content.setStyleSheet(f"QWidget {{ background: {_BG}; }}")
+        c_lay = QVBoxLayout(content)
+        c_lay.setContentsMargins(20, 16, 20, 16)
+        c_lay.setSpacing(14)
+        main_layout.addWidget(content, stretch=1)
 
         top = QHBoxLayout()
-        lbl = QLabel("Control de Comparendos y Fotomultas")
-        lbl.setStyleSheet("font-size: 20px; font-weight: bold;")
-
-        btn_new = QPushButton("+ Registrar Multa")
-        btn_new.setProperty("cssClass", "warning")
-        btn_new.clicked.connect(self.nuevo)
-
-        btn_ref = QPushButton("Actualizar")
-        btn_ref.clicked.connect(self.cargar_datos)
-
-        top.addWidget(lbl)
         top.addStretch()
-        top.addWidget(btn_ref)
-        top.addWidget(btn_new)
-        layout.addLayout(top)
+        btn_ref = QPushButton("Actualizar"); btn_default(btn_ref); btn_ref.clicked.connect(self.cargar_datos); top.addWidget(btn_ref)
+        btn_new = QPushButton("+ Registrar Multa"); btn_warning(btn_new); btn_new.clicked.connect(self._nuevo); top.addWidget(btn_new)
+        c_lay.addLayout(top)
 
-        self.tbl = QTableWidget()
-        self.configurar_tabla()
-        layout.addWidget(self.tbl)
-
+        self.tbl = QTableWidget(); table_widget(self.tbl)
+        self._configurar_tabla(); c_lay.addWidget(self.tbl)
         self.cargar_datos()
 
-    def configurar_tabla(self):
+    def _configurar_tabla(self):
         cols = ["ID", "Fecha/Hora", "Placa", "Monto", "Cliente Responsable", "Estado"]
-        self.tbl.setColumnCount(len(cols))
-        self.tbl.setHorizontalHeaderLabels(cols)
+        self.tbl.setColumnCount(len(cols)); self.tbl.setHorizontalHeaderLabels(cols)
         self.tbl.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.tbl.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tbl.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.tbl.verticalHeader().setVisible(False)
         self.tbl.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.tbl.customContextMenuRequested.connect(self.mostrar_menu)
+        self.tbl.customContextMenuRequested.connect(self._mostrar_menu)
 
     def cargar_datos(self):
         self.tbl.setRowCount(0)
         try:
-            multas = ComparendoService.listar()
-            for i, c in enumerate(multas):
+            for i, c in enumerate(ComparendoService.listar()):
                 self.tbl.insertRow(i)
-
                 fecha_hora = f"{c.get('fecha_infraccion', '')} {c.get('hora_infraccion', '')}"
-                cliente = c.get('cliente_nombre') or "SIN ASIGNAR (Empresa)"
-                monto = float(c.get('monto', 0))
-                estado = c.get('estado', 'Pendiente')
-
-                self.tbl.setItem(i, 0, QTableWidgetItem(str(c.get('id'))))
+                cliente = c.get("cliente_nombre") or "SIN ASIGNAR (Empresa)"
+                monto = float(c.get("monto", 0)); estado = c.get("estado", "Pendiente")
+                self.tbl.setItem(i, 0, QTableWidgetItem(str(c.get("id"))))
                 self.tbl.setItem(i, 1, QTableWidgetItem(fecha_hora))
-                self.tbl.setItem(i, 2, QTableWidgetItem(str(c.get('placa'))))
+                self.tbl.setItem(i, 2, QTableWidgetItem(str(c.get("placa"))))
                 self.tbl.setItem(i, 3, QTableWidgetItem(f"$ {monto:,.0f}"))
-
                 it_cli = QTableWidgetItem(cliente)
-                if not c.get('cliente_nombre'):
-                    it_cli.setForeground(QBrush(QColor("gray")))
+                if not c.get("cliente_nombre"): it_cli.setForeground(QBrush(QColor("#888888")))
                 self.tbl.setItem(i, 4, it_cli)
-
                 it_est = QTableWidgetItem(estado)
-                if estado == 'Pendiente':
-                    it_est.setForeground(QBrush(QColor("red")))
-                elif estado == 'Pagado':
-                    it_est.setForeground(QBrush(QColor("green")))
+                color = self._COLOR_ESTADO.get(estado)
+                if color:
+                    it_est.setForeground(QBrush(QColor(color)))
+                    fnt = QFont(it_est.font()); fnt.setBold(True); it_est.setFont(fnt)
                 self.tbl.setItem(i, 5, it_est)
+        except DinamoBaseError: pass
 
-        except DinamoBaseError as e:
-            pass
+    def _nuevo(self):
+        if NuevoComparendoDialog(self).exec(): self.cargar_datos()
 
-    def nuevo(self):
-        if NuevoComparendoDialog(self).exec():
-            self.cargar_datos()
-
-    def mostrar_menu(self, pos):
+    def _mostrar_menu(self, pos):
         item = self.tbl.itemAt(pos)
         if not item: return
-        row = item.row()
-        id_comp = int(self.tbl.item(row, 0).text())
-
+        row = item.row(); id_comp = int(self.tbl.item(row, 0).text())
         menu = QMenu(self)
-        ac_pagar = QAction("✅ Marcar como Pagado", self)
-        ac_pagar.triggered.connect(lambda: self.cambiar_estado(id_comp, "Pagado"))
+        ac_pagar = menu.addAction("Marcar como Pagado")
+        ac_apelar = menu.addAction("Marcar como Apelado")
+        acc = menu.exec(self.tbl.viewport().mapToGlobal(pos))
+        if acc == ac_pagar: self._cambiar_estado(id_comp, "Pagado")
+        elif acc == ac_apelar: self._cambiar_estado(id_comp, "Apelado")
 
-        ac_apelar = QAction("⚖️ Marcar como Apelado", self)
-        ac_apelar.triggered.connect(lambda: self.cambiar_estado(id_comp, "Apelado"))
-
-        menu.addAction(ac_pagar)
-        menu.addAction(ac_apelar)
-        menu.exec(QCursor.pos())
-
-    def cambiar_estado(self, id_comp, estado):
+    def _cambiar_estado(self, id_comp: int, estado: str):
         try:
             ComparendoService.cambiar_estado(id_comp, estado)
-            self.cargar_datos()
+            self.mostrar_exito(f"Estado actualizado a {estado}"); self.cargar_datos()
         except DinamoBaseError as e:
-            QMessageBox.warning(self, "Error", str(e))
+            self.mostrar_error(str(e))

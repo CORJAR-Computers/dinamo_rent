@@ -19,8 +19,8 @@ from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import (
-    Column, Integer, String, Float, DECIMAL, Date, Time, DateTime, Text,
-    ForeignKey, Index, SmallInteger, BigInteger
+    Integer, String, Float, DECIMAL, Date, Time, DateTime, Text,
+    ForeignKey, Index, SmallInteger
 )
 from sqlalchemy.orm import DeclarativeBase, relationship, Mapped, mapped_column
 from sqlalchemy.sql import func
@@ -47,6 +47,7 @@ class Usuario(Base):
     email: Mapped[Optional[str]] = mapped_column(String(100))
     activo: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default='1')
     intentos_fallidos: Mapped[int] = mapped_column(Integer, nullable=False, server_default='0')
+    debe_cambiar_password: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default='0')
     ultimo_acceso: Mapped[Optional[datetime]] = mapped_column(DateTime)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -89,7 +90,7 @@ class Auto(Base):
     vencimiento_extintor: Mapped[Optional[datetime]] = mapped_column(Date)
     vencimiento_bateria: Mapped[Optional[datetime]] = mapped_column(Date)
     observaciones: Mapped[Optional[str]] = mapped_column(Text)
-    fecha_ingreso: Mapped[datetime] = mapped_column(Date, nullable=False, server_default=func.curdate())
+    fecha_ingreso: Mapped[datetime] = mapped_column(Date, nullable=False, default=datetime.today)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
@@ -99,8 +100,8 @@ class Auto(Base):
     rentas = relationship("Renta", back_populates="auto_rel")
     mantenimientos = relationship("MantenimientoVehiculo", back_populates="auto_rel")
     comparendos = relationship("Comparendo", back_populates="auto_rel")
-    reservas = relationship("Reserva", back_populates="auto_rel")       # NUEVO: reservas vinculadas
-    gastos = relationship("Gasto", back_populates="auto_rel")           # NUEVO: gastos vinculados
+    reservas = relationship("Reserva", back_populates="auto_rel")
+    gastos = relationship("Gasto", back_populates="auto_rel")
 
     def __repr__(self):
         return f"<Auto {self.placa} - {self.marca} {self.modelo}>"
@@ -136,14 +137,14 @@ class Cliente(Base):
     vencimiento_licencia: Mapped[Optional[datetime]] = mapped_column(Date)
     estado: Mapped[str] = mapped_column(String(30), nullable=False, server_default='Activo', index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(                      # NUEVO
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
     # Relationships
     rentas = relationship("Renta", back_populates="cliente_rel")
     reservas = relationship("Reserva", back_populates="cliente_rel")
-    comparendos = relationship("Comparendo", back_populates="cliente_rel")  # NUEVO
+    comparendos = relationship("Comparendo", back_populates="cliente_rel")
 
     def __repr__(self):
         return f"<Cliente {self.nombre_completo} ({self.no_doc})>"
@@ -155,7 +156,6 @@ class Cliente(Base):
 
 class Renta(Base):
     __tablename__ = 'rentas'
-    # FIX: __table_args__ unificado (antes estaba duplicado y se perdia collate)
     __table_args__ = (
         Index('idx_rentas_estado', 'estado'),
         Index('idx_rentas_fechas', 'fecha_recogida', 'fecha_retorno'),
@@ -199,7 +199,6 @@ class Renta(Base):
     tanque_final: Mapped[Optional[str]] = mapped_column(String(20))
     km_salida: Mapped[float] = mapped_column(Float, server_default='0.00')
     tanque_salida: Mapped[Optional[str]] = mapped_column(String(20), server_default='Lleno')
-    # FIX: id_reserva ahora es FK hacia reservas (antes era Integer simple)
     id_reserva: Mapped[Optional[int]] = mapped_column(
         Integer, ForeignKey('reservas.id', ondelete='SET NULL'), nullable=True
     )
@@ -208,10 +207,10 @@ class Renta(Base):
     # Relationships
     auto_rel = relationship("Auto", back_populates="rentas")
     cliente_rel = relationship("Cliente", back_populates="rentas")
-    reserva_rel = relationship("Reserva", back_populates="rentas")       # NUEVO
+    reserva_rel = relationship("Reserva", back_populates="rentas")
     pagos = relationship("Pago", back_populates="renta_rel")
     inspecciones = relationship("Inspeccion", back_populates="renta_rel")
-    comparendos = relationship("Comparendo", back_populates="renta_rel") # NUEVO
+    comparendos = relationship("Comparendo", back_populates="renta_rel")
 
     def __repr__(self):
         return f"<Renta {self.id} - {self.placa} ({self.estado})>"
@@ -230,7 +229,6 @@ class Reserva(Base):
     nombre_cliente: Mapped[Optional[str]] = mapped_column(String(200))
     nacionalidad: Mapped[Optional[str]] = mapped_column(String(80))
     categoria_vehiculo: Mapped[Optional[str]] = mapped_column(String(50))
-    # FIX: placa_asignada ahora es FK hacia autos (antes era String simple)
     placa_asignada: Mapped[Optional[str]] = mapped_column(
         String(20), ForeignKey('autos.placa', ondelete='SET NULL'), nullable=True
     )
@@ -249,14 +247,14 @@ class Reserva(Base):
     observaciones: Mapped[Optional[str]] = mapped_column(Text)
     estado: Mapped[str] = mapped_column(String(30), nullable=False, server_default='Confirmada', index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(                      # NUEVO
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
     # Relationships
     cliente_rel = relationship("Cliente", back_populates="reservas")
-    auto_rel = relationship("Auto", back_populates="reservas")          # NUEVO
-    rentas = relationship("Renta", back_populates="reserva_rel")        # NUEVO
+    auto_rel = relationship("Auto", back_populates="reservas")
+    rentas = relationship("Renta", back_populates="reserva_rel")
 
     def __repr__(self):
         return f"<Reserva {self.id} - {self.nombre_cliente}>"
@@ -280,7 +278,7 @@ class MantenimientoVehiculo(Base):
     km_proximo_cambio_aceite: Mapped[Optional[int]] = mapped_column(Integer, server_default='0')
     total_mantenimiento: Mapped[float] = mapped_column(DECIMAL(12, 2), server_default='0.00')
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(                      # NUEVO
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
@@ -377,14 +375,14 @@ class Comparendo(Base):
     estado: Mapped[Optional[str]] = mapped_column(String(20), server_default='Pendiente')
     observaciones: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(                      # NUEVO
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
     # Relationships
     auto_rel = relationship("Auto", back_populates="comparendos")
-    renta_rel = relationship("Renta", back_populates="comparendos")     # NUEVO
-    cliente_rel = relationship("Cliente", back_populates="comparendos") # NUEVO
+    renta_rel = relationship("Renta", back_populates="comparendos")
+    cliente_rel = relationship("Cliente", back_populates="comparendos")
 
     def __repr__(self):
         return f"<Comparendo {self.id} - {self.placa}>"
@@ -406,7 +404,7 @@ class Pago(Base):
     concepto: Mapped[str] = mapped_column(String(80), nullable=False)
     observaciones: Mapped[Optional[str]] = mapped_column(Text)
     usuario: Mapped[Optional[str]] = mapped_column(String(50))
-    updated_at: Mapped[datetime] = mapped_column(                      # NUEVO
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
@@ -426,7 +424,6 @@ class Gasto(Base):
     __table_args__ = {'mysql_collate': 'utf8mb4_unicode_ci'}
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    # NUEVO: placa como FK hacia autos (permite vincular gastos a vehiculos)
     placa: Mapped[Optional[str]] = mapped_column(
         String(20), ForeignKey('autos.placa', ondelete='SET NULL'), nullable=True, index=True
     )
@@ -437,12 +434,12 @@ class Gasto(Base):
     comprobante: Mapped[Optional[str]] = mapped_column(String(50))
     usuario: Mapped[Optional[str]] = mapped_column(String(50), server_default='Sistema')
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(                      # NUEVO
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
     # Relationships
-    auto_rel = relationship("Auto", back_populates="gastos")            # NUEVO
+    auto_rel = relationship("Auto", back_populates="gastos")
 
     def __repr__(self):
         return f"<Gasto {self.id} - {self.categoria} - ${self.monto}>"

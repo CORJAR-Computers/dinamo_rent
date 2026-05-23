@@ -1,0 +1,63 @@
+# =====================================================================
+# Dinamo Rent ERP — .gitignore
+# =====================================================================
+
+# ── Python ──────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyc
+
+# ── Entorno virtual ────────────────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ── IDE / Editor ───────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.qwen/
+.continue/
+.claude/
+
+# ── Variables de entorno (CREDENCIALES) ────────────────────────────
+.env
+.env.local
+.env.production
+
+# ── Configuración local (NO subir credenciales) ────────────────────
+config.ini
+!config.ini.example
+
+# ── Base de datos local (SQLite) ───────────────────────────────────
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# ── Backups ──────────────────────────────────────────────────────���─
+Backups/
+
+# ── Logs ───────────────────────────────────────────────────────────
+logs/
+!logs/.gitkeep
+
+# ── OS ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Distribución / Build ───────────────────────────────────────────
+dist/
+build/
+*.spec
+*.exe
+
+# ── Testing ──────────────────────────────────────────────────────���─
+.coverage
+htmlcov/

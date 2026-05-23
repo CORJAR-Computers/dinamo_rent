@@ -4,12 +4,11 @@ Alembic environment configuration for Dinamo Rent ERP.
 This module configures the Alembic migration environment to work with
 SQLAlchemy models in both MySQL and SQLite databases.
 """
-import os
 import sys
 from logging.config import fileConfig
 from pathlib import Path
 
-from sqlalchemy import engine_from_config, pool, create_engine
+from sqlalchemy import pool, create_engine
 from alembic import context
 
 # Add parent directory to path to import project modules
@@ -92,7 +91,7 @@ def run_migrations_online() -> None:
     """
     # Get database URL
     url = get_database_url()
-    
+
     # For SQLite, we need to handle foreign keys specially
     connectable = create_engine(
         url,
@@ -104,7 +103,7 @@ def run_migrations_online() -> None:
         if DB_ENGINE != "mysql":
             from sqlalchemy import text
             connection.execute(text("PRAGMA foreign_keys = ON"))
-        
+
         context.configure(
             connection=connection,
             target_metadata=target_metadata,

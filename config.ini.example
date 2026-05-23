@@ -1,0 +1,176 @@
+; =====================================================================
+; Dinamo Rent ERP — Archivo de Configuración de Ejemplo (PARA GIT)
+; =====================================================================
+; ESTE ARCHIVO SÍ SE DEBE COMMITEAR al repositorio.
+; Contiene valores por defecto SIN contraseñas reales.
+; 
+; Para uso local:
+;   1. Copiar este archivo a config.ini
+;   2. Configurar las contraseñas y valores personalizados
+;   3. NUNCA commitear config.ini si tiene contraseñas reales
+; =====================================================================
+
+; ─────────────────────────────────────────────────────────────────────
+; [database] — Configuración de la Base de Datos
+; ─────────────────────────────────────────────────────────────────────
+[database]
+# Motor de base de datos: mysql o sqlite
+engine = mysql
+
+# Configuración MySQL
+host = localhost
+port = 3306
+user = root
+# IMPORTANTE: Configurar contraseña en config.ini local
+password = 
+database = dinamo_rent
+
+# Connection Pool (solo MySQL)
+pool_size = 10
+pool_max_overflow = 20
+pool_pre_ping = true
+
+; ─────────────────────────────────────────────────────────────────────
+; [security] — Configuración de Seguridad
+; ─────────────────────────────────────────────────────────────────────
+[security]
+# Hash de contraseñas
+hash_algorithm = sha256
+hash_iterations = 100000
+
+# Sesiones
+session_timeout = 3600
+
+# Control de acceso
+max_login_attempts = 5
+account_lockout_duration = 1800
+login_rate_limit_window = 300
+max_login_attempts_in_window = 10
+
+; ─────────────────────────────────────────────────────────────────────
+; [backup] — Configuración de Respaldo
+; ─────────────────────────────────────────────────────────────────────
+[backup]
+directory = Backups
+max_copies = 10
+schedule_times = 09:00, 13:00, 19:00, 23:00
+check_interval_ms = 60000
+encryption_enabled = true
+encryption_password = 
+
+; ─────────────────────────────────────────────────────────────────────
+; [logging] — Configuración de Logs
+; ─────────────────────────────────────────────────────────────────────
+[logging]
+directory = logs
+max_size_mb = 5
+backup_count = 5
+level = INFO
+error_max_size_mb = 2
+error_backup_count = 3
+audit_enabled = true
+audit_retention_days = 30
+
+; ─────────────────────────────────────────────────────────────────────
+; [application] — Configuración General
+; ─────────────────────────────────────────────────────────────────────
+[application]
+name = Dinamo Rent ERP
+version = 3.2.0
+author = Dinamo Rent a Car
+language = es
+timezone = America/Bogota
+
+# Modo producción: true = primera ejecución pide crear admin, restringe logs
+production_mode = true
+
+; ─────────────────────────────────────────────────────────────────────
+; [ui] — Configuración de Interfaz de Usuario
+; ─────────────────────────────────────────────────────────────────────
+[ui]
+color_primario = #004aad
+color_primario_hover = #003d8f
+color_fondo = #f0f2f5
+color_exito = #2e7d32
+color_success_hover = #1b5e20
+color_peligro = #c62828
+color_danger_hover = #b71c1c
+color_alerta = #ef6c00
+color_surface = #ffffff
+color_border = #e0e0e0
+color_text_primary = #1a1a2e
+color_text_secondary = #666666
+color_alt_row = #f5f7fa
+
+color_estado_disponible = #2e7d32
+color_estado_rentado = #1565c0
+color_estado_mantenimiento = #ef6c00
+color_estado_inactivo = #c62828
+color_estado_activo = #2e7d32
+color_estado_vip = #7b1fa2
+color_estado_lista_negra = #c62828
+
+color_cal_disponible = #bbdefb
+color_cal_rentado = #81c784
+color_cal_reservado = #ffd54f
+
+font_family = Segoe UI
+font_size = 13
+
+window_width = 1366
+window_height = 768
+start_maximized = true
+
+; ─────────────────────────────────────────────────────────────────────
+; [business] — Reglas de Negocio
+; ─────────────────────────────────────────────────────────────────────
+[business]
+alert_soat_days = 15
+alert_tecno_mecanica_days = 15
+alert_extintor_days = 15
+km_alert_aceite = 500
+
+roles_con_informes = Administrador, Supervisor
+roles_con_usuarios = Administrador
+
+tipos_auto = Automóvil, Camioneta, Van, Lujo, Moto
+tipos_transmision = Automática, Mecánica
+tipos_combustible = Gasolina, Diesel, Híbrido, Eléctrico, Gas
+estados_auto = Disponible, Rentado, Mantenimiento, Vendido, Baja
+tipos_adquisicion = Propio, Leasing, Subarrendado
+tipos_doc = Cédula, Pasaporte, Cédula Extranjería, NIT, Licencia USA
+estados_cliente = Activo, Inactivo, Lista Negra, VIP
+nivel_tanque = Lleno, 3/4, 1/2, 1/4, Reserva
+tipos_mantenimiento = Cambio Aceite, Frenos, Llantas, Batería, Tecno-Mecánica, Lavado General, Reparación Mecánica, Otro
+
+; ─────────────────────────────────────────────────────────────────────
+; [email] — Configuración de Correo (Opcional)
+; ─────────────────────────────────────────────────────────────────────
+[email]
+enabled = false
+smtp_server = smtp.gmail.com
+smtp_port = 587
+use_tls = true
+username = 
+password = 
+from_email = 
+from_name = Dinamo Rent
+
+; ─────────────────────────────────────────────────────────────────────
+; [whatsapp] — Configuración de WhatsApp
+; ─────────────────────────────────────────────────────────────────────
+[whatsapp]
+enabled = true
+base_url = https://wa.me/
+
+; ─────────────────────────────────────────────────────────────────────
+; [reports] — Configuración de Reportes
+; ─────────────────────────────────────────────────────────────────────
+[reports]
+pdf_engine = weasyprint
+excel_enabled = true
+currency_symbol = $
+currency_code = COP
+decimal_places = 2
+tax_enabled = true
+tax_percentage = 19

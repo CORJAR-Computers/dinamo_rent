@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Confirmación de Reserva - Dinamo Rent a Car</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 0.6in;
+            @top-left {
+                content: "DINAMO RENT A CAR";
+                font-size: 9pt;
+                color: #64748b;
+                font-family: 'Segoe UI', Arial, sans-serif;
+            }
+            @top-right {
+                content: "NIT: 900.694.866-3";
+                font-size: 8pt;
+                color: #64748b;
+            }
+            @bottom-left {
+                content: "www.dinamorentacar.com";
+                font-size: 7pt;
+                color: #94a3b8;
+            }
+            @bottom-right {
+                content: "Pagina " counter(page) " de " counter(pages);
+                font-size: 7pt;
+                color: #94a3b8;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #0f172a;
+            background: #f8fafc;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 8.5in;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #0f172a;
+            margin-bottom: 30px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .brand-name {
+            font-size: 18pt;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+        }
+
+        .company-info {
+            text-align: right;
+            font-size: 8pt;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        /* Success Banner */
+        .success-banner {
+            background: linear-gradient(135deg, #0369a1 0%, #0ea5e9 100%);
+            color: #ffffff;
+            text-align: center;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .success-banner h1 {
+            font-size: 24pt;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .success-banner p {
+            font-size: 12pt;
+            opacity: 0.9;
+        }
+
+        .reservation-code {
+            display: inline-block;
+            background: #ffffff;
+            color: #0369a1;
+            padding: 8px 25px;
+            border-radius: 4px;
+            font-size: 14pt;
+            font-weight: 700;
+            margin-top: 15px;
+        }
+
+        /* Info Cards */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .info-card h3 {
+            font-size: 10pt;
+            font-weight: 600;
+            color: #0369a1;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dotted #e2e8f0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #64748b;
+            font-size: 9pt;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 9pt;
+        }
+
+        /* Date Timeline */
+        .date-timeline {
+            display: flex;
+            justify-content: space-between;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .timeline-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .timeline-item:first-child {
+            border-right: 1px solid #cbd5e1;
+        }
+
+        .timeline-label {
+            font-size: 9pt;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .timeline-date {
+            font-size: 14pt;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .timeline-time {
+            font-size: 11pt;
+            color: #0369a1;
+            margin-top: 4px;
+        }
+
+        .timeline-arrow {
+            font-size: 20pt;
+            color: #64748b;
+            align-self: center;
+        }
+
+        /* Quote Box */
+        .quote-box {
+            background: #ffffff;
+            border: 2px solid #0369a1;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .quote-title {
+            text-align: center;
+            font-size: 11pt;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .quote-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .quote-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .quote-item:last-child {
+            border-bottom: none;
+        }
+
+        .quote-label {
+            color: #334155;
+        }
+
+        .quote-value {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .quote-total {
+            font-size: 14pt;
+            color: #0369a1;
+        }
+
+        .balance-due {
+            background: #fef3c7;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .balance-due .label {
+            font-size: 10pt;
+            color: #b45309;
+            margin-bottom: 5px;
+        }
+
+        .balance-due .amount {
+            font-size: 18pt;
+            font-weight: 700;
+            color: #b45309;
+        }
+
+        /* Requirements */
+        .requirements-section {
+            background: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .requirements-section h3 {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #0369a1;
+            margin-bottom: 15px;
+        }
+
+        .requirements-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            list-style: none;
+            padding: 0;
+        }
+
+        .requirements-list li {
+            padding: 8px 12px;
+            background: #ffffff;
+            border-radius: 4px;
+            font-size: 9pt;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+        }
+
+        .requirements-list li::before {
+            content: "\2713";
+            color: #166534;
+            margin-right: 8px;
+            font-weight: bold;
+        }
+
+        /* Policies */
+        .policies-section {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .policies-section h3 {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #b45309;
+            margin-bottom: 15px;
+        }
+
+        .policies-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .policies-list li {
+            padding: 6px 0;
+            font-size: 9pt;
+            color: #78350f;
+        }
+
+        .policies-list li::before {
+            content: "\26A0";
+            color: #b45309;
+            margin-right: 8px;
+        }
+
+        /* Notes */
+        .notes-section {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .notes-section h3 {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 15px;
+        }
+
+        .notes-text {
+            font-size: 9pt;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        /* Signatures */
+        .signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .signature-box {
+            text-align: center;
+        }
+
+        .signature-line {
+            width: 80%;
+            margin: 40px auto 10px;
+            border-top: 1px solid #0f172a;
+        }
+
+        .signature-title {
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 5px;
+        }
+
+        .signature-subtitle {
+            font-size: 8pt;
+            color: #64748b;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 30px;
+        }
+
+        .footer p {
+            font-size: 8pt;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        .footer .contact-info {
+            color: #0369a1;
+            font-weight: 600;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 8pt;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-confirmed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        /* Print styles */
+        @media print {
+            body { -webkit-print-color-adjust: exact; }
+            .page { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-section">
+                {% if tiene_logo and logo_base64 %}
+                <img src="{{ logo_base64 }}" alt="Dinamo Rent" class="logo">
+                {% endif %}
+                <span class="brand-name">DINAMO RENT A CAR</span>
+            </div>
+            <div class="company-info">
+                NIT: 900.694.866-3<br>
+                Cartagena, Colombia<br>
+                <span class="contact-info">301 613 8530 - 321 839 4422</span>
+            </div>
+        </div>
+
+        <!-- Success Banner -->
+        <div class="success-banner">
+            <h1>\u2713 RESERVA CONFIRMADA</h1>
+            <p>Su reserva ha sido registrada exitosamente. Por favor presente los requisitos en el mostrador.</p>
+            <div class="reservation-code">No. {{ id_reserva }}</div>
+        </div>
+
+        <!-- Info Grid -->
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>Datos del Cliente</h3>
+                <div class="info-row">
+                    <span class="info-label">Nombre:</span>
+                    <span class="info-value">{{ cliente_nombre }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Documento:</span>
+                    <span class="info-value">{{ cliente_doc }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Tel\u00e9fono:</span>
+                    <span class="info-value">{{ cliente_celular }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">{{ cliente_email }}</span>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h3>Veh\u00edculo Reservado</h3>
+                <div class="info-row">
+                    <span class="info-label">Veh\u00edculo:</span>
+                    <span class="info-value">{{ vehiculo }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Tipo:</span>
+                    <span class="info-value">{{ vehiculo_tipo }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Estado:</span>
+                    <span class="status-badge status-confirmed">Confirmada</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Date Timeline -->
+        <div class="date-timeline">
+            <div class="timeline-item">
+                <div class="timeline-label">Recogida</div>
+                <div class="timeline-date">{{ f_inicio }}</div>
+                <div class="timeline-time">{{ h_inicio }}</div>
+            </div>
+            <div class="timeline-arrow">\u2192</div>
+            <div class="timeline-item">
+                <div class="timeline-label">Devoluci\u00f3n</div>
+                <div class="timeline-date">{{ f_fin }}</div>
+                <div class="timeline-time">{{ h_fin }}</div>
+            </div>
+        </div>
+
+        <!-- Quote Box -->
+        <div class="quote-box">
+            <div class="quote-title">Cotizaci\u00f3n Estimada</div>
+            <div class="quote-grid">
+                <div class="quote-item">
+                    <span class="quote-label">Valor Diario:</span>
+                    <span class="quote-value">{{ valor_dia }}</span>
+                </div>
+                <div class="quote-item">
+                    <span class="quote-label">{{ dias }} d\u00edas:</span>
+                    <span class="quote-value">{{ valor_dias }}</span>
+                </div>
+                {% if seguro > 0 %}
+                <div class="quote-item">
+                    <span class="quote-label">Seguro:</span>
+                    <span class="quote-value">{{ seguro }}</span>
+                </div>
+                {% endif %}
+                {% if adicionales > 0 %}
+                <div class="quote-item">
+                    <span class="quote-label">Adicionales:</span>
+                    <span class="quote-value">{{ adicionales }}</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="quote-item" style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #0369a1;">
+                <span class="quote-label quote-total">TOTAL ESTIMADO:</span>
+                <span class="quote-value quote-total">{{ total }}</span>
+            </div>
+
+            <div class="balance-due">
+                <div class="label">SALDO AL RECOGER EL VEH\u00cdCULO:</div>
+                <div class="amount">{{ saldo }}</div>
+            </div>
+        </div>
+
+        <!-- Requirements -->
+        <div class="requirements-section">
+            <h3>Requisitos para la Renta</h3>
+            <ul class="requirements-list">
+                <li>Licencia de conducci\u00f3n vigente (m\u00ednimo 2 a\u00f1os)</li>
+                <li>Documento de identidad vigente</li>
+                <li>Tarjeta de cr\u00e9dito con cupo disponible</li>
+                <li>Tarjeta de cr\u00e9dito a nombre del titular</li>
+            </ul>
+        </div>
+
+        <!-- Policies -->
+        <div class="policies-section">
+            <h3>Pol\u00edticas de Reserva</h3>
+            <ul class="policies-list">
+                <li>El veh\u00edculo deber\u00e1 recogerse en la fecha y hora acordada.</li>
+                <li>Se otorga 1 hora de tolerancia. Pasado este tiempo, la reserva se cancelar\u00e1 autom\u00e1ticamente.</li>
+                <li>La reserva se mantiene con el abono realizado. La cancelaci\u00f3n o no presentaci\u00f3n no generar\u00e1 reembolso.</li>
+                <li>Cualquier modificaci\u00f3n deber\u00e1 solicitarla con 24 horas de anticipaci\u00f3n.</li>
+            </ul>
+        </div>
+
+        <!-- Notes -->
+        {% if notas %}
+        <div class="notes-section">
+            <h3>Notas Adicionales</h3>
+            <p class="notes-text">{{ notas }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Signatures -->
+        <div class="signatures">
+            <div class="signature-box">
+                <div class="signature-line"></div>
+                <p class="signature-title">Por Dinamo Rent a Car</p>
+                <p class="signature-subtitle">Confirmaci\u00f3n</p>
+            </div>
+            <div class="signature-box">
+                <div class="signature-line"></div>
+                <p class="signature-title">Cliente</p>
+                <p class="signature-subtitle">{{ cliente_nombre }}</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Confirmaci\u00f3n generada el {{ fecha_firma }}</p>
+            <p class="contact-info">ASISTENCIA: 301 613 8530 - 321 839 4422 | info@dinamorentacar.com</p>
+            <p>Dinamo Rent a Car S.A.S - Todos los derechos reservados</p>
+        </div>
+    </div>
+</body>
+</html>

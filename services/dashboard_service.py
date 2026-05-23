@@ -1,17 +1,18 @@
-"""
-dashboard_service.py — Servicio de Dashboard y KPIs
+"""Dashboard KPIs and data service."""
 
-NUEVO en F1B: Extraído de RentaService.kpi_globales() para separar responsabilidades.
-Proporciona métricas agregadas para el panel principal del sistema.
-"""
-from typing import Dict
+from typing import Dict, List
 from datetime import date
 
 from core.logger import get_logger
+from core.schemas import (
+    KpiGlobalesResponse, ResumenFinancieroResponse,
+    AlertasResponse,
+)
 from repositories.repositories_sa import (
     AutoRepositorySA,
     RentaRepositorySA,
     InformeRepositorySA,
+    AlertaRepositorySA,
 )
 
 log = get_logger(__name__)
@@ -20,37 +21,20 @@ log = get_logger(__name__)
 class DashboardService:
 
     @staticmethod
-    def kpi_globales() -> Dict:
-        """
-        Retorna los KPIs principales para el dashboard.
-
-        Incluye:
-          - rentas_activas: Cantidad de rentas en estado Activo
-          - autos_disponibles: Cantidad de autos disponibles
-          - autos_rentados: Cantidad de autos rentados
-          - autos_mantenimiento: Cantidad de autos en mantenimiento
-          - ocupacion_flota: Porcentaje de la flota rentada
-          - ingresos_mes: Total de ingresos del mes actual
-          - pagos_pendientes: Total de saldo pendiente en rentas activas
-        """
-        # Obtener datos de repositorios existentes
+    def kpi_globales() -> KpiGlobalesResponse:
         autos = AutoRepositorySA.obtener_todos()
         rentas_activas = RentaRepositorySA.obtener_activas()
 
-        # Contar estados de autos
         disponibles = sum(1 for a in autos if a.get('estado') == 'Disponible')
         rentados = sum(1 for a in autos if a.get('estado') == 'Rentado')
         en_mantenimiento = sum(1 for a in autos if a.get('estado') == 'Mantenimiento')
         total_flota = len(autos)
 
-        # Ocupación de flota
         ocupacion = 0.0
         if total_flota > 0:
-            # Excluir vendidos y baja del cálculo
             activos = sum(1 for a in autos if a.get('estado') not in ['Vendido', 'Baja'])
             ocupacion = round((rentados / activos) * 100, 1) if activos > 0 else 0.0
 
-        # Ingresos del mes actual
         mes_actual = date.today().strftime("%Y-%m")
         balance = InformeRepositorySA.obtener_balance_consolidado()
         ingresos_mes = 0.0
@@ -59,7 +43,6 @@ class DashboardService:
                 ingresos_mes = float(b.get('ingresos', 0) or 0)
                 break
 
-        # Saldo pendiente total
         pagos_pendientes = sum(
             float(r.get('saldo_pendiente', 0) or 0)
             for r in rentas_activas
@@ -74,4 +57,55 @@ class DashboardService:
             "ocupacion_flota": ocupacion,
             "ingresos_mes": ingresos_mes,
             "pagos_pendientes": pagos_pendientes,
+        }
+
+    @staticmethod
+    def obtener_activas() -> List[Dict]:
+        return RentaRepositorySA.obtener_activas()
+
+    @staticmethod
+    def obtener_activas_filtradas(filtro: str) -> List[Dict]:
+        return RentaRepositorySA.obtener_activas_filtradas(filtro)
+
+    @staticmethod
+    def obtener_alertas() -> AlertasResponse:
+        from services.alerta_service import AlertaService
+        return AlertaService.obtener_todas_las_alertas()
+
+    @staticmethod
+    def obtener_rentas_por_vencer() -> List[Dict]:
+        return AlertaRepositorySA.obtener_rentas_por_vencer()
+
+    @staticmethod
+    def obtener_documentos_por_vencer() -> List[Dict]:
+        return AlertaRepositorySA.obtener_documentos_por_vencer()
+
+    @staticmethod
+    def obtener_alertas_flota() -> List[Dict]:
+        return AutoRepositorySA.obtener_alertas_flota()
+
+    @staticmethod
+    def obtener_resumen_financiero() -> ResumenFinancieroResponse:
+        mes_actual = date.today().strftime("%Y-%m")
+        balance = InformeRepositorySA.obtener_balance_consolidado()
+
+        for b in balance:
+            if str(b.get('mes', '')) == mes_actual:
+                ingresos = float(b.get('ingresos', 0) or 0)
+                taller = float(b.get('egresos_taller', 0) or 0)
+                caja = float(b.get('gastos_caja', 0) or 0)
+                return {
+                    "mes": mes_actual,
+                    "ingresos_mes": ingresos,
+                    "egresos_taller_mes": taller,
+                    "gastos_caja_mes": caja,
+                    "utilidad_mes": ingresos - taller - caja,
+                }
+
+        return {
+            "mes": mes_actual,
+            "ingresos_mes": 0.0,
+            "egresos_taller_mes": 0.0,
+            "gastos_caja_mes": 0.0,
+            "utilidad_mes": 0.0,
         }

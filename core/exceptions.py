@@ -107,3 +107,15 @@ class SesionExpirada(SeguridadError):
 
 class PermisoInsuficiente(SeguridadError):
     mensaje_usuario = "No tienes permisos para realizar esta acción."
+
+
+class CuentaBloqueadaError(SeguridadError):
+    mensaje_usuario = "Tu cuenta ha sido bloqueada por múltiples intentos fallidos. Contacta al administrador."
+
+
+class RateLimitExceededError(SeguridadError):
+    mensaje_usuario = "Demasiados intentos de inicio de sesión. Por favor espera antes de intentar nuevamente."
+
+
+class InputSanitizationError(SeguridadError):
+    mensaje_usuario = "Los datos contienen caracteres no permitidos."

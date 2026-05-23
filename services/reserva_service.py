@@ -1,10 +1,6 @@
-"""
-reserva_service.py — Servicio de Reservas
+"""Reservation service."""
 
-Extraido de services_extra.py como parte de F1B (Reestructuración de Services).
-"""
 from typing import List, Dict
-from decimal import Decimal
 
 from core.exceptions import ValidacionError
 from core.logger import get_logger, get_audit_logger
@@ -23,7 +19,7 @@ class ReservaService:
 
     @staticmethod
     def crear(datos: dict) -> int:
-        """Crea una reserva validando que el cliente esté seleccionado."""
+        """Create a reservation validating client selection."""
         if not datos.get("id_cliente"):
             raise ValidacionError(
                 detalle="id_cliente requerido",
@@ -35,7 +31,6 @@ class ReservaService:
                 mensaje_usuario="Seleccione un vehículo o categoría válida.",
             )
 
-        # Calcular total si no viene
         if not datos.get("total"):
             dias = int(datos.get("dias_calculados", 1))
             horas = int(datos.get("horas_extras", 0))
@@ -47,7 +42,6 @@ class ReservaService:
         datos.setdefault("ubicacion_recogida", "Oficina")
         datos.setdefault("ubicacion_retorno", "Oficina")
 
-        # Validar con Pydantic
         try:
             reserva_validada = ReservaCreate(**datos)
         except Exception as e:

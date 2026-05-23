@@ -1,0 +1,42 @@
+# Target Python version
+target-version = "py310"
+
+# Exclude common directories
+exclude = [
+    ".git",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "Backups",
+    ".claude",
+    ".superpowers",
+    "security_audit.py",
+]
+
+# Set the maximum line length to 100
+line-length = 100
+
+[lint]
+# Enable rules: E (pycodestyle), F (Pyflakes), W (warnings), C90 (mccabe)
+select = ["E", "F", "W", "C90"]
+
+# Ignore certain rules that might conflict or are acceptable
+ignore = [
+    "E402",  # Module level import not at top of file (to be fixed incrementally)
+    "E501",  # Line too long (handled by formatting)
+    "E701",  # Multiple statements on one line
+    "E702",  # Multiple statements on one line (semicolon)
+    "E722",  # Do not use bare `except`
+]
+
+[lint.mccabe]
+# Reduce allowed complexity from default (10) to force cleaner functions
+max-complexity = 15
+
+[format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+# Indent with spaces, rather than tabs.
+indent-style = "space"
