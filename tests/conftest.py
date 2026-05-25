@@ -13,14 +13,15 @@ from core import config
 # Override DB_PATH to use an in-memory database
 config.DB_PATH = ":memory:"
 
-from core.database_sa import engine, Base, SessionLocal, init_db
+from core.database_sa import get_engine, SessionLocal, init_db
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
     """Create all tables in the in-memory database for testing."""
     init_db()
     yield
-    Base.metadata.drop_all(bind=engine)
+    from core.models import Base
+    Base.metadata.drop_all(bind=get_engine())
 
 @pytest.fixture
 def db_session():

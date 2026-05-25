@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
     QPushButton, QLabel, QHeaderView, QAbstractItemView, QWidget, QFrame,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QFont
 
 from core.exceptions import DinamoBaseError
@@ -79,7 +79,8 @@ class CalendarioWidget(BaseWidget):
         self.setStyleSheet(_CAL_STYLE)
 
         self._setup_ui()
-        self.cargar_calendario()
+        self._init_loading_overlay("Cargando calendario...")
+        QTimer.singleShot(0, lambda: self._deferred_call(self.cargar_calendario))
 
     def _setup_ui(self):
         root = QVBoxLayout(self)

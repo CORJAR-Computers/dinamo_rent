@@ -219,7 +219,7 @@ class TestGetSession:
             bind=eng,
             expire_on_commit=False,
         )
-        monkeypatch.setattr("core.database_sa.engine", eng)
+        monkeypatch.setattr("core.database_sa.get_engine", lambda: eng)
         monkeypatch.setattr("core.database_sa.SessionLocal", test_sessionmaker)
         return test_sessionmaker
 
@@ -348,7 +348,7 @@ class TestApplyMigrations:
         # Drop the migration columns by renaming tables (simulate pre-migration state)
         # Actually, easier: create a fresh DB and drop columns manually
         # OR: just test idempotency (duplicate column handling)
-        monkeypatch.setattr("core.database_sa.engine", eng)
+        monkeypatch.setattr("core.database_sa.get_engine", lambda: eng)
         return eng
 
     def test_migraciones_idempotentes(self, migration_db, monkeypatch):
@@ -365,7 +365,7 @@ class TestApplyMigrations:
         """Running migrations on empty DB logs warnings but doesn't crash."""
         eng = _make_memory_engine()
         # Don't create any tables
-        monkeypatch.setattr("core.database_sa.engine", eng)
+        monkeypatch.setattr("core.database_sa.get_engine", lambda: eng)
 
         from core.database_sa import _apply_migrations
         _apply_migrations()  # should not raise (tables don't exist → warnings)
@@ -398,7 +398,7 @@ class TestInitDb:
     def clean_engine(self, monkeypatch):
         """Create a fresh isolated engine, patch database_sa.engine."""
         eng = _make_memory_engine()
-        monkeypatch.setattr("core.database_sa.engine", eng)
+        monkeypatch.setattr("core.database_sa.get_engine", lambda: eng)
         # Also patch SessionLocal since init_db is called before session usage
         test_sessionmaker = sessionmaker(
             autocommit=False, autoflush=False, bind=eng, expire_on_commit=False,
@@ -486,7 +486,7 @@ class TestCheckConnection:
         test_sessionmaker = sessionmaker(
             autocommit=False, autoflush=False, bind=eng, expire_on_commit=False,
         )
-        monkeypatch.setattr("core.database_sa.engine", eng)
+        monkeypatch.setattr("core.database_sa.get_engine", lambda: eng)
         monkeypatch.setattr("core.database_sa.SessionLocal", test_sessionmaker)
         return eng
 
@@ -546,10 +546,11 @@ class TestModuleExports:
     """Module-level engine and SessionLocal exist and work."""
 
     def test_engine_exists(self):
-        """database_sa.engine is a valid SQLAlchemy engine."""
-        from core.database_sa import engine
-        assert engine is not None
-        assert hasattr(engine, "connect")
+        """database_sa.get_engine() returns a valid SQLAlchemy engine."""
+        from core.database_sa import get_engine
+        eng = get_engine()
+        assert eng is not None
+        assert hasattr(eng, "connect")
 
     def test_sessionlocal_callable(self):
         """SessionLocal is a callable that returns a session."""
@@ -599,7 +600,7 @@ class TestApplyMigrationsSuccess:
     def test_all_migrations_succeed(self, monkeypatch):
         """When engine.connect() succeeds, all 8 migrations (7 F1A + 1 index) apply."""
         fake_engine = _FakeEngine()
-        monkeypatch.setattr("core.database_sa.engine", fake_engine)
+        monkeypatch.setattr("core.database_sa.get_engine", lambda: fake_engine)
 
         from core.database_sa import _apply_migrations, _MIGRATIONS_F1A, _MIGRATIONS_INDEXES
 
@@ -609,7 +610,7 @@ class TestApplyMigrationsSuccess:
     def test_all_migrations_use_engine_connect(self, monkeypatch):
         """Each migration calls engine.connect()."""
         fake_engine = _FakeEngine()
-        monkeypatch.setattr("core.database_sa.engine", fake_engine)
+        monkeypatch.setattr("core.database_sa.get_engine", lambda: fake_engine)
 
         from core.database_sa import _apply_migrations, _MIGRATIONS_F1A, _MIGRATIONS_INDEXES
         expected_connections = len(_MIGRATIONS_F1A) + len(_MIGRATIONS_INDEXES)
@@ -631,7 +632,7 @@ class TestApplyMigrationsSuccess:
     def test_second_call_tambien_funciona(self, monkeypatch):
         """Calling _apply_migrations() twice on a fake engine is idempotent."""
         fake_engine = _FakeEngine()
-        monkeypatch.setattr("core.database_sa.engine", fake_engine)
+        monkeypatch.setattr("core.database_sa.get_engine", lambda: fake_engine)
 
         from core.database_sa import _apply_migrations
         _apply_migrations()  # First call

@@ -14,16 +14,17 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
     QPushButton, QHeaderView, QLabel, QDialog, QFormLayout,
     QComboBox, QDateEdit, QGroupBox, QDoubleSpinBox,
-    QTextEdit, QSpinBox, QAbstractItemView, QWidget,
+    QTextEdit, QSpinBox, QAbstractItemView, QWidget, QLineEdit,
 )
-from PySide6.QtCore import QDate
+from PySide6.QtCore import QDate, QTimer
 from PySide6.QtGui import QFont
 
 from services.auto_service import AutoService
 from services.mantenimiento_service import MantenimientoService
 from core.exceptions import DinamoBaseError
 from views.base_widget import BaseWidget
-from views.styles import btn_danger, btn_default, btn_primary, btn_warning, lbl_section, group_box, input_combo, input_date, input_spinbox, dialog_background, table_widget
+from views.base_dialog import BaseDialog
+from views.styles import btn_danger, btn_default, btn_primary, btn_warning, lbl_section, group_box, input_combo, input_date, input_spinbox, dialog_background, table_widget, edit_search
 
 # ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
 _NAV   = "#1a3558"
@@ -38,21 +39,37 @@ _MUTED = "#64748b"
 # =============================================================================
 # DIALOGO REGISTRO DE MANTENIMIENTO
 # =============================================================================
-class NuevoMantenimientoDialog(QDialog):
+class NuevoMantenimientoDialog(BaseDialog):
     """Dialogo para registrar mantenimiento/taller."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Registrar Mantenimiento / Taller")
         self.setMinimumSize(500, 600)
-        dialog_background(self)
         self.datos_auto = None
 
         self._setup_ui()
-        self._cargar_autos()
+        self._init_overlay("Cargando vehiculos...")
+        QTimer.singleShot(0, self._deferred_load)
+
+    def _deferred_load(self):
+        self._deferred_call(self._cargar_autos)
 
     def _setup_ui(self):
-        layout = QVBoxLayout(self)
+        root = QVBoxLayout(self)
+        root.setSpacing(0)
+        root.setContentsMargins(0, 0, 0, 0)
+
+        from views.layouts.form_helpers import build_dialog_header
+        root.addWidget(build_dialog_header("🛠️", "Registrar Mantenimiento / Taller", "Registro de servicios de taller y mantenimiento vehicular"))
+
+        from views.styles import dialog_body_style
+        body = QWidget()
+        body.setObjectName("dlg_body")
+        dialog_body_style(body)
+        body_lay = QVBoxLayout(body)
+        body_lay.setSpacing(14)
+        body_lay.setContentsMargins(20, 16, 20, 14)
 
         # 1. Seleccion de vehiculo
         group_veh = QGroupBox("1. Vehiculo")
@@ -69,7 +86,7 @@ class NuevoMantenimientoDialog(QDialog):
         lay_veh.addRow("Placa:", self.cmb_placa)
         lay_veh.addRow(self.lbl_info_auto)
         group_veh.setLayout(lay_veh)
-        layout.addWidget(group_veh)
+        body_lay.addWidget(group_veh)
 
         # 2. Detalles del servicio
         group_srv = QGroupBox("2. Servicio Realizado")
@@ -101,7 +118,7 @@ class NuevoMantenimientoDialog(QDialog):
         lay_srv.addRow("Costo Total:", self.spin_costo)
         lay_srv.addRow("Kilometraje Actual:", self.spin_km_actual)
         group_srv.setLayout(lay_srv)
-        layout.addWidget(group_srv)
+        body_lay.addWidget(group_srv)
 
         # 3. Proyeccion y notas
         group_proy = QGroupBox("3. Proximo Servicio (Alerta)")
@@ -129,10 +146,20 @@ class NuevoMantenimientoDialog(QDialog):
         lay_proy.addRow("Observaciones:", self.txt_obs)
         lay_proy.addRow("Estado del Auto:", self.chk_cambiar_estado)
         group_proy.setLayout(lay_proy)
-        layout.addWidget(group_proy)
+        body_lay.addWidget(group_proy)
+
+        body_lay.addStretch()
+
+        # Separador
+        from PySide6.QtWidgets import QFrame
+        sep = QFrame()
+        sep.setFrameShape(QFrame.Shape.HLine)
+        sep.setStyleSheet("QFrame { background: #cbd5e1; max-height: 1px; border: none; }")
+        body_lay.addWidget(sep)
 
         # Botones
         btn_box = QHBoxLayout()
+        btn_box.setSpacing(10)
 
         btn_cancel = QPushButton("Cancelar")
         btn_danger(btn_cancel)
@@ -145,7 +172,9 @@ class NuevoMantenimientoDialog(QDialog):
         btn_box.addStretch()
         btn_box.addWidget(btn_cancel)
         btn_box.addWidget(btn_save)
-        layout.addLayout(btn_box)
+        body_lay.addLayout(btn_box)
+
+        root.addWidget(body)
 
     def _cargar_autos(self):
         self.cmb_placa.clear()
@@ -201,10 +230,8 @@ class NuevoMantenimientoDialog(QDialog):
 
         try:
             MantenimientoService.registrar(datos)
-            ModernMessageBox.success(
-                self, "Exito",
-                "Mantenimiento registrado y vehiculo actualizado."
-            )
+            from views.components.toast_notification import ToastNotification
+            ToastNotification(self.window(), "Mantenimiento registrado y vehículo actualizado.", "success")
             self.accept()
         except DinamoBaseError as e:
             ModernMessageBox.error(self, "Error", str(e))
@@ -235,8 +262,27 @@ class MantenimientoWidget(BaseWidget):
         c_lay.setSpacing(14)
         main_layout.addWidget(content, stretch=1)
 
-        # ── Acciones ──
+        # ── Barra de búsqueda y filtros ──
         top = QHBoxLayout()
+
+        self.txt_buscar = QLineEdit()
+        edit_search(self.txt_buscar)
+        self.txt_buscar.setPlaceholderText("Buscar por placa, tipo de servicio...")
+        self.txt_buscar.setMinimumWidth(220)
+        self.txt_buscar.textChanged.connect(self._filtrar)
+        top.addWidget(self.txt_buscar)
+
+        self.cmb_filtro = QComboBox()
+        self.cmb_filtro.addItems([
+            "Todos los servicios", "Cambio Aceite", "Frenos", "Llantas",
+            "Batería", "Tecno-Mecánica", "Lavado General", "Reparación Mecánica", "Otro",
+        ])
+        self.cmb_filtro.setCurrentIndex(0)
+        self.cmb_filtro.setMinimumWidth(180)
+        input_combo(self.cmb_filtro)
+        self.cmb_filtro.currentIndexChanged.connect(self._filtrar)
+        top.addWidget(self.cmb_filtro)
+
         top.addStretch()
 
         btn_ref = QPushButton("Actualizar")
@@ -257,10 +303,12 @@ class MantenimientoWidget(BaseWidget):
         self._configurar_tabla()
         c_lay.addWidget(self.tabla)
 
-        self.cargar_historial()
+        self._lista: list[dict] = []
+        self._init_loading_overlay("Cargando historial...")
+        QTimer.singleShot(0, lambda: self._deferred_call(self.cargar_historial))
 
     def _configurar_tabla(self):
-        cols = ["Fecha", "Placa", "Tipo Servicio", "Costo", "Observaciones"]
+        cols = ["Fecha", "Placa", "Auto", "Tipo Servicio", "Costo", "Observaciones", "KM Próx."]
         self.tabla.setColumnCount(len(cols))
         self.tabla.setHorizontalHeaderLabels(cols)
         self.tabla.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -268,37 +316,100 @@ class MantenimientoWidget(BaseWidget):
         self.tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.tabla.verticalHeader().setVisible(False)
         self.tabla.setAlternatingRowColors(True)
+        self.tabla.setColumnWidth(1, 100)
+        self.tabla.setColumnWidth(2, 140)
 
     # ── Carga de datos ─────────────────────────────────────────
 
     def cargar_historial(self):
         self.tabla.setRowCount(0)
+        self._lista = []
         try:
+            # Build auto lookup for enriching mantenimiento data
+            auto_lookup = {}
+            try:
+                for a in AutoService.listar():
+                    auto_lookup[a["placa"]] = a
+            except DinamoBaseError:
+                pass
+
             historial = MantenimientoService.listar_historial(50)
-            for i, r in enumerate(historial):
-                self.tabla.insertRow(i)
-
-                self.tabla.setItem(
-                    i, 0, QTableWidgetItem(str(r.get("pieza_varias_fecha", "")))
-                )
-                self.tabla.setItem(
-                    i, 1, QTableWidgetItem(str(r.get("placa", "")))
-                )
-
-                item_tipo = QTableWidgetItem(str(r.get("pieza_varias_tipo", "")))
-                fnt = QFont(item_tipo.font())
-                fnt.setBold(True)
-                item_tipo.setFont(fnt)
-                self.tabla.setItem(i, 2, item_tipo)
-
-                costo = float(r.get("total_mantenimiento", 0) or 0)
-                self.tabla.setItem(i, 3, QTableWidgetItem(f"${costo:,.0f}"))
-                self.tabla.setItem(
-                    i, 4, QTableWidgetItem(str(r.get("pieza_varias_obs", "")))
-                )
-
+            # Enrich with auto data
+            for r in historial:
+                placa = r.get("placa", "")
+                auto_data = auto_lookup.get(placa, {})
+                r["_auto_marca"] = auto_data.get("marca", "")
+                r["_auto_modelo"] = auto_data.get("modelo", "")
+                r["_auto_estado"] = auto_data.get("estado", "")
+            self._lista = historial
+            self._pintar_filas(historial)
         except DinamoBaseError as e:
             self.mostrar_error(f"Error cargando historial:\n{e}")
+
+    def _pintar_filas(self, datos: list[dict]):
+        """Renderiza las filas de la tabla con los datos filtrados."""
+        self.tabla.setRowCount(0)
+        for i, r in enumerate(datos):
+            self.tabla.insertRow(i)
+
+            self.tabla.setItem(
+                i, 0, QTableWidgetItem(str(r.get("pieza_varias_fecha", "")))
+            )
+            self.tabla.setItem(
+                i, 1, QTableWidgetItem(str(r.get("placa", "")))
+            )
+
+            # Auto (Marca / Modelo)
+            marca = r.get("_auto_marca", "")
+            modelo = r.get("_auto_modelo", "")
+            auto_text = f"{marca} {modelo}".strip() or "—"
+            self.tabla.setItem(i, 2, QTableWidgetItem(auto_text))
+
+            # Tipo Servicio (bold)
+            item_tipo = QTableWidgetItem(str(r.get("pieza_varias_tipo", "")))
+            fnt = QFont(item_tipo.font())
+            fnt.setBold(True)
+            item_tipo.setFont(fnt)
+            self.tabla.setItem(i, 3, item_tipo)
+
+            costo = float(r.get("total_mantenimiento", 0) or 0)
+            self.tabla.setItem(i, 4, QTableWidgetItem(f"${costo:,.0f}"))
+            self.tabla.setItem(
+                i, 5, QTableWidgetItem(str(r.get("pieza_varias_obs", "")))
+            )
+
+            # KM Próximo
+            km_prox = r.get("km_proximo_cambio_aceite", 0) or 0
+            km_text = f"{km_prox:,.0f} km" if km_prox else "—"
+            self.tabla.setItem(i, 6, QTableWidgetItem(km_text))
+
+    def _filtrar(self):
+        """Filtra la tabla por texto y tipo de servicio."""
+        txt = self.txt_buscar.text().lower()
+        filtro_tipo = self.cmb_filtro.currentIndex()  # 0=Todos, 1+ = tipo específico
+
+        filtrados = self._lista
+
+        # 1. Filtrar por tipo de servicio
+        if filtro_tipo > 0:
+            tipo_seleccionado = self.cmb_filtro.currentText()
+            filtrados = [
+                r for r in filtrados
+                if r.get("pieza_varias_tipo", "") == tipo_seleccionado
+            ]
+
+        # 2. Filtrar por texto
+        if txt:
+            filtrados = [
+                r for r in filtrados
+                if txt in str(r.get("placa", "")).lower()
+                or txt in str(r.get("pieza_varias_tipo", "")).lower()
+                or txt in str(r.get("_auto_marca", "")).lower()
+                or txt in str(r.get("_auto_modelo", "")).lower()
+                or txt in str(r.get("pieza_varias_obs", "")).lower()
+            ]
+
+        self._pintar_filas(filtrados)
 
     # ── Acciones ───────────────────────────────────────────────
 

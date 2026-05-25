@@ -19,14 +19,14 @@ from PySide6.QtWidgets import (
     QLabel, QTabWidget, QPushButton, QWidget,
     QFileDialog, QAbstractItemView,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QBrush, QFont
 
 from core.config import COLOR_EXITO, COLOR_PELIGRO, COLOR_ALERTA
 from services.financial_service import FinancialService
 from services.informe_service import InformeService
 from views.base_widget import BaseWidget
-from views.styles import btn_success, lbl_section, table_widget, view_background
+from views.styles import btn_success, lbl_section, table_widget, view_background, tab_widget_pane_style, tab_bar_style
 
 # ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
 _NAV   = "#1a3558"
@@ -36,13 +36,6 @@ _SURF  = "#ffffff"
 _BORD  = "#cbd5e1"
 _TEXT  = "#1e293b"
 _MUTED = "#64748b"
-
-try:
-    import pandas as pd
-    _PANDAS = True
-except ImportError:
-    _PANDAS = False
-
 
 class InformesWidget(BaseWidget):
     """Panel de Informes Financieros Gerenciales."""
@@ -77,6 +70,8 @@ class InformesWidget(BaseWidget):
 
         # ── Tabs ──
         self.tabs = QTabWidget()
+        tab_widget_pane_style(self.tabs)
+        tab_bar_style(self.tabs.tabBar())
         view_background(self)
 
         # --- TAB 1: Balance Consolidado ---
@@ -121,7 +116,8 @@ class InformesWidget(BaseWidget):
         self.tabs.addTab(tab_roi, "Rentabilidad por Vehiculo (ROI)")
         c_lay.addWidget(self.tabs)
 
-        self.cargar_datos()
+        self._init_loading_overlay()
+        QTimer.singleShot(0, self._deferred_load)
 
     # ── Carga de datos ─────────────────────────────────────────
 
@@ -191,7 +187,9 @@ class InformesWidget(BaseWidget):
     # ── Exportar a Excel ───────────────────────────────────────
 
     def _exportar(self):
-        if not _PANDAS:
+        try:
+            import pandas as pd
+        except ImportError:
             ModernMessageBox.warning(
                 self, "Libreria faltante",
                 "Para exportar instale pandas:\n\npip install pandas openpyxl",

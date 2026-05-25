@@ -83,6 +83,28 @@ def inicializar_base_datos(force_dialog=False):
 
     with get_session() as session:
         admin = session.query(Usuario).filter(Usuario.username == 'admin').first()
+
+        dev_password = "Admin123!"
+
+        if not PRODUCTION_MODE:
+            if not admin:
+                admin = Usuario(
+                    username='admin',
+                    password=SecurityManager.hash_password(dev_password),
+                    nombre='Administrador Principal',
+                    rol='Administrador',
+                    activo=1,
+                    debe_cambiar_password=0
+                )
+                session.add(admin)
+                log.info("Usuario admin creado con contraseña de desarrollo: Admin123!")
+            else:
+                admin.password = SecurityManager.hash_password(dev_password)
+                admin.activo = 1
+                admin.debe_cambiar_password = 0
+                log.info("Usuario admin verificado. Contraseña restablecida a la contraseña de desarrollo: Admin123!")
+            return
+
         if admin:
             return
 
@@ -97,8 +119,8 @@ def inicializar_base_datos(force_dialog=False):
             debe_cambiar_password=1
         )
         session.add(admin)
-        log.info("Usuario admin creado con contraseña por defecto (modo desarrollo)")
-        log.warning("Contraseña temporal generada (no almacenar, cambiarla en primer inicio)")
+        log.info("Usuario admin creado con contraseña aleatoria de producción")
+        log.warning("Contraseña temporal generada: %s (no almacenar, cambiarla en primer inicio)", new_password)
 
 # ── Vistas (importación diferida para acelerar arranque) ──────────────────────
 def _cargar_vistas():
@@ -126,6 +148,15 @@ def _cargar_vistas():
 # 1. SPLASH SCREEN
 # =============================================================================
 class SplashScreen(QWidget):
+    """Pantalla de inicio con barra de progreso en tiempo real.
+
+    Soporta dos modos:
+    - **Externo** (predeterminado): ``set_progress(value, message)`` es llamado
+      desde ``__main__`` para reflejar el progreso real de arranque.
+    - **Animación**: si nunca se llama a ``set_progress``, la barra se llena
+      sola en ~2.5 segundos como fallback.
+    """
+
     def __init__(self):
         super().__init__()
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
@@ -186,20 +217,54 @@ class SplashScreen(QWidget):
             "font-size:12px;color:#9e9e9e;margin-top:10px;"
         )
 
+        # ── Indicador de versión / compilación (esquina inferior) ──
+        self.lbl_version = QLabel(f"v{APP_VERSION}")
+        self.lbl_version.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_version.setStyleSheet(
+            "font-size:10px;color:#c0c0c0;margin-top:4px;"
+        )
+
         lay.addWidget(lbl_logo)
         lay.addWidget(lbl_tit)
         lay.addWidget(lbl_sub)
         lay.addStretch()
         lay.addWidget(self.progress)
         lay.addWidget(self.lbl_estado)
+        lay.addWidget(self.lbl_version)
         outer.addWidget(self.card)
 
+        # ── Modo externo vs animación ─────────────────────────────
+        self._external_mode = False
         self._contador = 0
         self._timer = QTimer()
-        self._timer.timeout.connect(self._tick)
+        self._timer.timeout.connect(self._tick_fallback)
         self._timer.start(25)
+
         # Iniciar backup en hilo secundario inmediatamente
         _backup_executor.submit(self._crear_backup_safe)
+
+    # ── API pública ────────────────────────────────────────────────
+
+    def set_progress(self, value: int, message: str) -> None:
+        """Actualiza la barra de progreso y el texto de estado en tiempo real.
+
+        Args:
+            value: Porcentaje 0-100.
+            message: Texto descriptivo de la fase actual.
+        """
+        self._external_mode = True
+        self.progress.setValue(min(value, 100))
+        self.lbl_estado.setText(message)
+        QApplication.processEvents()
+
+    def close_and_show_login(self) -> None:
+        """Cierra el splash y abre la ventana de login."""
+        self._timer.stop()
+        self.close()
+        self._login = LoginWindow()
+        self._login.show()
+
+    # ── Internos ───────────────────────────────────────────────────
 
     def _crear_backup_safe(self):
         """Ejecuta backup de forma segura capturando errores."""
@@ -209,7 +274,10 @@ class SplashScreen(QWidget):
         except Exception as e:
             log.warning("Backup automático falló: %s", e)
 
-    def _tick(self):
+    def _tick_fallback(self):
+        """Animación por defecto cuando no se usa el modo externo."""
+        if self._external_mode:
+            return  # El progreso externo maneja la barra
         self._contador += 1
         self.progress.setValue(self._contador)
         if self._contador == 20:
@@ -219,10 +287,7 @@ class SplashScreen(QWidget):
         elif self._contador == 70:
             self.lbl_estado.setText("Preparando interfaz…")
         elif self._contador >= 100:
-            self._timer.stop()
-            self.close()
-            self._login = LoginWindow()
-            self._login.show()
+            self.close_and_show_login()
 
     def _centrar(self):
         geo = QApplication.primaryScreen().availableGeometry()
@@ -317,6 +382,16 @@ class LoginWindow(QMainWindow):
             "color:#d32f2f;font-size:13px;font-weight:bold;border:none;"
         )
 
+        self.btn_config_db = QPushButton("⚙️ Configurar Base de Datos")
+        self.btn_config_db.setFlat(True)
+        self.btn_config_db.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_config_db.setFixedHeight(30)
+        self.btn_config_db.setStyleSheet(
+            "QPushButton{color:#004aad;font-weight:bold;font-size:10pt;border:none;background:transparent;}"
+            "QPushButton:hover{color:#002f6c;text-decoration:underline;}"
+        )
+        self.btn_config_db.clicked.connect(self._open_db_config)
+
         lay.addWidget(lbl_bienvenido)
         lay.addWidget(lbl_sub)
         lay.addSpacing(10)
@@ -325,6 +400,7 @@ class LoginWindow(QMainWindow):
         lay.addSpacing(10)
         lay.addWidget(self.btn_login)
         lay.addWidget(self.lbl_error)
+        lay.addWidget(self.btn_config_db)
         lay.addStretch()
         outer.addWidget(self.card)
 
@@ -375,6 +451,11 @@ class LoginWindow(QMainWindow):
             return ip
         except Exception:
             return "127.0.0.1"
+
+    def _open_db_config(self):
+        from views.database_config_dialog import DatabaseConfigDialog
+        dlg = DatabaseConfigDialog(self)
+        dlg.exec()
 
 
 # =============================================================================
@@ -681,7 +762,7 @@ class MainWindow(QMainWindow):
         footer.setStyleSheet(
             "background-color: #0d47a1; border-top: 1px solid #1565c0;"
         )
-        footer.setFixedHeight(90)
+        footer.setFixedHeight(130)
         footer_layout = QVBoxLayout(footer)
         footer_layout.setContentsMargins(15, 10, 15, 10)
         footer_layout.setSpacing(5)
@@ -691,6 +772,52 @@ class MainWindow(QMainWindow):
             f"Rol: {rol.upper()}"
         )
         lbl_usr.setStyleSheet("color:#bbdefb;font-size:11px;")
+
+        # ── Botón de cambio de tema ──
+        from views.themes.theme_manager import get_current_theme_name
+        _current_theme = get_current_theme_name()
+        _theme_icon = "☀️" if _current_theme == "dinamo" else "🌙"
+        _theme_label = "Claro" if _current_theme == "dinamo" else "Oscuro"
+        self._btn_theme = QPushButton(f"{_theme_icon} Tema {_theme_label}")
+        self._btn_theme.setFlat(True)
+        self._btn_theme.setFixedHeight(32)
+        self._btn_theme.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._btn_theme.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #90caf9;
+                border: 1px solid #1565c0;
+                border-radius: 6px;
+                font-size: 11px;
+                padding: 4px 12px;
+            }
+            QPushButton:hover {
+                background-color: #1565c0;
+                color: white;
+            }
+        """)
+        self._btn_theme.clicked.connect(self._toggle_theme)
+
+        btn_about = QPushButton("ℹ️ Acerca de")
+        btn_about.setFlat(True)
+        btn_about.setFixedHeight(32)
+        btn_about.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_about.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #90caf9;
+                border: 1px solid transparent;
+                border-radius: 6px;
+                font-size: 11px;
+                padding: 4px 12px;
+            }
+            QPushButton:hover {
+                background-color: #1565c0;
+                color: white;
+                border-color: #1565c0;
+            }
+        """)
+        btn_about.clicked.connect(self._open_about)
 
         btn_logout = QPushButton("Cerrar Sesión")
         btn_logout.setFlat(True)
@@ -717,6 +844,8 @@ class MainWindow(QMainWindow):
         btn_logout.clicked.connect(self._cerrar_sesion)
 
         footer_layout.addWidget(lbl_usr)
+        footer_layout.addWidget(self._btn_theme)
+        footer_layout.addWidget(btn_about)
         footer_layout.addWidget(btn_logout)
         main_layout.addWidget(footer)
 
@@ -772,6 +901,27 @@ class MainWindow(QMainWindow):
                 61_000, lambda: self._timer_backup.start(BACKUP_INTERVAL_MS)
             )
 
+    def _open_about(self):
+        """Abre el diálogo de información del sistema."""
+        from views.about_dialog import AboutDialog
+        dlg = AboutDialog(self)
+        dlg.exec()
+
+    def _toggle_theme(self):
+        """Cambia al tema opuesto y lo aplica en toda la app."""
+        from views.themes.theme_manager import toggle_theme, THEME_LABELS, THEME_ICONS
+        new = toggle_theme()
+        icon = THEME_ICONS.get(new, "☀️")
+        label = THEME_LABELS.get(new, "Claro")
+        self._btn_theme.setText(f"{icon} Tema {label}")
+        log.info("Tema cambiado a: %s", label)
+
+        # Notificación toast
+        from views.components.toast_notification import ToastNotification
+        ToastNotification.show_info(
+            self, f"Tema cambiado a \"{label}\""
+        )
+
     def _cerrar_sesion(self):
         log.info("Sesión cerrada: %s", self._session.get("username"))
         self.close()
@@ -805,18 +955,8 @@ if __name__ == "__main__":
 
     log.info("═══ Arrancando %s v%s ═══", APP_NAME, APP_VERSION)
 
-    setup_result = inicializar_base_datos()
-
+    # ── Crear QApplication ANTES del splash ────────────────────────────
     app = QApplication(sys.argv)
-
-    if setup_result == "SETUP_NEEDED":
-        from views.setup_wizard import run_setup_wizard
-        if not run_setup_wizard():
-            log.warning("Setup inicial cancelado por el usuario")
-            sys.exit(0)
-        # If setup was successful, we must exit so the app restarts and reloads config.
-        sys.exit(0)
-
     app.setStyle("Fusion")
 
     ico = str(ASSETS_DIR / "LogoDinamo.ico")
@@ -827,13 +967,37 @@ if __name__ == "__main__":
 
     app.setFont(QFont(FONT_FAMILY, FONT_SIZE))
 
-    # ── Cargar QSS global con inyección de variables de tema ──────────────
-    # ── Cargar QSS global con nuevo sistema de temas ──────────────
-    from views.themes import THEME_DINAMO, build_stylesheet
-    app.setStyleSheet(build_stylesheet(THEME_DINAMO))
-    log.info("Hoja de estilos global (Modern QSS) cargada con éxito.")
-
+    # ── Splash temprano con progreso real ──────────────────────────────
     splash = SplashScreen()
     splash.show()
+    splash.set_progress(5, "Inicializando sistema…")
+
+    setup_result = inicializar_base_datos()
+
+    if setup_result == "SETUP_NEEDED":
+        splash.close()
+        from views.setup_wizard import run_setup_wizard
+        if not run_setup_wizard():
+            log.warning("Setup inicial cancelado por el usuario")
+            sys.exit(0)
+        sys.exit(0)
+
+    splash.set_progress(30, "Verificando base de datos…")
+
+    splash.set_progress(50, "Cargando tema visual…")
+    from views.themes.theme_manager import apply_theme
+    apply_theme()
+    log.info("Hoja de estilos global (Modern QSS) cargada con éxito.")
+
+    splash.set_progress(70, "Cargando módulos del sistema…")
+    # Pre-carga de clases de vistas (no se instancian, solo se importan)
+    _cargar_vistas()
+
+    splash.set_progress(90, "Preparando interfaz…")
+
+    splash.set_progress(100, "¡Listo!")
+
+    # Pequeña pausa para que el usuario vea el 100% antes de la transición
+    QTimer.singleShot(400, splash.close_and_show_login)
 
     sys.exit(app.exec())

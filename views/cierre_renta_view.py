@@ -1,4 +1,3 @@
-from views.components import ModernMessageBox
 """
 views/cierre_renta_view.py — Dialogo para procesar la devolucion de una renta
 BUG FIX: metodos inconsistentes corregidos. Estilos via views.styles.py.
@@ -8,23 +7,25 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QLineEdit, QDateEdit, QTimeEdit,
     QDoubleSpinBox, QComboBox, QPushButton, QGroupBox, QFrame,
+    QWidget,
 )
-from PySide6.QtCore import QDate, QTime
+from PySide6.QtCore import QDate, QTime, QTimer
 
 from core.config import NIVEL_TANQUE
 from core.exceptions import DinamoBaseError
 from services.renta_service import RentaService
 from core.logger import get_logger
+from views.components import ModernMessageBox
+from views.base_dialog import BaseDialog
 from views.styles import (
     btn_success, btn_danger, btn_warning, lbl_subtitle, lbl_section, frame_summary,
     group_box, input_date, input_time, input_spinbox, input_field, input_combo, dialog_title,
-    dialog_background,
 )
 
 log = get_logger(__name__)
 
 
-class CierreRentaDialog(QDialog):
+class CierreRentaDialog(BaseDialog):
     def __init__(self, parent=None, id_renta: int | None = None):
         super().__init__(parent)
         title = "Procesar Devolucion"
@@ -32,14 +33,30 @@ class CierreRentaDialog(QDialog):
             title += f" — Renta #{id_renta}"
         self.setWindowTitle(title)
         self.setMinimumSize(600, 700)
-        dialog_background(self)
         self.id_renta = id_renta
         self._renta = {}
 
-        layout = QVBoxLayout(self)
+        self._setup_ui()
+
+    def _setup_ui(self):
+        root = QVBoxLayout(self)
+        root.setSpacing(0)
+        root.setContentsMargins(0, 0, 0, 0)
+
+        from views.layouts.form_helpers import build_dialog_header
+        root.addWidget(build_dialog_header("📋", "Procesar Devolucion" + (f" — Renta #{self.id_renta}" if self.id_renta else ""), "Cierre de renta y liquidacion final"))
+
+        from views.styles import dialog_body_style
+        body = QWidget()
+        body.setObjectName("dlg_body")
+        dialog_body_style(body)
+        body_lay = QVBoxLayout(body)
+        body_lay.setSpacing(14)
+        body_lay.setContentsMargins(20, 16, 20, 14)
+
         self.lbl_info = QLabel("Cargando...")
         dialog_title(self.lbl_info)
-        layout.addWidget(self.lbl_info)
+        body_lay.addWidget(self.lbl_info)
 
         gb_dev = QGroupBox("Datos de Devolucion")
         group_box(gb_dev)
@@ -62,7 +79,7 @@ class CierreRentaDialog(QDialog):
         input_combo(self.cmb_tanque)
         f_dev.addRow("Fecha Real:", self.date_retorno); f_dev.addRow("Hora Real:", self.time_retorno)
         f_dev.addRow("Kilometraje Final:", self.txt_km_final); f_dev.addRow("Nivel Gasolina:", self.cmb_tanque)
-        gb_dev.setLayout(f_dev); layout.addWidget(gb_dev)
+        gb_dev.setLayout(f_dev); body_lay.addWidget(gb_dev)
 
         gb_cos = QGroupBox("Costos Adicionales")
         group_box(gb_cos)
@@ -73,7 +90,7 @@ class CierreRentaDialog(QDialog):
         self.txt_obs = QLineEdit(); self.txt_obs.setPlaceholderText("Danos, gasolina, etc."); input_field(self.txt_obs)
         f_cos.addRow("Tiempo Extra:", self.sp_dias_extra); f_cos.addRow("Costo Tiempo Extra:", self.sp_mora)
         f_cos.addRow("Otros (Danos/Gasolina):", self.sp_otros); f_cos.addRow("Observacion:", self.txt_obs)
-        gb_cos.setLayout(f_cos); layout.addWidget(gb_cos)
+        gb_cos.setLayout(f_cos); body_lay.addWidget(gb_cos)
 
         frame_tot = QFrame()
         frame_summary(frame_tot)
@@ -82,9 +99,20 @@ class CierreRentaDialog(QDialog):
         self.lbl_total = QLabel("TOTAL A PAGAR: $0"); lbl_subtitle(self.lbl_total)
         self.lbl_detalle = QLabel("")
         lay_tot.addWidget(self.lbl_pactado); lay_tot.addWidget(self.lbl_total); lay_tot.addWidget(self.lbl_detalle)
-        layout.addWidget(frame_tot)
+        body_lay.addWidget(frame_tot)
 
+        body_lay.addStretch()
+
+        # Separador
+        from PySide6.QtWidgets import QFrame as QSepFrame
+        sep = QSepFrame()
+        sep.setFrameShape(QSepFrame.Shape.HLine)
+        sep.setStyleSheet("QFrame { background: #cbd5e1; max-height: 1px; border: none; }")
+        body_lay.addWidget(sep)
+
+        # Botones
         btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(10)
         btn_inspeccion = QPushButton("Inspeccion (Check-in)"); btn_warning(btn_inspeccion)
         btn_inspeccion.clicked.connect(self._abrir_inspeccion)
         btn_cerrar = QPushButton("Finalizar Renta"); btn_success(btn_cerrar)
@@ -93,9 +121,16 @@ class CierreRentaDialog(QDialog):
         btn_cancel.clicked.connect(self.reject)
         btn_layout.addWidget(btn_inspeccion); btn_layout.addStretch()
         btn_layout.addWidget(btn_cancel); btn_layout.addWidget(btn_cerrar)
-        layout.addLayout(btn_layout)
+        body_lay.addLayout(btn_layout)
 
-        self._cargar_datos()
+        root.addWidget(body)
+
+        # ── Loading overlay while data loads ────────────────────────────
+        self._init_overlay("Cargando datos de renta...")
+        QTimer.singleShot(0, self._deferred_load)
+
+    def _deferred_load(self):
+        self._deferred_call(self._cargar_datos)
 
     def _cargar_datos(self):
         if self.id_renta is None:
@@ -177,7 +212,8 @@ class CierreRentaDialog(QDialog):
         }
         try:
             RentaService.cerrar(self.id_renta, datos_cierre)
-            ModernMessageBox.success(self, "Exito", "Renta finalizada correctamente.\nEl vehiculo esta Disponible.")
+            from views.components.toast_notification import ToastNotification
+            ToastNotification(self.window(), "Renta finalizada correctamente. El vehículo está Disponible.", "success")
             self.accept()
         except DinamoBaseError as e:
             ModernMessageBox.error(self, "Error", e.mensaje_usuario)

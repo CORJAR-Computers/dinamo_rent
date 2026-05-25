@@ -1,16 +1,26 @@
-"""SQLAlchemy database layer with auto-migrations. Dual MySQL/SQLite support."""
+"""
+SQLAlchemy database layer with auto-migrations. Dual MySQL/SQLite support.
+
+Engine and session factory are lazily initialized (deferred until first use)
+to speed up module import time by ~300-500ms.
+"""
 from contextlib import contextmanager
-from typing import Generator
+from typing import Generator, Optional
 
 from sqlalchemy import create_engine, event, text
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session as SASession
 from sqlalchemy.pool import StaticPool, QueuePool
 
 from core.config import DB_ENGINE, DB_MYSQL, DB_PATH
-from core.models import Base
 from core.logger import get_logger
 
 log = get_logger(__name__)
+
+
+# ── Lazy singleton holders ──────────────────────────────────────────────────
+
+_engine = None
+_SessionMaker = None
 
 
 def _get_database_url() -> str:
@@ -56,18 +66,38 @@ def _create_engine_instance():
     return engine
 
 
-engine = _create_engine_instance()
+def get_engine():
+    """Lazy engine initializer — engine is created on first call."""
+    global _engine
+    if _engine is None:
+        _engine = _create_engine_instance()
+    return _engine
 
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine,
-    expire_on_commit=False,
-)
+
+class _LazySessionMaker:
+    """Lazy sessionmaker wrapper — defers initialization until first call."""
+
+    def __init__(self):
+        self._maker = None
+
+    def __call__(self):
+        if self._maker is None:
+            from sqlalchemy.orm import sessionmaker
+            self._maker = sessionmaker(
+                autocommit=False,
+                autoflush=False,
+                bind=get_engine(),
+                expire_on_commit=False,
+            )
+        return self._maker()
+
+
+# Module-level session factory (backward compatible — works as callable)
+SessionLocal = _LazySessionMaker()
 
 
 @contextmanager
-def get_session() -> Generator[Session, None, None]:
+def get_session() -> Generator[SASession, None, None]:
     session = SessionLocal()
     try:
         yield session
@@ -78,6 +108,8 @@ def get_session() -> Generator[Session, None, None]:
     finally:
         session.close()
 
+
+# ── Migrations ──────────────────────────────────────────────────────────────
 
 _MIGRATIONS_F1A = [
     ("clientes.updated_at",
@@ -103,12 +135,13 @@ _MIGRATIONS_INDEXES = [
 
 
 def _apply_migrations() -> None:
+    eng = get_engine()
     applied = 0
     skipped = 0
 
     for desc, sql in _MIGRATIONS_F1A:
         try:
-            with engine.connect() as conn:
+            with eng.connect() as conn:
                 conn.execute(text(sql))
                 conn.commit()
             applied += 1
@@ -123,7 +156,7 @@ def _apply_migrations() -> None:
 
     for desc, sql in _MIGRATIONS_INDEXES:
         try:
-            with engine.connect() as conn:
+            with eng.connect() as conn:
                 conn.execute(text(sql))
                 conn.commit()
             applied += 1
@@ -145,11 +178,16 @@ def _apply_migrations() -> None:
 
 
 def init_db(drop: bool = False) -> None:
+    """Initialize database — imports models lazily."""
+    from core.models import Base
+
+    eng = get_engine()
+
     if drop:
         log.warning("DROPPING ALL TABLES!")
-        Base.metadata.drop_all(bind=engine)
+        Base.metadata.drop_all(bind=eng)
 
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=eng)
     log.info("Database tables created successfully")
     _apply_migrations()
 
@@ -168,4 +206,17 @@ def check_connection() -> tuple[bool, str]:
     except Exception as e:
         return False, f"Connection failed: {str(e)}"
 
+
+def reset_database_connection() -> None:
+    """Disposes the current engine and resets deferred singletons to allow reconnection."""
+    global _engine, _SessionMaker
+    if _engine is not None:
+        try:
+            _engine.dispose()
+            log.info("Active database engine disposed successfully")
+        except Exception as e:
+            log.warning(f"Error disposing database engine: {e}")
+    _engine = None
+    _SessionMaker = None
+    log.info("Database connection singletons reset successfully")
 

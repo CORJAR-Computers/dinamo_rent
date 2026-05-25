@@ -11,9 +11,9 @@ from PySide6.QtWidgets import (
     QTabWidget, QDateEdit, QWidget, QTableWidget, QMenu,
     QScrollArea, QHeaderView, QGridLayout, QFrame, QApplication,
 )
-from PySide6.QtCore import Qt, QDate
+from PySide6.QtCore import Qt, QDate, QTimer
 from PySide6.QtGui import QColor, QBrush
-
+from views.base_dialog import BaseDialog
 from core.config import TIPOS_DOC, ESTADOS_CLIENTE, COLOR_ESTADO_ACTIVO, COLOR_ESTADO_VIP, COLOR_ESTADO_LISTA_NEGRA, COLOR_PRIMARIO, COLOR_PRIMARIO_FOCUS, COLOR_SURFACE, COLOR_BORDER, COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY, COLOR_PELIGRO
 from core.exceptions import DinamoBaseError
 from services.cliente_service import ClienteService
@@ -24,7 +24,7 @@ from views.components.form_validators import (
 from views.components import ModernMessageBox
 from views.styles import (
     btn_primary, btn_success, btn_danger, btn_default, btn_icon, lbl_title, edit_search,
-    input_field, input_combo, input_date, table_widget, dialog_background, dialog_header_style, dialog_body_style, tab_widget_pane_style,
+    input_field, input_combo, input_date, table_widget, dialog_body_style, tab_widget_pane_style,
     tab_bar_style, dialog_label_style
 )
 
@@ -121,7 +121,7 @@ def _make_card(title: str, parent, icon: str = "") -> tuple[QFrame, QGridLayout]
     return card, layout
 
 
-class ClienteFormDialog(QDialog):
+class ClienteFormDialog(BaseDialog):
     # BUGFIX: heredar de QDialog *y* BaseWidget (que también hereda de QWidget)
     # hace que shiboken/PySide6 intente inicializar el objeto C++ dos veces →
     # RuntimeError "You can't initialize a QDialog object twice".
@@ -136,14 +136,21 @@ class ClienteFormDialog(QDialog):
 
         screen = QApplication.primaryScreen().availableGeometry()
         self.setMinimumSize(int(screen.width() * 0.75), int(screen.height() * 0.80))
-        dialog_background(self) # Apply dialog background style
-
         root = QVBoxLayout(self)
         root.setSpacing(0)
         root.setContentsMargins(0, 0, 0, 0)
 
         # ── Banner de encabezado ──────────────────────────────────────────
-        root.addWidget(self._build_header(is_edit, datos))
+        from views.layouts.form_helpers import build_dialog_header
+        if is_edit and datos:
+            nombre = (datos.get("nombre_completo") or
+                      f"{datos.get('nombres','')} {datos.get('apellidos','')}".strip())
+            titulo = "Editar Cliente"
+            subtitulo = nombre or "Sin nombre registrado"
+        else:
+            titulo = "Nuevo Cliente"
+            subtitulo = "Completa la información para registrar al cliente"
+        root.addWidget(build_dialog_header("👤", titulo, subtitulo))
 
         # ── Cuerpo principal ─────────────────────────────────────────────
         body = QWidget()
@@ -201,64 +208,9 @@ class ClienteFormDialog(QDialog):
         if datos:
             self._cargar()
 
-    # ------------------------------------------------------------------ #
-    #  Banner superior                                                    #
-    # ------------------------------------------------------------------ #
-    def _build_header(self, is_edit: bool, datos) -> QWidget:
-        header = QWidget()
-        header.setObjectName("dlg_header")
-        header.setFixedHeight(78)
-        dialog_header_style(header) # Apply dialog header style
-
-        lay = QHBoxLayout(header)
-        lay.setContentsMargins(22, 0, 22, 0)
-        lay.setSpacing(16)
-
-        # Avatar circular
-        avatar = QLabel("👤")
-        avatar.setFixedSize(48, 48)
-        avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        avatar.setStyleSheet("""
-            QLabel {
-                background: rgba(255,255,255,0.18);
-                border-radius: 24px;
-                font-size: 22px;
-                color: white;
-            }
-        """)
-        lay.addWidget(avatar)
-
-        # Textos
-        txt_col = QVBoxLayout()
-        txt_col.setSpacing(3)
-        txt_col.addStretch()
-
-        if is_edit and datos:
-            nombre = (datos.get("nombre_completo") or
-                      f"{datos.get('nombres','')} {datos.get('apellidos','')}".strip())
-            titulo_txt   = "Editar Cliente"
-            subtitulo_txt = nombre or "Sin nombre registrado"
-        else:
-            titulo_txt   = "Nuevo Cliente"
-            subtitulo_txt = "Completa la información para registrar al cliente"
-
-        lbl_t = QLabel(titulo_txt)
-        lbl_t.setStyleSheet(
-            "QLabel { color: #ffffff; font-size: 15pt; font-weight: 700; "
-            "letter-spacing: 0.3px; background: transparent; }"
-        )
-        lbl_s = QLabel(subtitulo_txt)
-        lbl_s.setStyleSheet(
-            "QLabel { color: rgba(255,255,255,0.78); font-size: 10pt; background: transparent; }"
-        )
-        txt_col.addWidget(lbl_t)
-        txt_col.addWidget(lbl_s)
-        txt_col.addStretch()
-
-        lay.addLayout(txt_col)
-        lay.addStretch()
-
-        return header
+        # Carga diferida de opciones geograficas
+        self._init_overlay("Cargando opciones geograficas...")
+        QTimer.singleShot(0, lambda: self._deferred_call(self._deferred_load_geo))
 
     # ------------------------------------------------------------------ #
     #  PESTAÑA 1 — Datos Personales (11 campos, 2 columnas de cards)     #
@@ -332,15 +284,6 @@ class ClienteFormDialog(QDialog):
         self.cmb_estado_reg.setEditable(True)
         self.cmb_ciudad = QComboBox()
         self.cmb_ciudad.setEditable(True)
-
-        # Load geographic options
-        try:
-            geo_opts = ClienteService.obtener_opciones_geograficas()
-            self.cmb_pais.addItems(geo_opts.get("paises", []))
-            self.cmb_estado_reg.addItems(geo_opts.get("regiones", []))
-            self.cmb_ciudad.addItems(geo_opts.get("ciudades", []))
-        except Exception:
-            pass # Si falla DB, al menos que cargue vacío y puedan escribir
 
         input_field(self.txt_nacion)
         input_combo(self.cmb_pais)
@@ -449,6 +392,16 @@ class ClienteFormDialog(QDialog):
         tab_lay.setContentsMargins(0, 0, 0, 0)
         tab_lay.addWidget(scroll)
 
+    def _deferred_load_geo(self):
+        """Carga diferida de opciones geograficas."""
+        try:
+            geo_opts = ClienteService.obtener_opciones_geograficas()
+            self.cmb_pais.addItems(geo_opts.get("paises", []))
+            self.cmb_estado_reg.addItems(geo_opts.get("regiones", []))
+            self.cmb_ciudad.addItems(geo_opts.get("ciudades", []))
+        except Exception:
+            pass
+
     def _on_pais_changed(self, pais: str):
         try:
             regiones = ClienteService.obtener_regiones_por_pais(pais)
@@ -541,12 +494,24 @@ class ClientesWidget(BaseWidget):
 
     def __init__(self, session_id: str = None):
         super().__init__(session_id=session_id)
-        layout = QVBoxLayout(self)
+
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+        # ── Banner superior ──────────────────────────────────────────
+        from views.layouts.form_helpers import create_banner
+        banner = create_banner("👥", "Directorio de Clientes", "Gestion de clientes y registro de visitantes", self.cargar_datos)
+        main_layout.addWidget(banner)
+
+        # ── Área de contenido ─────────────────────────────────────────
+        content = QWidget()
+        c_lay = QVBoxLayout(content)
+        c_lay.setContentsMargins(20, 16, 20, 16)
+        c_lay.setSpacing(12)
+        main_layout.addWidget(content, stretch=1)
 
         top = QHBoxLayout()
-        lbl = QLabel("Directorio de Clientes")
-        lbl_title(lbl)
-        top.addWidget(lbl)
         top.addStretch()
 
         self.txt_buscar = QLineEdit()
@@ -565,7 +530,7 @@ class ClientesWidget(BaseWidget):
         btn_success(btn_nuevo)
         btn_nuevo.clicked.connect(self._nuevo)
         top.addWidget(btn_nuevo)
-        layout.addLayout(top)
+        c_lay.addLayout(top)
 
         self.tabla = QTableWidget()
         self.tabla.setAlternatingRowColors(True)
@@ -591,10 +556,11 @@ class ClientesWidget(BaseWidget):
 
         self.tabla.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tabla.customContextMenuRequested.connect(self._menu_contextual)
-        layout.addWidget(self.tabla)
+        c_lay.addWidget(self.tabla)
 
         self._lista: list[dict] = []
-        self.cargar_datos()
+        self._init_loading_overlay()
+        QTimer.singleShot(0, self._deferred_load)
 
     def cargar_datos(self):
         self.tabla.setRowCount(0)
@@ -614,15 +580,16 @@ class ClientesWidget(BaseWidget):
                 QTableWidgetItem(str(cli.get("estado", ""))),
                 QTableWidgetItem(str(cli.get("no_licencia", ""))),
             ]
-            estado = str(cli.get("estado", ""))
-            color_estado = self._COLOR_ESTADO.get(estado)
-            if color_estado:
-                from PySide6.QtGui import QFont
-                items[4].setForeground(QBrush(QColor(color_estado)))
-                fnt = QFont(items[4].font()); fnt.setBold(True); items[4].setFont(fnt)
             for j, it in enumerate(items):
+                if j == 4:  # Columna Estado — se maneja con StatusBadge abajo
+                    continue
                 it.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.tabla.setItem(i, j, it)
+            from views.components.status_badge import StatusBadge
+            _ESTADO_BADGE_MAP = {"Activo": "success", "VIP": "info", "Lista Negra": "danger"}
+            estado = str(cli.get("estado", ""))
+            badge = StatusBadge(estado, _ESTADO_BADGE_MAP.get(estado, "info"))
+            self.tabla.setCellWidget(i, 4, badge)
 
             # Boton Editar visible
             btn = QPushButton("Editar")

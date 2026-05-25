@@ -1,0 +1,49 @@
+PROFILE IMPORTS RESULTS
+============================================================
+
+Module                                         Time (ms)     Status
+----------------------------------------------------------------------
+views.dashboard_view                             1122.33         ok
+views.rentas_view                                 392.71         ok
+services.backup_service                            41.96         ok
+main_qt                                            14.45         ok
+views.informes_view                                 6.01         ok
+views.themes.theme_manager                          5.70         ok
+views.autos_view                                    3.82         ok
+core.config                                         3.76         ok
+views.calendario_view                               2.45         ok
+views.setup_wizard                                  2.04         ok
+views.mantenimiento_view                            1.74         ok
+views.usuarios_view                                 1.63         ok
+views.alertas_view                                  1.62         ok
+views.reservas_view                                 1.60         ok
+views.comparendos_view                              1.41         ok
+views.pagos_view                                    1.36         ok
+views.layouts.form_helpers                          1.35         ok
+views.gastos_view                                   1.30         ok
+views.clientes_view                                 0.84         ok
+views.base_widget                                   0.82         ok
+views.styles                                        0.77         ok
+views.cierre_renta_view                             0.73         ok
+services.renta_service                              0.66         ok
+views.components.loading_spinner                    0.65         ok
+views.components.modern_messagebox                  0.65         ok
+views.components.toast_notification                 0.63         ok
+services.financial_service                          0.58         ok
+services.dashboard_service                          0.57         ok
+services.informe_service                            0.57         ok
+services.auto_service                               0.55         ok
+views.themes.build_stylesheet                       0.48         ok
+
+
+TOP 10 SLOWEST:
+  1. views.dashboard_view -- 1122.33 ms
+  2. views.rentas_view -- 392.71 ms
+  3. services.backup_service -- 41.96 ms
+  4. main_qt -- 14.45 ms
+  5. views.informes_view -- 6.01 ms
+  6. views.themes.theme_manager -- 5.7 ms
+  7. views.autos_view -- 3.82 ms
+  8. core.config -- 3.76 ms
+  9. views.calendario_view -- 2.45 ms
+  10. views.setup_wizard -- 2.04 ms

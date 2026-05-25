@@ -179,6 +179,8 @@ class PreferencesSetupPage(QWizardPage):
         form = QFormLayout()
 
         self.txt_empresa = QLineEdit("Dinamo Rent")
+        self.txt_direccion = QLineEdit()
+        self.txt_telefono = QLineEdit()
         self.cmb_moneda = QComboBox()
         self.cmb_moneda.addItems(["$", "€", "£", "¥"])
 
@@ -190,9 +192,16 @@ class PreferencesSetupPage(QWizardPage):
         self.chk_encrypt.stateChanged.connect(lambda state: self.txt_encrypt_pass.setEnabled(state == Qt.CheckState.Checked.value))
 
         input_field(self.txt_empresa)
+        input_field(self.txt_direccion)
+        input_field(self.txt_telefono)
         input_field(self.txt_encrypt_pass)
 
-        form.addRow("Nombre Empresa:", self.txt_empresa)
+        self.txt_direccion.setPlaceholderText("Ej. Calle 20 # 15-30, Sincelejo")
+        self.txt_telefono.setPlaceholderText("Ej. +57 300 123 4567")
+
+        form.addRow("Nombre Empresa *:", self.txt_empresa)
+        form.addRow("Dirección Empresa *:", self.txt_direccion)
+        form.addRow("Teléfono Empresa *:", self.txt_telefono)
         form.addRow("Moneda:", self.cmb_moneda)
         form.addRow("", self.chk_encrypt)
         form.addRow("Clave Backups:", self.txt_encrypt_pass)
@@ -200,6 +209,8 @@ class PreferencesSetupPage(QWizardPage):
         layout.addLayout(form)
 
         self.registerField("pref_empresa*", self.txt_empresa)
+        self.registerField("pref_direccion*", self.txt_direccion)
+        self.registerField("pref_telefono*", self.txt_telefono)
         self.registerField("pref_moneda", self.cmb_moneda, "currentText")
         self.registerField("pref_encrypt", self.chk_encrypt)
         self.registerField("pref_encrypt_pass", self.txt_encrypt_pass)
@@ -270,6 +281,8 @@ class SetupWizard(QWizard):
             "production_mode": "true",
             "setup_completed": "true",
             "company_name": self.field("pref_empresa"),
+            "company_address": self.field("pref_direccion"),
+            "company_phone": self.field("pref_telefono"),
             "currency_symbol": self.field("pref_moneda")
         }
         guardar_configuracion("app", app_config)
