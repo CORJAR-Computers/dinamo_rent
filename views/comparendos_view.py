@@ -4,13 +4,12 @@ views/comparendos_view.py — Gestion de Multas y Comparendos. Estilos via views
 """
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
-    QPushButton, QHeaderView, QLabel, QDialog, QFormLayout,
+    QPushButton, QHeaderView, QDialog, QFormLayout,
     QComboBox, QDateEdit, QTimeEdit, QGroupBox, QWidget,
     QDoubleSpinBox, QTextEdit, QAbstractItemView, QMenu,
 )
-from PySide6.QtCore import Qt, QDate, QTime
+from PySide6.QtCore import Qt, QDate, QTime, QTimer
 from PySide6.QtGui import QColor, QBrush, QFont
-
 from core.config import COLOR_PELIGRO, COLOR_EXITO, COLOR_ALERTA
 from core.exceptions import DinamoBaseError
 from core.logger import get_logger
@@ -18,8 +17,8 @@ from services.auto_service import AutoService
 from services.comparendo_service import ComparendoService
 from views.base_widget import BaseWidget
 from views.styles import (
-    btn_primary, btn_danger, btn_warning, btn_default, lbl_subtitle,
-    group_box, input_combo, input_date, input_spinbox, input_textedit, dialog_background, table_widget
+    btn_primary, btn_danger, btn_warning, btn_default,
+    group_box, input_combo, input_date, input_spinbox, input_time, input_textedit, table_widget
 )
 
 # ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
@@ -34,37 +33,66 @@ _MUTED = "#64748b"
 log = get_logger(__name__)
 
 
-class NuevoComparendoDialog(QDialog):
+from views.base_dialog import BaseDialog
+
+
+class NuevoComparendoDialog(BaseDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Registrar Foto-Multa / Comparendo")
         self.setMinimumSize(450, 500)
-        dialog_background(self)
-        self._setup_ui(); self._cargar_autos()
+        self._setup_ui()
+        self._init_overlay("Cargando vehiculos...")
+        QTimer.singleShot(0, lambda: self._deferred_call(self._cargar_autos))
 
     def _setup_ui(self):
-        layout = QVBoxLayout(self)
-        titulo = QLabel("Registrar Nueva Infraccion")
-        lbl_subtitle(titulo); layout.addWidget(titulo)
+        root = QVBoxLayout(self)
+        root.setSpacing(0)
+        root.setContentsMargins(0, 0, 0, 0)
 
+        from views.layouts.form_helpers import build_dialog_header
+        root.addWidget(build_dialog_header("🚔", "Registrar Nueva Infracción", "Foto-multas y comparendos — vinculación automática al cliente"))
+
+        from views.styles import dialog_body_style
+        body = QWidget()
+        body.setObjectName("dlg_body")
+        dialog_body_style(body)
+        body_lay = QVBoxLayout(body)
+        body_lay.setSpacing(14)
+        body_lay.setContentsMargins(20, 16, 20, 14)
+
+        # ── Formulario ──
         form_layout = QFormLayout()
         self.cmb_placa = QComboBox(); self.cmb_placa.setEditable(True); input_combo(self.cmb_placa)
         self.d_fecha = QDateEdit(QDate.currentDate()); self.d_fecha.setCalendarPopup(True); input_date(self.d_fecha)
-        self.t_hora = QTimeEdit(QTime.currentTime()); input_spinbox(self.t_hora)
+        self.t_hora = QTimeEdit(QTime.currentTime()); input_time(self.t_hora)
         self.sp_monto = QDoubleSpinBox(); self.sp_monto.setRange(0, 100_000_000); self.sp_monto.setPrefix("$ "); input_spinbox(self.sp_monto)
         self.txt_obs = QTextEdit(); self.txt_obs.setMaximumHeight(80); self.txt_obs.setPlaceholderText("Lugar de la infraccion, codigo, etc..."); input_textedit(self.txt_obs)
-        form_layout.addRow("Placa del Vehiculo:", self.cmb_placa)
-        form_layout.addRow("Fecha Infraccion:", self.d_fecha)
-        form_layout.addRow("Hora Infraccion:", self.t_hora)
+        form_layout.addRow("Placa del Vehículo:", self.cmb_placa)
+        form_layout.addRow("Fecha Infracción:", self.d_fecha)
+        form_layout.addRow("Hora Infracción:", self.t_hora)
         form_layout.addRow("Monto de Multa:", self.sp_monto)
         form_layout.addRow("Observaciones:", self.txt_obs)
-        gb = QGroupBox("Datos de la Infraccion"); group_box(gb); gb.setLayout(form_layout); layout.addWidget(gb)
+        gb = QGroupBox("Datos de la Infracción"); group_box(gb); gb.setLayout(form_layout); body_lay.addWidget(gb)
 
+        body_lay.addStretch()
+
+        # Separador
+        from PySide6.QtWidgets import QFrame as QSepFrame
+        sep = QSepFrame()
+        sep.setFrameShape(QSepFrame.Shape.HLine)
+        sep.setStyleSheet("QFrame { background: #cbd5e1; max-height: 1px; border: none; }")
+        body_lay.addWidget(sep)
+
+        # Botones
         h_btn = QHBoxLayout()
+        h_btn.setSpacing(10)
         btn_cancel = QPushButton("Cancelar"); btn_danger(btn_cancel); btn_cancel.clicked.connect(self.reject)
         btn_save = QPushButton("Registrar y Buscar Culpable"); btn_primary(btn_save); btn_save.clicked.connect(self._guardar)
         h_btn.addStretch(); h_btn.addWidget(btn_cancel); h_btn.addWidget(btn_save)
-        layout.addLayout(h_btn)
+        body_lay.addLayout(h_btn)
+
+        root.addWidget(body)
 
     def _cargar_autos(self):
         self.cmb_placa.addItem("Seleccione placa...", None)
@@ -129,7 +157,8 @@ class ComparendosWidget(BaseWidget):
 
         self.tbl = QTableWidget(); table_widget(self.tbl)
         self._configurar_tabla(); c_lay.addWidget(self.tbl)
-        self.cargar_datos()
+        self._init_loading_overlay()
+        QTimer.singleShot(0, self._deferred_load)
 
     def _configurar_tabla(self):
         cols = ["ID", "Fecha/Hora", "Placa", "Monto", "Cliente Responsable", "Estado"]
@@ -156,12 +185,10 @@ class ComparendosWidget(BaseWidget):
                 it_cli = QTableWidgetItem(cliente)
                 if not c.get("cliente_nombre"): it_cli.setForeground(QBrush(QColor("#888888")))
                 self.tbl.setItem(i, 4, it_cli)
-                it_est = QTableWidgetItem(estado)
-                color = self._COLOR_ESTADO.get(estado)
-                if color:
-                    it_est.setForeground(QBrush(QColor(color)))
-                    fnt = QFont(it_est.font()); fnt.setBold(True); it_est.setFont(fnt)
-                self.tbl.setItem(i, 5, it_est)
+                from views.components.status_badge import StatusBadge
+                _ESTADO_BADGE_MAP = {"Pagado": "success", "Pendiente": "warning", "Apelado": "info"}
+                badge = StatusBadge(estado, _ESTADO_BADGE_MAP.get(estado, "warning"))
+                self.tbl.setCellWidget(i, 5, badge)
         except DinamoBaseError: pass
 
     def _nuevo(self):

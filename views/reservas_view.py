@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
     QPushButton, QHeaderView, QLabel, QLineEdit, QDialog, QComboBox, QDateEdit, QTimeEdit, QGroupBox,
     QDoubleSpinBox, QTextEdit, QMenu, QAbstractItemView, QGridLayout, QWidget,
 )
-from PySide6.QtCore import Qt, QDate, QTime
+from PySide6.QtCore import Qt, QDate, QTime, QTimer
 from PySide6.QtGui import QColor, QBrush, QFont
 
 from core.config import COLOR_EXITO, COLOR_PELIGRO, COLOR_ALERTA
@@ -30,8 +30,8 @@ from core.exceptions import DinamoBaseError
 from views.base_widget import BaseWidget
 from views.styles import (
     btn_danger, btn_default, btn_primary, btn_success, edit_search, lbl_section, status_active, status_inactive, status_warning,
-    input_field, input_combo, input_date, input_spinbox, input_textedit,
-    group_box, dialog_background, table_widget,
+    input_field, input_combo, input_date, input_spinbox, input_time, input_textedit,
+    group_box, table_widget,
 )
 from views.widgets import UpperLineEdit
 from core import utils
@@ -50,17 +50,32 @@ _MUTED = "#64748b"
 # DIALOGO SELECTOR DE CLIENTE
 # =============================================================================
 
-class DialogoSelectorCliente(QDialog):
+from views.base_dialog import BaseDialog
+
+
+class DialogoSelectorCliente(BaseDialog):
     """Dialogo para buscar y seleccionar un cliente."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Seleccionar Cliente")
         self.setMinimumSize(600, 450)
-        dialog_background(self)
         self.cliente_seleccionado = None
 
-        layout = QVBoxLayout(self)
+        root = QVBoxLayout(self)
+        root.setSpacing(0)
+        root.setContentsMargins(0, 0, 0, 0)
+
+        from views.layouts.form_helpers import build_dialog_header
+        root.addWidget(build_dialog_header("👤", "Seleccionar Cliente", "Busque y seleccione un cliente del registro para asociarlo a la operación"))
+
+        from views.styles import dialog_body_style
+        body = QWidget()
+        body.setObjectName("dlg_body")
+        dialog_body_style(body)
+        body_lay = QVBoxLayout(body)
+        body_lay.setSpacing(14)
+        body_lay.setContentsMargins(20, 16, 20, 14)
 
         # Barra de busqueda
         top = QHBoxLayout()
@@ -75,7 +90,7 @@ class DialogoSelectorCliente(QDialog):
 
         top.addWidget(self.txt)
         top.addWidget(btn_new)
-        layout.addLayout(top)
+        body_lay.addLayout(top)
 
         # Tabla
         self.tbl = QTableWidget(0, 3)
@@ -86,9 +101,12 @@ class DialogoSelectorCliente(QDialog):
         self.tbl.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.tbl.setAlternatingRowColors(True)
         self.tbl.cellDoubleClicked.connect(self._seleccionar)
-        layout.addWidget(self.tbl)
+        body_lay.addWidget(self.tbl)
 
-        self._buscar()
+        root.addWidget(body)
+
+        self._init_overlay("Buscando clientes...")
+        QTimer.singleShot(0, lambda: self._deferred_call(self._buscar))
 
     def _buscar(self):
         try:
@@ -122,7 +140,7 @@ class DialogoSelectorCliente(QDialog):
 # DIALOGO NUEVA RESERVA
 # =============================================================================
 
-class NuevaReservaDialog(QDialog):
+class NuevaReservaDialog(BaseDialog):
     """Dialogo para crear una nueva reserva."""
 
     def __init__(self, parent=None):
@@ -133,9 +151,24 @@ class NuevaReservaDialog(QDialog):
         self.cliente_id = None
         self._updating = False
         self._setup_ui()
+        self._init_overlay("Cargando vehiculos disponibles...")
+        QTimer.singleShot(0, lambda: self._deferred_call(self._cargar_opciones_vehiculo))
 
     def _setup_ui(self):
-        layout = QVBoxLayout(self)
+        root = QVBoxLayout(self)
+        root.setSpacing(0)
+        root.setContentsMargins(0, 0, 0, 0)
+
+        from views.layouts.form_helpers import build_dialog_header
+        root.addWidget(build_dialog_header("📅", "Crear Nueva Reserva", "Registro de reserva vehicular — cliente, vehículo y valores"))
+
+        from views.styles import dialog_body_style
+        body = QWidget()
+        body.setObjectName("dlg_body")
+        dialog_body_style(body)
+        body_lay = QVBoxLayout(body)
+        body_lay.setSpacing(14)
+        body_lay.setContentsMargins(20, 16, 20, 14)
 
         # --- 1. Cliente ---
         gb_cli = QGroupBox("1. Cliente")
@@ -152,7 +185,7 @@ class NuevaReservaDialog(QDialog):
         l_cli.addWidget(self.txt_cliente)
         l_cli.addWidget(btn_cli)
         gb_cli.setLayout(l_cli)
-        layout.addWidget(gb_cli)
+        body_lay.addWidget(gb_cli)
 
         # --- 2. Vehiculo ---
         gb_auto = QGroupBox("2. Asignacion de Vehiculo")
@@ -160,7 +193,6 @@ class NuevaReservaDialog(QDialog):
         l_auto = QGridLayout()
 
         self.cmb_auto = QComboBox()
-        self._cargar_opciones_vehiculo()
 
         self.d_inicio = QDateEdit(QDate.currentDate().addDays(1))
         self.d_inicio.setCalendarPopup(True)
@@ -175,8 +207,10 @@ class NuevaReservaDialog(QDialog):
 
         input_combo(self.cmb_auto)
         input_date(self.d_inicio)
+        input_time(self.t_inicio)
         input_spinbox(self.sp_dias)
         input_date(self.d_fin)
+        input_time(self.t_fin)
 
         self.d_inicio.dateChanged.connect(self._calc_fechas)
         self.t_inicio.timeChanged.connect(self._calc_fechas)
@@ -204,7 +238,7 @@ class NuevaReservaDialog(QDialog):
         l_auto.addWidget(self.lbl_extras, 2, 4)
 
         gb_auto.setLayout(l_auto)
-        layout.addWidget(gb_auto)
+        body_lay.addWidget(gb_auto)
 
         # --- 3. Valores ---
         gb_val = QGroupBox("3. Valores Financieros")
@@ -250,19 +284,30 @@ class NuevaReservaDialog(QDialog):
         l_val.addWidget(self.lbl_saldo, 2, 3)
 
         gb_val.setLayout(l_val)
-        layout.addWidget(gb_val)
+        body_lay.addWidget(gb_val)
 
         # Observaciones
         lbl_obs = QLabel("Observaciones:")
+        from views.styles import lbl_section
         lbl_section(lbl_obs)
-        layout.addWidget(lbl_obs)
+        body_lay.addWidget(lbl_obs)
         self.txt_obs = QTextEdit()
         self.txt_obs.setMaximumHeight(50)
         input_textedit(self.txt_obs)
-        layout.addWidget(self.txt_obs)
+        body_lay.addWidget(self.txt_obs)
+
+        body_lay.addStretch()
+
+        # Separador
+        from PySide6.QtWidgets import QFrame
+        sep = QFrame()
+        sep.setFrameShape(QFrame.Shape.HLine)
+        sep.setStyleSheet("QFrame { background: #cbd5e1; max-height: 1px; border: none; }")
+        body_lay.addWidget(sep)
 
         # Botones
         h_btn = QHBoxLayout()
+        h_btn.setSpacing(10)
         btn_cancel = QPushButton("Cancelar")
         btn_danger(btn_cancel)
         btn_cancel.clicked.connect(self.reject)
@@ -274,7 +319,9 @@ class NuevaReservaDialog(QDialog):
         h_btn.addStretch()
         h_btn.addWidget(btn_cancel)
         h_btn.addWidget(btn_save)
-        layout.addLayout(h_btn)
+        body_lay.addLayout(h_btn)
+
+        root.addWidget(body)
 
         self._calc_total()
 
@@ -416,7 +463,8 @@ class NuevaReservaDialog(QDialog):
 
         try:
             ReservaService.crear(datos)
-            ModernMessageBox.success(self, "Exito", "Reserva creada correctamente")
+            from views.components.toast_notification import ToastNotification
+            ToastNotification(self.window(), "Reserva creada correctamente", "success")
             self.accept()
         except DinamoBaseError as e:
             ModernMessageBox.error(self, "Error", str(e))
@@ -486,7 +534,8 @@ class ReservasWidget(BaseWidget):
         c_lay.addWidget(self.tbl)
 
         self._lista: list[dict] = []
-        self.cargar_datos()
+        self._init_loading_overlay()
+        QTimer.singleShot(0, self._deferred_load)
 
     # ── Carga de datos ─────────────────────────────────────────
 
@@ -517,19 +566,10 @@ class ReservasWidget(BaseWidget):
             self.tbl.setItem(row, 5, QTableWidgetItem(f"$ {float(r.get('abono', 0)):,.0f}"))
 
             est = r.get("estado", "")
-            item_est = QTableWidgetItem(est)
-            color_map = {
-                "Confirmada": COLOR_EXITO,
-                "Pendiente": COLOR_ALERTA,
-                "Cancelada": COLOR_PELIGRO,
-            }
-            color = color_map.get(est)
-            if color:
-                item_est.setForeground(QBrush(QColor(color)))
-                fnt = QFont(item_est.font())
-                fnt.setBold(True)
-                item_est.setFont(fnt)
-            self.tbl.setItem(row, 6, item_est)
+            from views.components.status_badge import StatusBadge
+            _ESTADO_BADGE_MAP = {"Confirmada": "success", "Pendiente": "warning", "Cancelada": "danger"}
+            badge = StatusBadge(est, _ESTADO_BADGE_MAP.get(est, "info"))
+            self.tbl.setCellWidget(row, 6, badge)
 
     # ── Filtro ─────────────────────────────────────────────────
 

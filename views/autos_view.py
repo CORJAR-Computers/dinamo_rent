@@ -1,18 +1,17 @@
-from views.components import ModernMessageBox
 """
 views/autos_view.py — Gestion de flota (vista)
 
 Solo maneja la UI. Toda la logica va a AutoService.
 Estilos via views.styles.py (funciona en cualquier tema de Windows).
 """
-from datetime import datetime
+from datetime import datetime, date
 
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
     QPushButton, QLabel, QLineEdit, QDialog, QComboBox, QDateEdit, QDoubleSpinBox, QGroupBox, QPlainTextEdit,
-    QGridLayout, QMenu, QTabWidget, QHeaderView, QWidget,
+    QGridLayout, QMenu, QTabWidget, QHeaderView, QWidget, QFrame,
 )
-from PySide6.QtCore import Qt, QDate
+from PySide6.QtCore import Qt, QDate, QTimer
 from PySide6.QtGui import QColor, QBrush
 
 from core.config import (
@@ -23,14 +22,16 @@ from core.config import (
 )
 from core.exceptions import DinamoBaseError
 from services.auto_service import AutoService
+from views.components import ModernMessageBox
+from views.base_dialog import BaseDialog
 from views.base_widget import BaseWidget
 from views.widgets import UpperLineEdit
 from views.styles import (
     btn_primary, btn_success, btn_danger, btn_default, btn_icon,
     lbl_section, edit_search,
     input_field, input_combo, input_spinbox, input_date, input_textedit,
-    table_widget, group_box, dialog_title, dialog_background,
-    tab_widget_pane_style, tab_bar_style,
+    table_widget, group_box,
+    tab_widget_pane_style, tab_bar_style, dialog_body_style,
 )
 
 # ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
@@ -47,14 +48,91 @@ _REQMARK = "#dc2626"
 _LABEL_MIN_WIDTH = 150
 
 
-def _make_label(text: str) -> QLabel:
+def _make_label(text: str, required: bool = False) -> QLabel:
     """Crea un QLabel con ancho minimo para evitar truncamiento."""
-    lbl = QLabel(text)
+    if required:
+        lbl = QLabel()
+        lbl.setText(
+            f'<span style="color:{_TEXT};">{text}</span>'
+            f' <span style="color:{_REQMARK}; font-weight:700;">*</span>'
+        )
+    else:
+        lbl = QLabel(text)
     lbl.setMinimumWidth(_LABEL_MIN_WIDTH)
     return lbl
 
 
-class DialogoAuto(QDialog):
+def _make_card(title: str, parent, icon: str = "") -> tuple[QFrame, QGridLayout]:
+    """Card con borde de acento izquierdo, icono opcional.
+    Retorna (card_frame, grid_layout) donde la fila 0 ya tiene el encabezado.
+    """
+    card = QFrame(parent)
+    card.setFrameShape(QFrame.Shape.StyledPanel)
+    card.setStyleSheet(f"""
+        QFrame {{
+            background-color: {_SURF};
+            border-top: 1px solid {_BORD};
+            border-right: 1px solid {_BORD};
+            border-bottom: 1px solid {_BORD};
+            border-left: 4px solid {_BLUE};
+            border-radius: 8px;
+        }}
+    """)
+
+    layout = QGridLayout(card)
+    layout.setSpacing(10)
+    layout.setContentsMargins(16, 14, 16, 14)
+
+    # --- Encabezado del card ---
+    header_row = QHBoxLayout()
+    header_row.setSpacing(6)
+
+    if icon:
+        ico = QLabel(icon)
+        ico.setFixedSize(22, 22)
+        ico.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ico.setStyleSheet(f"""
+            QLabel {{
+                background-color: #eff6ff;
+                border-radius: 4px;
+                font-size: 13px;
+                color: {_BLUE};
+            }}
+        """)
+        header_row.addWidget(ico)
+
+    titulo = QLabel(title)
+    titulo.setStyleSheet(f"""
+        QLabel {{
+            color: {_NAV};
+            font-size: 10pt;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+        }}
+    """)
+    header_row.addWidget(titulo)
+    header_row.addStretch()
+
+    sep = QFrame()
+    sep.setFrameShape(QFrame.Shape.HLine)
+    sep.setStyleSheet(f"QFrame {{ background: {_BORD}; max-height: 1px; border: none; }}")
+
+    header_widget = QWidget()
+    header_widget.setStyleSheet("QWidget { background: transparent; border: none; }")
+    hv = QVBoxLayout(header_widget)
+    hv.setContentsMargins(0, 0, 0, 6)
+    hv.setSpacing(6)
+    hv.addLayout(header_row)
+    hv.addWidget(sep)
+
+    layout.addWidget(header_widget, 0, 0, 1, 2)
+    layout.setColumnStretch(0, 0)
+    layout.setColumnStretch(1, 1)
+
+    return card, layout
+
+
+class DialogoAuto(BaseDialog):
     """Dialogo para crear o editar un vehiculo."""
 
     def __init__(self, parent=None, placa_editar: str | None = None):
@@ -63,17 +141,26 @@ class DialogoAuto(QDialog):
         self.setMinimumSize(950, 680)
         self.placa_editar = placa_editar
 
-        dialog_background(self)
+        root = QVBoxLayout(self)
+        root.setSpacing(0)
+        root.setContentsMargins(0, 0, 0, 0)
 
-        layout = QVBoxLayout(self)
-        layout.setSpacing(10)
-        layout.setContentsMargins(16, 16, 16, 16)
+        # ── Banner de encabezado ──────────────────────────────────────────
+        from views.layouts.form_helpers import build_dialog_header
+        titulo = "Editar Vehiculo" if placa_editar else "Nuevo Vehiculo"
+        subtitulo = f"Modificando registro: {placa_editar}" if placa_editar else "Ingresa la informacion del vehiculo para agregarlo a la flota"
+        root.addWidget(build_dialog_header("🚗", titulo, subtitulo))
 
-        titulo = QLabel("Nuevo Vehiculo" if not placa_editar else f"Editar Vehiculo: {placa_editar}")
-        dialog_title(titulo)
-        layout.addWidget(titulo)
+        # ── Cuerpo principal ─────────────────────────────────────────────
+        body = QWidget()
+        body.setObjectName("dlg_body")
+        dialog_body_style(body)
+        layout = QVBoxLayout(body)
+        layout.setSpacing(12)
+        layout.setContentsMargins(20, 16, 20, 14)
 
         self.tabs = QTabWidget()
+        self.tabs.setObjectName("main_tabs")
         tab_widget_pane_style(self.tabs)
         tab_bar_style(self.tabs.tabBar())
 
@@ -81,23 +168,38 @@ class DialogoAuto(QDialog):
 
         layout.addWidget(self.tabs, stretch=1)
 
+        # Separador
+        sep = QFrame()
+        sep.setFrameShape(QFrame.Shape.HLine)
+        sep.setStyleSheet(f"QFrame {{ background: {_BORD}; max-height: 1px; border: none; }}")
+        layout.addWidget(sep)
+
+        # ── Fila de botones ───────────────────────────────────────────────
         btn_row = QHBoxLayout()
-        btn_row.setSpacing(12)
-        btn_cancel = QPushButton("Cancelar")
+        btn_row.setSpacing(10)
+
+        hint = QLabel(f'<span style="color:{_REQMARK}; font-weight:700;">*</span>'
+                      f'<span style="color:{_MUTED}; font-size:9pt;"> Campos obligatorios</span>')
+        btn_row.addWidget(hint)
+        btn_row.addStretch()
+
+        btn_cancel = QPushButton("  Cancelar")
         btn_danger(btn_cancel)
         btn_cancel.clicked.connect(self.reject)
 
-        btn_save = QPushButton("GUARDAR VEHICULO")
+        btn_save = QPushButton("💾  Guardar Vehiculo")
         btn_primary(btn_save, large=True)
         btn_save.clicked.connect(self._guardar)
 
-        btn_row.addStretch()
         btn_row.addWidget(btn_cancel)
         btn_row.addWidget(btn_save)
         layout.addLayout(btn_row)
 
+        root.addWidget(body)
+
         if placa_editar:
-            self._cargar(placa_editar)
+            self._init_overlay("Cargando datos del vehiculo...")
+            QTimer.singleShot(0, self._deferred_load)
 
     def _construir_form(self):
         # Pestaña 1: General y Técnico
@@ -106,11 +208,8 @@ class DialogoAuto(QDialog):
         tab1_layout.setSpacing(14)
         tab1_layout.setContentsMargins(14, 14, 14, 14)
 
-        gb = QGroupBox("Informacion Basica")
-        group_box(gb)
-        g = QGridLayout()
-        g.setHorizontalSpacing(16)
-        g.setVerticalSpacing(10)
+        # Card: Informacion Basica
+        card_basica, g = _make_card("Informacion Basica", self, "📋")
         self.txt_placa = UpperLineEdit()
         self.txt_marca = UpperLineEdit()
         self.txt_modelo = UpperLineEdit()
@@ -126,25 +225,16 @@ class DialogoAuto(QDialog):
         input_combo(self.cmb_tipo)
         if self.placa_editar:
             self.txt_placa.setReadOnly(True)
-        # Labels con ancho minimo y columnas input con stretch
-        g.setColumnMinimumWidth(0, _LABEL_MIN_WIDTH)
-        g.setColumnMinimumWidth(2, _LABEL_MIN_WIDTH)
-        g.setColumnStretch(1, 1)
-        g.setColumnStretch(3, 1)
-        g.addWidget(_make_label("Placa (*):"), 0, 0); g.addWidget(self.txt_placa, 0, 1)
-        g.addWidget(_make_label("Marca:"), 0, 2); g.addWidget(self.txt_marca, 0, 3)
-        g.addWidget(_make_label("Modelo:"), 1, 0); g.addWidget(self.txt_modelo, 1, 1)
-        g.addWidget(_make_label("Version:"), 1, 2); g.addWidget(self.txt_version, 1, 3)
-        g.addWidget(_make_label("Color:"), 2, 0); g.addWidget(self.txt_color, 2, 1)
-        g.addWidget(_make_label("Tipo:"), 2, 2); g.addWidget(self.cmb_tipo, 2, 3)
-        gb.setLayout(g)
-        tab1_layout.addWidget(gb)
+        g.addWidget(_make_label("Placa", required=True), 1, 0); g.addWidget(self.txt_placa, 1, 1)
+        g.addWidget(_make_label("Marca:"), 2, 0); g.addWidget(self.txt_marca, 2, 1)
+        g.addWidget(_make_label("Modelo:"), 1, 2); g.addWidget(self.txt_modelo, 1, 3)
+        g.addWidget(_make_label("Version:"), 2, 2); g.addWidget(self.txt_version, 2, 3)
+        g.addWidget(_make_label("Color:"), 3, 0); g.addWidget(self.txt_color, 3, 1)
+        g.addWidget(_make_label("Tipo:"), 3, 2); g.addWidget(self.cmb_tipo, 3, 3)
+        tab1_layout.addWidget(card_basica)
 
-        gb2 = QGroupBox("Datos Tecnicos")
-        group_box(gb2)
-        g2 = QGridLayout()
-        g2.setHorizontalSpacing(16)
-        g2.setVerticalSpacing(10)
+        # Card: Datos Tecnicos
+        card_tecnica, g2 = _make_card("Datos Tecnicos", self, "🔧")
         self.txt_cilindraje = UpperLineEdit()
         self.cmb_transmision = QComboBox()
         self.cmb_transmision.addItems(TIPOS_TRANSMISION)
@@ -162,18 +252,13 @@ class DialogoAuto(QDialog):
         input_field(self.txt_motor)
         input_field(self.txt_chasis)
         input_spinbox(self.sp_km)
-        g2.setColumnMinimumWidth(0, _LABEL_MIN_WIDTH)
-        g2.setColumnMinimumWidth(2, _LABEL_MIN_WIDTH)
-        g2.setColumnStretch(1, 1)
-        g2.setColumnStretch(3, 1)
-        g2.addWidget(_make_label("Cilindraje:"), 0, 0); g2.addWidget(self.txt_cilindraje, 0, 1)
-        g2.addWidget(_make_label("Transmision:"), 0, 2); g2.addWidget(self.cmb_transmision, 0, 3)
-        g2.addWidget(_make_label("Combustible:"), 1, 0); g2.addWidget(self.cmb_combustible, 1, 1)
-        g2.addWidget(_make_label("Kilometraje:"), 1, 2); g2.addWidget(self.sp_km, 1, 3)
-        g2.addWidget(_make_label("No. Motor:"), 2, 0); g2.addWidget(self.txt_motor, 2, 1)
-        g2.addWidget(_make_label("No. Chasis:"), 2, 2); g2.addWidget(self.txt_chasis, 2, 3)
-        gb2.setLayout(g2)
-        tab1_layout.addWidget(gb2)
+        g2.addWidget(_make_label("Cilindraje:"), 1, 0); g2.addWidget(self.txt_cilindraje, 1, 1)
+        g2.addWidget(_make_label("Transmision:"), 1, 2); g2.addWidget(self.cmb_transmision, 1, 3)
+        g2.addWidget(_make_label("Combustible:"), 2, 0); g2.addWidget(self.cmb_combustible, 2, 1)
+        g2.addWidget(_make_label("Kilometraje:"), 2, 2); g2.addWidget(self.sp_km, 2, 3)
+        g2.addWidget(_make_label("No. Motor:"), 3, 0); g2.addWidget(self.txt_motor, 3, 1)
+        g2.addWidget(_make_label("No. Chasis:"), 3, 2); g2.addWidget(self.txt_chasis, 3, 3)
+        tab1_layout.addWidget(card_tecnica)
         tab1_layout.addStretch()
 
         # Pestaña 2: Administrativo y Fechas
@@ -182,11 +267,8 @@ class DialogoAuto(QDialog):
         tab2_layout.setSpacing(14)
         tab2_layout.setContentsMargins(14, 14, 14, 14)
 
-        gb3 = QGroupBox("Administrativo y Financiero")
-        group_box(gb3)
-        g3 = QGridLayout()
-        g3.setHorizontalSpacing(16)
-        g3.setVerticalSpacing(10)
+        # Card: Administrativo y Financiero
+        card_admin, g3 = _make_card("Administrativo y Financiero", self, "💼")
         self.txt_propietario = UpperLineEdit()
         self.sp_costo = QDoubleSpinBox()
         self.sp_costo.setRange(0, 1e9)
@@ -206,24 +288,16 @@ class DialogoAuto(QDialog):
         input_combo(self.cmb_adq)
         input_field(self.txt_ubicacion)
         input_date(self.d_ingreso)
-        g3.setColumnMinimumWidth(0, _LABEL_MIN_WIDTH)
-        g3.setColumnMinimumWidth(2, _LABEL_MIN_WIDTH)
-        g3.setColumnStretch(1, 1)
-        g3.setColumnStretch(3, 1)
-        g3.addWidget(_make_label("Propietario:"), 0, 0); g3.addWidget(self.txt_propietario, 0, 1)
-        g3.addWidget(_make_label("Costo Fijo Mensual:"), 0, 2); g3.addWidget(self.sp_costo, 0, 3)
-        g3.addWidget(_make_label("Estado:"), 1, 0); g3.addWidget(self.cmb_estado, 1, 1)
-        g3.addWidget(_make_label("Tipo Adquisicion:"), 1, 2); g3.addWidget(self.cmb_adq, 1, 3)
-        g3.addWidget(_make_label("Ubicacion Actual:"), 2, 0); g3.addWidget(self.txt_ubicacion, 2, 1)
-        g3.addWidget(_make_label("Fecha Ingreso Flota:"), 2, 2); g3.addWidget(self.d_ingreso, 2, 3)
-        gb3.setLayout(g3)
-        tab2_layout.addWidget(gb3)
+        g3.addWidget(_make_label("Propietario:"), 1, 0); g3.addWidget(self.txt_propietario, 1, 1)
+        g3.addWidget(_make_label("Costo Fijo Mensual:"), 1, 2); g3.addWidget(self.sp_costo, 1, 3)
+        g3.addWidget(_make_label("Estado:"), 2, 0); g3.addWidget(self.cmb_estado, 2, 1)
+        g3.addWidget(_make_label("Tipo Adquisicion:"), 2, 2); g3.addWidget(self.cmb_adq, 2, 3)
+        g3.addWidget(_make_label("Ubicacion Actual:"), 3, 0); g3.addWidget(self.txt_ubicacion, 3, 1)
+        g3.addWidget(_make_label("Fecha Ingreso Flota:"), 3, 2); g3.addWidget(self.d_ingreso, 3, 3)
+        tab2_layout.addWidget(card_admin)
 
-        gb4 = QGroupBox("Vencimientos")
-        group_box(gb4)
-        g4 = QGridLayout()
-        g4.setHorizontalSpacing(16)
-        g4.setVerticalSpacing(10)
+        # Card: Vencimientos
+        card_venc, g4 = _make_card("Vencimientos", self, "📅")
         def _date_widget():
             w = QDateEdit(QDate.currentDate().addYears(1))
             w.setCalendarPopup(True)
@@ -237,16 +311,11 @@ class DialogoAuto(QDialog):
         input_date(self.d_tecno)
         input_date(self.d_extintor)
         input_date(self.d_bateria)
-        g4.setColumnMinimumWidth(0, _LABEL_MIN_WIDTH)
-        g4.setColumnMinimumWidth(2, _LABEL_MIN_WIDTH)
-        g4.setColumnStretch(1, 1)
-        g4.setColumnStretch(3, 1)
-        g4.addWidget(_make_label("SOAT:"), 0, 0); g4.addWidget(self.d_soat, 0, 1)
-        g4.addWidget(_make_label("Tecnicomecanica:"), 0, 2); g4.addWidget(self.d_tecno, 0, 3)
-        g4.addWidget(_make_label("Extintor:"), 1, 0); g4.addWidget(self.d_extintor, 1, 1)
-        g4.addWidget(_make_label("Garantia Bateria:"), 1, 2); g4.addWidget(self.d_bateria, 1, 3)
-        gb4.setLayout(g4)
-        tab2_layout.addWidget(gb4)
+        g4.addWidget(_make_label("SOAT:"), 1, 0); g4.addWidget(self.d_soat, 1, 1)
+        g4.addWidget(_make_label("Tecnicomecanica:"), 1, 2); g4.addWidget(self.d_tecno, 1, 3)
+        g4.addWidget(_make_label("Extintor:"), 2, 0); g4.addWidget(self.d_extintor, 2, 1)
+        g4.addWidget(_make_label("Garantia Bateria:"), 2, 2); g4.addWidget(self.d_bateria, 2, 3)
+        tab2_layout.addWidget(card_venc)
 
         self.txt_obs = QPlainTextEdit()
         self.txt_obs.setMaximumHeight(60)
@@ -265,6 +334,9 @@ class DialogoAuto(QDialog):
 
         self.tabs.addTab(tab1, "🚗  General y Técnico")
         self.tabs.addTab(tab2, "💼  Administrativo y Fechas")
+
+    def _deferred_load(self):
+        self._deferred_call(lambda: self._cargar(self.placa_editar))
 
     def _cargar(self, placa: str):
         try:
@@ -368,57 +440,8 @@ class AutosWidget(BaseWidget):
         main_layout.setSpacing(0)
 
         # ── Banner superior ──────────────────────────────────────────
-        banner = QWidget()
-        banner.setFixedHeight(64)
-        banner.setStyleSheet(f"""
-            background: qlineargradient(x1:0,y1:0,x2:1,y2:0,
-                stop:0 {_NAV}, stop:1 {_BLUE});
-        """)
-        b_lay = QHBoxLayout(banner)
-        b_lay.setContentsMargins(22, 0, 22, 0)
-        b_lay.setSpacing(14)
-
-        ico = QLabel("🚗")
-        ico.setFixedSize(40, 40)
-        ico.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        ico.setStyleSheet("""
-            QLabel {
-                background: rgba(255,255,255,0.15);
-                border-radius: 20px;
-                font-size: 18px;
-            }
-        """)
-        b_lay.addWidget(ico)
-
-        t_col = QVBoxLayout()
-        t_col.setSpacing(1)
-        t_col.addStretch()
-        lbl_t = QLabel("Gestion de Flota")
-        lbl_t.setStyleSheet("QLabel { color:#fff; font-size:14pt; font-weight:700; background:transparent; }")
-        lbl_s = QLabel("Administracion de vehiculos y flota vehicular")
-        lbl_s.setStyleSheet("QLabel { color:rgba(255,255,255,0.72); font-size:9pt; background:transparent; }")
-        t_col.addWidget(lbl_t)
-        t_col.addWidget(lbl_s)
-        t_col.addStretch()
-        b_lay.addLayout(t_col)
-        b_lay.addStretch()
-
-        btn_ref = QPushButton("↻  Actualizar")
-        btn_ref.setStyleSheet("""
-            QPushButton {
-                background: rgba(255,255,255,0.15);
-                color: #ffffff;
-                border: 1px solid rgba(255,255,255,0.35);
-                border-radius: 7px;
-                padding: 7px 18px;
-                font-size: 9.5pt;
-                font-weight: 600;
-            }
-            QPushButton:hover { background: rgba(255,255,255,0.25); }
-            QPushButton:pressed { background: rgba(255,255,255,0.10); }
-        """)
-        btn_ref.clicked.connect(self.cargar_datos)
-        b_lay.addWidget(btn_ref)
+        from views.layouts.form_helpers import create_banner
+        banner = create_banner("🚗", "Gestion de Flota", "Administracion de vehiculos y flota vehicular", self.cargar_datos)
         main_layout.addWidget(banner)
 
         # ── Área de contenido ─────────────────────────────────────────
@@ -433,9 +456,17 @@ class AutosWidget(BaseWidget):
         self.txt_buscar = QLineEdit()
         edit_search(self.txt_buscar)
         self.txt_buscar.setPlaceholderText("Buscar por placa, marca o modelo...")
-        self.txt_buscar.setMinimumWidth(300)
+        self.txt_buscar.setMinimumWidth(220)
         self.txt_buscar.textChanged.connect(self._filtrar)
         top.addWidget(self.txt_buscar)
+
+        self.cmb_filtro = QComboBox()
+        self.cmb_filtro.addItems(["Todos los vehículos", "🔧 En Mantenimiento", "✅ Disponibles", "❌ Inactivos"])
+        self.cmb_filtro.setCurrentIndex(0)
+        self.cmb_filtro.setMinimumWidth(180)
+        input_combo(self.cmb_filtro)
+        self.cmb_filtro.currentIndexChanged.connect(self._filtrar)
+        top.addWidget(self.cmb_filtro)
 
         btn_act = QPushButton("Actualizar")
         btn_default(btn_act)
@@ -451,7 +482,7 @@ class AutosWidget(BaseWidget):
         self.tabla = QTableWidget()
         self.tabla.setAlternatingRowColors(True)
         table_widget(self.tabla)
-        self.ajustar_tabla(self.tabla, ["Placa", "Marca / Modelo", "Color", "Estado", "KM", "Ubicacion", "Ingreso", ""])
+        self.ajustar_tabla(self.tabla, ["Placa", "Marca / Modelo", "Color", "Estado", "KM", "Ubicacion", "Ingreso", "Vencimientos", ""])
 
         # --- Configurar columnas individualmente para que el boton Editar sea visible ---
         header = self.tabla.horizontalHeader()
@@ -475,16 +506,20 @@ class AutosWidget(BaseWidget):
         # Ingreso
         header.setSectionResizeMode(6, QHeaderView.ResizeMode.Interactive)
         self.tabla.setColumnWidth(6, 110)
+        # Vencimientos
+        header.setSectionResizeMode(7, QHeaderView.ResizeMode.Interactive)
+        self.tabla.setColumnWidth(7, 130)
         # Columna Editar: Fixed con ancho suficiente para el boton
-        header.setSectionResizeMode(7, QHeaderView.ResizeMode.Fixed)
-        self.tabla.setColumnWidth(7, 90)
+        header.setSectionResizeMode(8, QHeaderView.ResizeMode.Fixed)
+        self.tabla.setColumnWidth(8, 90)
 
         self.tabla.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tabla.customContextMenuRequested.connect(self._menu_contextual)
         c_lay.addWidget(self.tabla)
 
         self._lista: list[dict] = []
-        self.cargar_datos()
+        self._init_loading_overlay()
+        QTimer.singleShot(0, self._deferred_load)
 
     def cargar_datos(self):
         self.tabla.setRowCount(0)
@@ -493,43 +528,103 @@ class AutosWidget(BaseWidget):
 
     def _pintar_filas(self, datos: list[dict]):
         self.tabla.setRowCount(0)
+        today = date.today()
         for r in datos:
             i = self.tabla.rowCount()
             self.tabla.insertRow(i)
             self.tabla.setItem(i, 0, QTableWidgetItem(r.get("placa", "")))
             self.tabla.setItem(i, 1, QTableWidgetItem(f"{r.get('marca', '')} {r.get('modelo', '')}"))
             self.tabla.setItem(i, 2, QTableWidgetItem(r.get("color", "")))
+            from views.components.status_badge import StatusBadge
             estado = r.get("estado", "")
-            st = QTableWidgetItem(estado)
-            color_estado = self._COLOR_ESTADO.get(estado)
-            if color_estado:
-                st.setForeground(QBrush(QColor(color_estado)))
-                from PySide6.QtGui import QFont
-                fnt = QFont(st.font())
-                fnt.setBold(True)
-                st.setFont(fnt)
-            self.tabla.setItem(i, 3, st)
+            _ESTADO_BADGE_MAP = {"Disponible": "success", "Rentado": "info", "Mantenimiento": "warning", "Inactivo": "danger"}
+            badge = StatusBadge(estado, _ESTADO_BADGE_MAP.get(estado, "info"))
+            self.tabla.setCellWidget(i, 3, badge)
             self.tabla.setItem(i, 4, QTableWidgetItem(f"{r.get('kilometraje', 0):,.0f}"))
             self.tabla.setItem(i, 5, QTableWidgetItem(r.get("ubicacion", "")))
             fecha = r.get("fecha_ingreso")
             self.tabla.setItem(i, 6, QTableWidgetItem(fecha.strftime("%Y-%m-%d") if fecha else ""))
+
+            # ── Columna Vencimientos ──
+            venc_campos = [
+                ("vencimiento_soat", "SOAT"),
+                ("vencimiento_tecnico", "Técnico"),
+                ("vencimiento_extintor", "Extintor"),
+                ("vencimiento_bateria", "Batería"),
+            ]
+            venc_list = []
+            for campo, label in venc_campos:
+                val = r.get(campo)
+                if val:
+                    try:
+                        d = val if isinstance(val, date) else datetime.strptime(str(val)[:10], "%Y-%m-%d").date()
+                        dias = (d - today).days
+                        venc_list.append((dias, label, d))
+                    except (ValueError, TypeError):
+                        pass
+
+            if venc_list:
+                nearest = min(venc_list, key=lambda x: x[0])
+                dias, label, fecha_venc = nearest
+                if dias < 0:
+                    texto = f"🔴 {label} vencido"
+                elif dias <= 15:
+                    texto = f"🟡 {label} en {dias}d"
+                else:
+                    texto = f"🟢 {label} en {dias}d"
+
+                venc_item = QTableWidgetItem(texto)
+                venc_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                if dias < 0:
+                    venc_item.setForeground(QBrush(QColor("#ef4444")))
+                    from PySide6.QtGui import QFont
+                    fnt = QFont(venc_item.font())
+                    fnt.setBold(True)
+                    venc_item.setFont(fnt)
+                    venc_item.setToolTip(f"{label} vencido desde hace {abs(dias)} días")
+                elif dias <= 15:
+                    venc_item.setForeground(QBrush(QColor("#f97316")))
+                    from PySide6.QtGui import QFont
+                    fnt = QFont(venc_item.font())
+                    fnt.setBold(True)
+                    venc_item.setFont(fnt)
+                    venc_item.setToolTip(f"{label} vence en {dias} días")
+                elif dias <= 30:
+                    venc_item.setForeground(QBrush(QColor("#eab308")))
+                else:
+                    venc_item.setForeground(QBrush(QColor("#22c55e")))
+                self.tabla.setItem(i, 7, venc_item)
+            else:
+                self.tabla.setItem(i, 7, QTableWidgetItem("—"))
 
             # Boton Editar con estilo visible
             btn = QPushButton("Editar")
             btn_icon(btn)
             btn.setFixedSize(78, 32)
             btn.clicked.connect(lambda _, p=r.get("placa"): self._editar(p))
-            self.tabla.setCellWidget(i, 7, btn)
+            self.tabla.setCellWidget(i, 8, btn)
 
         # Ajustar altura de filas para que los botones se vean completos
         self.tabla.resizeRowsToContents()
 
     def _filtrar(self):
         txt = self.txt_buscar.text().lower()
-        if not txt:
-            self._pintar_filas(self._lista)
-            return
-        filtrados = [a for a in self._lista if txt in a.get("placa", "").lower() or txt in a.get("marca", "").lower() or txt in a.get("modelo", "").lower() or txt in a.get("color", "").lower() or txt in a.get("ubicacion", "").lower()]
+        filtro_estado = self.cmb_filtro.currentIndex()  # 0=Todos, 1=Mantenimiento, 2=Disponibles, 3=Inactivos
+
+        filtrados = self._lista
+
+        # 1. Filtrar por estado
+        if filtro_estado == 1:
+            filtrados = [a for a in filtrados if a.get("estado", "") == "Mantenimiento"]
+        elif filtro_estado == 2:
+            filtrados = [a for a in filtrados if a.get("estado", "") == "Disponible"]
+        elif filtro_estado == 3:
+            filtrados = [a for a in filtrados if a.get("estado", "") == "Inactivo"]
+
+        # 2. Filtrar por texto
+        if txt:
+            filtrados = [a for a in filtrados if txt in a.get("placa", "").lower() or txt in a.get("marca", "").lower() or txt in a.get("modelo", "").lower() or txt in a.get("color", "").lower() or txt in a.get("ubicacion", "").lower()]
+
         self._pintar_filas(filtrados)
 
     def _nuevo(self):

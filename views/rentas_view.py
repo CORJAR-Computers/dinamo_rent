@@ -1,16 +1,14 @@
-from views.components import ModernMessageBox
 """
 views/rentas_view.py — Vista refactorizada para gestión de rentas.
-F1E: Estilos migrados a QSS global (assets/styles.qss).
 """
 from datetime import datetime, timedelta
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
     QPushButton, QHeaderView, QLabel, QLineEdit, QDialog, QFormLayout,
     QComboBox, QDateEdit, QDoubleSpinBox, QGroupBox,
-    QPlainTextEdit, QFrame, QAbstractItemView, QGridLayout, QTimeEdit, QMenu, QCheckBox, QTextEdit, QMessageBox
+    QPlainTextEdit, QFrame, QAbstractItemView, QGridLayout, QTimeEdit, QMenu, QCheckBox, QTextEdit,
 )
-from PySide6.QtCore import Qt, QDate, QTime
+from PySide6.QtCore import Qt, QDate, QTime, QTimer
 from PySide6.QtGui import QCursor
 
 from core.config import NIVEL_TANQUE
@@ -18,36 +16,17 @@ from services.renta_service import RentaService
 from services.auto_service import AutoService
 from services.cliente_service import ClienteService
 from services.dashboard_service import DashboardService
-from services.inspeccion_service import InspeccionService
 from core.exceptions import DinamoBaseError
+from views.components import ModernMessageBox
 from views.styles import (
     btn_danger, btn_primary, btn_success, btn_default, frame_summary, input_field, input_combo,
-    input_spinbox, input_date, group_box, dialog_background, table_widget, input_textedit,
+    input_spinbox, input_date, group_box, table_widget, input_textedit,
     lbl_total_renta, lbl_extra_info, lbl_new_total_extension, view_background, input_time
 )
 from core import utils
 
 
-from views.pagos_view import PagosDialog
-
-class _MsgBoxWrapper:
-    def __init__(self, fn, parent, title, message):
-        self.fn = fn
-        self.parent = parent
-        self.title = title
-        self.message = message
-    def exec(self):
-        return self.fn(self.parent, self.title, self.message)
-
-def _msg_box(icon, title, message, parent=None):
-    if icon == QMessageBox.Icon.Warning:
-        return _MsgBoxWrapper(ModernMessageBox.warning, parent, title, message)
-    elif icon == QMessageBox.Icon.Critical:
-        return _MsgBoxWrapper(ModernMessageBox.error, parent, title, message)
-    elif icon == QMessageBox.Icon.Question:
-        return _MsgBoxWrapper(ModernMessageBox.question, parent, title, message)
-    else:
-        return _MsgBoxWrapper(ModernMessageBox.success, parent, title, message)
+from views.base_widget import BaseWidget
 
 # ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
 _NAV   = "#1a3558"
@@ -87,14 +66,31 @@ class UpperLineEdit(QLineEdit):
 # =============================================================================
 # DIÁLOGOS DE CLIENTE
 # =============================================================================
-class DialogoSelectorCliente(QDialog):
+from views.base_dialog import BaseDialog
+
+
+class DialogoSelectorCliente(BaseDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Buscar Cliente")
         self.setMinimumSize(_DIALOG_MIN_WIDTH, _DIALOG_MIN_HEIGHT)
         self.cliente_seleccionado = None
 
-        layout = QVBoxLayout(self)
+        root = QVBoxLayout(self)
+        root.setSpacing(0)
+        root.setContentsMargins(0, 0, 0, 0)
+
+        from views.layouts.form_helpers import build_dialog_header
+        root.addWidget(build_dialog_header("👤", "Buscar Cliente", "Seleccione un cliente del registro para asociarlo a la operación"))
+
+        from views.styles import dialog_body_style
+        body = QWidget()
+        body.setObjectName("dlg_body")
+        dialog_body_style(body)
+        body_lay = QVBoxLayout(body)
+        body_lay.setSpacing(14)
+        body_lay.setContentsMargins(20, 16, 20, 14)
+
         top = QHBoxLayout()
         self.txt = UpperLineEdit()
         self.txt.setPlaceholderText("BUSCAR POR NOMBRE O DOC...")
@@ -106,7 +102,7 @@ class DialogoSelectorCliente(QDialog):
 
         top.addWidget(self.txt)
         top.addWidget(btn)
-        layout.addLayout(top)
+        body_lay.addLayout(top)
 
         self.tbl = QTableWidget(0, 3)
         self.tbl.setHorizontalHeaderLabels(["ID", "Doc", "Nombre"])
@@ -119,8 +115,12 @@ class DialogoSelectorCliente(QDialog):
         self.tbl.verticalHeader().setVisible(False)
         self.tbl.setAlternatingRowColors(True)
         self.tbl.cellDoubleClicked.connect(self.sel)
-        layout.addWidget(self.tbl)
-        self.buscar()
+        body_lay.addWidget(self.tbl)
+
+        root.addWidget(body)
+
+        self._init_overlay("Buscando clientes...")
+        QTimer.singleShot(0, lambda: self._deferred_call(self.buscar))
 
     def buscar(self):
         try:
@@ -155,12 +155,11 @@ class DialogoSelectorCliente(QDialog):
 # =============================================================================
 # NUEVA RENTA
 # =============================================================================
-class NuevaRentaDialog(QDialog):
+class NuevaRentaDialog(BaseDialog):
     def __init__(self, parent=None, placa_preseleccionada=None):
         super().__init__(parent)
         self.setWindowTitle("Nueva Renta - Cálculo Inteligente")
         self.setMinimumSize(1000, 700)
-        dialog_background(self)
 
         self.cliente_id = None
         self.cliente_lic = ""
@@ -168,10 +167,23 @@ class NuevaRentaDialog(QDialog):
         self._updating = False
 
         self._setup_ui()
-        self.cargar_autos(placa_preseleccionada)
+        QTimer.singleShot(0, lambda: self.cargar_autos(placa_preseleccionada))
 
     def _setup_ui(self):
-        layout = QVBoxLayout(self)
+        root = QVBoxLayout(self)
+        root.setSpacing(0)
+        root.setContentsMargins(0, 0, 0, 0)
+
+        from views.layouts.form_helpers import build_dialog_header
+        root.addWidget(build_dialog_header("📋", "Nueva Renta", "Creación de renta vehicular — cliente, fechas, tarifas y total"))
+
+        from views.styles import dialog_body_style
+        body = QWidget()
+        body.setObjectName("dlg_body")
+        dialog_body_style(body)
+        body_lay = QVBoxLayout(body)
+        body_lay.setSpacing(14)
+        body_lay.setContentsMargins(20, 16, 20, 14)
 
         # ── CLIENTE Y AUTO ───────────────────────────────────────────
         gb_info = QGroupBox("Datos Principales")
@@ -197,7 +209,7 @@ class NuevaRentaDialog(QDialog):
         l_info.addWidget(QLabel("Auto:"))
         l_info.addWidget(self.cmb_auto)
         gb_info.setLayout(l_info)
-        layout.addWidget(gb_info)
+        body_lay.addWidget(gb_info)
 
         # ── TIEMPO ───────────────────────────────────────────────────
         gb_time = QGroupBox("Tiempo y Fechas")
@@ -207,7 +219,7 @@ class NuevaRentaDialog(QDialog):
         self.d_sal.setCalendarPopup(True)
         input_date(self.d_sal)
         self.h_sal = QTimeEdit(QTime.currentTime())
-        input_spinbox(self.h_sal)
+        input_time(self.h_sal)
         self.sp_dias = QDoubleSpinBox()
         self.sp_dias.setRange(1, 365)
         self.sp_dias.setValue(1)
@@ -217,7 +229,7 @@ class NuevaRentaDialog(QDialog):
         self.d_ret.setCalendarPopup(True)
         input_date(self.d_ret)
         self.h_ret = QTimeEdit(QTime.currentTime())
-        input_spinbox(self.h_ret)
+        input_time(self.h_ret)
 
         self.d_sal.dateChanged.connect(self.calc_fechas)
         self.h_sal.timeChanged.connect(self.calc_fechas)
@@ -239,7 +251,7 @@ class NuevaRentaDialog(QDialog):
         lbl_extra_info(self.lbl_horas_extra)
         l_time.addWidget(self.lbl_horas_extra, 1, 4)
         gb_time.setLayout(l_time)
-        layout.addWidget(gb_time)
+        body_lay.addWidget(gb_time)
 
         # ── COSTOS ───────────────────────────────────────────────────
         gb_costos = QGroupBox("Tarifas y Extras")
@@ -305,7 +317,9 @@ class NuevaRentaDialog(QDialog):
         l_costos.addWidget(QLabel("Inversor:"), 4, 0)
         l_costos.addWidget(self.sp_inversor, 4, 1)
         gb_costos.setLayout(l_costos)
-        layout.addWidget(gb_costos)
+        body_lay.addWidget(gb_costos)
+
+        body_lay.addStretch()
 
         # ── TOTAL BAR ────────────────────────────────────────────────
         bottom_frame = QFrame()
@@ -325,8 +339,9 @@ class NuevaRentaDialog(QDialog):
         l_bottom.addStretch()
         l_bottom.addWidget(btn_cancel)
         l_bottom.addWidget(btn_save)
-        layout.addStretch()
-        layout.addWidget(bottom_frame)
+        body_lay.addWidget(bottom_frame)
+
+        root.addWidget(body)
 
     def sel_cli(self):
         dlg = DialogoSelectorCliente(self)
@@ -351,7 +366,7 @@ class NuevaRentaDialog(QDialog):
                 if pre and a['placa'] == pre:
                     self.cmb_auto.setCurrentIndex(self.cmb_auto.count() - 1)
         except DinamoBaseError as e:
-            _msg_box(QMessageBox.Icon.Warning, "Aviso", str(e), self).exec()
+            ModernMessageBox.warning(self, "Aviso", str(e))
         finally:
             self.cmb_auto.blockSignals(False)
             # Disparar act_auto manualmente solo si hay un auto real seleccionado
@@ -424,10 +439,7 @@ class NuevaRentaDialog(QDialog):
 
     def guardar(self):
         if not self.cliente_id or not self.cmb_auto.currentData():
-            return _msg_box(
-                QMessageBox.Icon.Warning,
-                "Error", "Faltan datos (Cliente o Auto)", self
-            ).exec()
+            return ModernMessageBox.warning(self, "Error", "Faltan datos (Cliente o Auto)")
 
         total, horas_extra = self.calc_total()
         auto = self.cmb_auto.currentData()
@@ -493,31 +505,41 @@ class NuevaRentaDialog(QDialog):
 
             self.accept()
         except DinamoBaseError as e:
-            _msg_box(QMessageBox.Icon.Critical, "Error", str(e), self).exec()
+            ModernMessageBox.error(self, "Error", str(e))
 
 
 # =============================================================================
 # EXTENDER RENTA
 # =============================================================================
-class DialogoExtenderRenta(QDialog):
+class DialogoExtenderRenta(BaseDialog):
     def __init__(self, parent=None, id_renta=None):
         super().__init__(parent)
         self.setWindowTitle(f"Extender Renta #{id_renta}")
         self.setMinimumSize(450, 400)
         self.id_renta = id_renta
-
-        try:
-            self.datos = RentaService.obtener(id_renta)
-        except DinamoBaseError as e:
-            _msg_box(QMessageBox.Icon.Critical, "Error", str(e), self).exec()
-            self.reject()
-            return
+        self.datos = {}
+        self.nuevos_datos = None
 
         self._setup_ui()
-        self.calcular()
+        self._init_overlay("Cargando datos de la renta...")
+        QTimer.singleShot(0, lambda: self._deferred_call(self._deferred_cargar))
 
     def _setup_ui(self):
-        layout = QVBoxLayout(self)
+        root = QVBoxLayout(self)
+        root.setSpacing(0)
+        root.setContentsMargins(0, 0, 0, 0)
+
+        from views.layouts.form_helpers import build_dialog_header
+        root.addWidget(build_dialog_header("📅", f"Extender Renta #{self.id_renta}", "Extensión de plazo — fecha, horas y nuevo total"))
+
+        from views.styles import dialog_body_style
+        body = QWidget()
+        body.setObjectName("dlg_body")
+        dialog_body_style(body)
+        body_lay = QVBoxLayout(body)
+        body_lay.setSpacing(14)
+        body_lay.setContentsMargins(20, 16, 20, 14)
+
         gb = QGroupBox("Detalles de Extensión")
         group_box(gb)
 
@@ -562,12 +584,44 @@ class DialogoExtenderRenta(QDialog):
         form.addRow("Adicionales:", self.lbl_dias_add)
         form.addRow("NUEVO TOTAL:", self.lbl_nuevo_total)
         gb.setLayout(form)
-        layout.addWidget(gb)
+        body_lay.addWidget(gb)
 
+        body_lay.addStretch()
+
+        from PySide6.QtWidgets import QFrame as QSepFrame
+        sep = QSepFrame()
+        sep.setFrameShape(QSepFrame.Shape.HLine)
+        sep.setStyleSheet("QFrame { background: #cbd5e1; max-height: 1px; border: none; }")
+        body_lay.addWidget(sep)
+
+        h_btn = QHBoxLayout()
+        h_btn.setSpacing(10)
         btn = QPushButton("CONFIRMAR EXTENSIÓN")
         btn_success(btn)
         btn.clicked.connect(self.guardar)
-        layout.addWidget(btn)
+        h_btn.addStretch()
+        h_btn.addWidget(btn)
+        body_lay.addLayout(h_btn)
+
+        root.addWidget(body)
+
+    def _deferred_cargar(self):
+        """Carga diferida de datos de la renta."""
+        try:
+            self.datos = RentaService.obtener(self.id_renta)
+        except DinamoBaseError as e:
+            try:
+                ModernMessageBox.error(self, "Error", str(e))
+                self.reject()
+            except RuntimeError:
+                pass
+            return
+        if self.datos:
+            self.lbl_actual.setText(
+                f"{self.datos.get('fecha_retorno', '')} "
+                f"(Total días: {self.datos.get('dias_calculados', 0)})"
+            )
+            self.calcular()
 
     def calcular(self):
         fecha_rec = str(self.datos.get('fecha_recogida', ''))[:10]
@@ -606,16 +660,16 @@ class DialogoExtenderRenta(QDialog):
                 self.nuevos_datos['total'],
                 self.nuevos_datos['saldo'],
             )
-            _msg_box(QMessageBox.Icon.Information, "Éxito", "Renta extendida correctamente", self).exec()
+            ModernMessageBox.success(self, "Éxito", "Renta extendida correctamente")
             self.accept()
         except DinamoBaseError as e:
-            _msg_box(QMessageBox.Icon.Critical, "Error", str(e), self).exec()
+            ModernMessageBox.error(self, "Error", str(e))
 
 
 # =============================================================================
 # CAMBIO DE VEHÍCULO
 # =============================================================================
-class DialogoCambioVehiculo(QDialog):
+class DialogoCambioVehiculo(BaseDialog):
     def __init__(self, parent=None, id_renta=None, placa_actual=None):
         super().__init__(parent)
         self.setWindowTitle("Cambio de Vehículo (Sustitución)")
@@ -624,10 +678,24 @@ class DialogoCambioVehiculo(QDialog):
         self.placa_actual = placa_actual
 
         self._setup_ui()
-        self.cargar_datos_iniciales()
+        self._init_overlay("Cargando datos...")
+        QTimer.singleShot(0, lambda: self._deferred_call(self.cargar_datos_iniciales))
 
     def _setup_ui(self):
-        layout = QVBoxLayout(self)
+        root = QVBoxLayout(self)
+        root.setSpacing(0)
+        root.setContentsMargins(0, 0, 0, 0)
+
+        from views.layouts.form_helpers import build_dialog_header
+        root.addWidget(build_dialog_header("🚗", "Cambio de Vehículo (Sustitución)", "Recepción del vehículo actual y asignación de uno nuevo"))
+
+        from views.styles import dialog_body_style
+        body = QWidget()
+        body.setObjectName("dlg_body")
+        dialog_body_style(body)
+        body_lay = QVBoxLayout(body)
+        body_lay.setSpacing(14)
+        body_lay.setContentsMargins(20, 16, 20, 14)
 
         gb_out = QGroupBox(
             f"1. Recepción Vehículo Actual: {self.placa_actual}"
@@ -655,7 +723,7 @@ class DialogoCambioVehiculo(QDialog):
         l_out.addWidget(QLabel("Motivo del Cambio:"), 2, 0)
         l_out.addWidget(self.txt_motivo, 2, 1)
         gb_out.setLayout(l_out)
-        layout.addWidget(gb_out)
+        body_lay.addWidget(gb_out)
 
         gb_in = QGroupBox("2. Asignar Nuevo Vehículo")
         group_box(gb_in)
@@ -665,12 +733,26 @@ class DialogoCambioVehiculo(QDialog):
         l_in.addWidget(QLabel("Seleccionar:"))
         l_in.addWidget(self.cmb_nuevo)
         gb_in.setLayout(l_in)
-        layout.addWidget(gb_in)
+        body_lay.addWidget(gb_in)
 
+        body_lay.addStretch()
+
+        from PySide6.QtWidgets import QFrame as QSepFrame
+        sep = QSepFrame()
+        sep.setFrameShape(QSepFrame.Shape.HLine)
+        sep.setStyleSheet("QFrame { background: #cbd5e1; max-height: 1px; border: none; }")
+        body_lay.addWidget(sep)
+
+        h_btn = QHBoxLayout()
+        h_btn.setSpacing(10)
         btn = QPushButton("REALIZAR CAMBIO")
         btn_danger(btn)
         btn.clicked.connect(self.guardar)
-        layout.addWidget(btn)
+        h_btn.addStretch()
+        h_btn.addWidget(btn)
+        body_lay.addLayout(h_btn)
+
+        root.addWidget(body)
 
     def cargar_datos_iniciales(self):
         try:
@@ -687,19 +769,17 @@ class DialogoCambioVehiculo(QDialog):
                     userData=a['placa'],
                 )
         except DinamoBaseError as e:
-            _msg_box(QMessageBox.Icon.Warning, "Aviso", str(e), self).exec()
+            ModernMessageBox.warning(self, "Aviso", str(e))
 
     def guardar(self):
         if not self.txt_motivo.toPlainText().strip():
-            return _msg_box(
-                QMessageBox.Icon.Warning, "Atención", "Debe describir el motivo", self
-            ).exec()
+            ModernMessageBox.warning(self, "Atención", "Debe describir el motivo")
+            return
 
         placa_nueva = self.cmb_nuevo.currentData()
         if not placa_nueva:
-            return _msg_box(
-                QMessageBox.Icon.Warning, "Error", "No hay vehículo seleccionado", self
-            ).exec()
+            ModernMessageBox.warning(self, "Error", "No hay vehículo seleccionado")
+            return
 
         estado_recepcion = (
             "Mantenimiento"
@@ -716,29 +796,41 @@ class DialogoCambioVehiculo(QDialog):
                 placa_nueva,
                 self.txt_motivo.toPlainText(),
             )
-            _msg_box(
-                QMessageBox.Icon.Information, "Proceso Completado",
-                f"Cambio realizado.\nNuevo vehículo: {placa_nueva}", self
-            ).exec()
+            ModernMessageBox.success(
+                self, "Proceso Completado",
+                f"Cambio realizado.\nNuevo vehículo: {placa_nueva}"
+            )
             self.accept()
         except DinamoBaseError as e:
-            _msg_box(QMessageBox.Icon.Critical, "Error", str(e), self).exec()
+            ModernMessageBox.error(self, "Error", str(e))
 
 
 # =============================================================================
 # INSPECCIÓN
 # =============================================================================
-class InspeccionDialog(QDialog):
+class InspeccionDialog(BaseDialog):
     def __init__(self, parent=None, id_renta=None):
         super().__init__(parent)
         self.id_renta = id_renta
         self.setWindowTitle(f"Inspección Vehicular - Renta #{id_renta}")
         self.setMinimumSize(550, 680)
-        dialog_background(self)
         self._setup_ui()
 
     def _setup_ui(self):
-        layout = QVBoxLayout(self)
+        root = QVBoxLayout(self)
+        root.setSpacing(0)
+        root.setContentsMargins(0, 0, 0, 0)
+
+        from views.layouts.form_helpers import build_dialog_header
+        root.addWidget(build_dialog_header("🔍", "Inspección Vehicular", f"Renta #{self.id_renta} — Registro de estado del vehículo"))
+
+        from views.styles import dialog_body_style
+        body = QWidget()
+        body.setObjectName("dlg_body")
+        dialog_body_style(body)
+        body_lay = QVBoxLayout(body)
+        body_lay.setSpacing(14)
+        body_lay.setContentsMargins(20, 16, 20, 14)
 
         # ── Datos Generales ──────────────────────────────────────────
         gb_basico = QGroupBox("1. Datos Generales")
@@ -770,7 +862,7 @@ class InspeccionDialog(QDialog):
         form_basico.addRow("Kilometraje actual:", self.spin_km)
         form_basico.addRow("Nivel de Gasolina:", self.cmb_gasolina)
         form_basico.addRow("Estado de Limpieza:", self.cmb_limpieza)
-        layout.addWidget(gb_basico)
+        body_lay.addWidget(gb_basico)
 
         # ── Inventario ───────────────────────────────────────────────
         gb_inv = QGroupBox("2. Inventario (Marcar si el vehículo lo tiene)")
@@ -790,7 +882,7 @@ class InspeccionDialog(QDialog):
         grid_inv.addWidget(self.chk_gato, 0, 1)
         grid_inv.addWidget(self.chk_kit, 1, 0)
         grid_inv.addWidget(self.chk_docs, 1, 1)
-        layout.addWidget(gb_inv)
+        body_lay.addWidget(gb_inv)
 
         # ── Observaciones ────────────────────────────────────────────
         gb_obs = QGroupBox("3. Daños y Observaciones")
@@ -809,10 +901,20 @@ class InspeccionDialog(QDialog):
         input_textedit(self.txt_obs)
         form_obs.addWidget(self.txt_obs)
 
-        layout.addWidget(gb_obs)
+        body_lay.addWidget(gb_obs)
+
+        body_lay.addStretch()
+
+        # Separador
+        from PySide6.QtWidgets import QFrame as QSepFrame
+        sep = QSepFrame()
+        sep.setFrameShape(QSepFrame.Shape.HLine)
+        sep.setStyleSheet("QFrame { background: #cbd5e1; max-height: 1px; border: none; }")
+        body_lay.addWidget(sep)
 
         # ── Botones ──────────────────────────────────────────────────
         h_btn = QHBoxLayout()
+        h_btn.setSpacing(10)
         btn_cancel = QPushButton("Cancelar")
         btn_danger(btn_cancel)
         btn_cancel.clicked.connect(self.reject)
@@ -824,9 +926,12 @@ class InspeccionDialog(QDialog):
         h_btn.addStretch()
         h_btn.addWidget(btn_cancel)
         h_btn.addWidget(btn_save)
-        layout.addLayout(h_btn)
+        body_lay.addLayout(h_btn)
+
+        root.addWidget(body)
 
     def guardar(self):
+        from services.inspeccion_service import InspeccionService
         datos = {
             "id_renta": self.id_renta,
             "tipo": self.cmb_tipo.currentText(),
@@ -843,20 +948,21 @@ class InspeccionDialog(QDialog):
 
         try:
             InspeccionService.registrar(datos)
-            _msg_box(QMessageBox.Icon.Information, "Éxito",
-                    "Inspección guardada en el sistema correctamente.", self).exec()
+            ModernMessageBox.success(self, "Éxito",
+                    "Inspección guardada en el sistema correctamente.")
             self.accept()
         except Exception as e:
-            _msg_box(QMessageBox.Icon.Critical, "Error", str(e), self).exec()
+            ModernMessageBox.error(self, "Error", str(e))
 
 
 # =============================================================================
 # WIDGET PRINCIPAL DE RENTAS
 # =============================================================================
-class RentasWidget(QWidget):
+class RentasWidget(BaseWidget):
+    """Panel principal de Rentas Activas."""
+
     def __init__(self, session_id: str = None):
-        super().__init__()
-        view_background(self)
+        super().__init__(session_id=session_id)
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -864,12 +970,12 @@ class RentasWidget(QWidget):
 
         # ── Banner superior ──────────────────────────────────────────
         from views.layouts.form_helpers import create_banner
-        banner = create_banner("📋", "Control de Rentas Activas", "Gestion de Rentas y Devoluciones", self.cargar_tabla)
+        banner = create_banner("📋", "Control de Rentas Activas", "Gestion de Rentas y Devoluciones", self.cargar_datos)
         main_layout.addWidget(banner)
 
         # ── Área de contenido ─────────────────────────────────────────
         content = QWidget()
-        content.setStyleSheet(f"QWidget {{ background: {_BG}; }}") # This can be replaced by a style function if needed
+        content.setStyleSheet(f"QWidget {{ background: {_BG}; }}")
         c_lay = QVBoxLayout(content)
         c_lay.setContentsMargins(*_RENTAS_WIDGET_CONTENT_MARGINS)
         c_lay.setSpacing(_RENTAS_WIDGET_CONTENT_SPACING)
@@ -881,13 +987,14 @@ class RentasWidget(QWidget):
         btn_nueva.clicked.connect(self.nueva)
         btn_act = QPushButton("Actualizar")
         btn_default(btn_act)
-        btn_act.clicked.connect(self.cargar_tabla)
+        btn_act.clicked.connect(self.cargar_datos)
         top.addStretch()
         top.addWidget(btn_nueva)
         top.addWidget(btn_act)
         c_lay.addLayout(top)
 
         self.tbl = QTableWidget(0, 7)
+        table_widget(self.tbl)
         self.tbl.setHorizontalHeaderLabels([
             "ID", "Placa", "Cliente", "Salida", "Retorno", "Estado", "Total"
         ])
@@ -905,12 +1012,12 @@ class RentasWidget(QWidget):
             Qt.ContextMenuPolicy.CustomContextMenu
         )
         self.tbl.customContextMenuRequested.connect(self.mostrar_menu)
-        table_widget(self.tbl)
 
         c_lay.addWidget(self.tbl)
-        self.cargar_tabla()
+        self._init_loading_overlay()
+        QTimer.singleShot(0, self._deferred_load)
 
-    def cargar_tabla(self):
+    def cargar_datos(self):
         self.tbl.setRowCount(0)
         try:
             activas = DashboardService.obtener_activas()
@@ -938,7 +1045,7 @@ class RentasWidget(QWidget):
 
     def nueva(self):
         if NuevaRentaDialog(self).exec():
-            self.cargar_tabla()
+            self.cargar_datos()
 
     def mostrar_menu(self, pos):
         item = self.tbl.itemAt(pos)
@@ -1005,15 +1112,16 @@ class RentasWidget(QWidget):
     def abrir_extension(self, id_renta):
         dlg = DialogoExtenderRenta(self, id_renta)
         if dlg.exec():
-            self.cargar_tabla()
+            self.cargar_datos()
 
     def abrir_cambio(self, id_renta, placa):
         dlg = DialogoCambioVehiculo(self, id_renta, placa)
         if dlg.exec():
-            self.cargar_tabla()
+            self.cargar_datos()
 
     def abrir_pagos(self, id_renta, total, cliente):
         try:
+            from views.pagos_view import PagosDialog
             dlg = PagosDialog(self, id_renta, total, cliente)
             dlg.exec()
         except Exception:
@@ -1036,6 +1144,6 @@ class RentasWidget(QWidget):
             if ruta:
                 utils.abrir_archivo(ruta)
         except Exception as e:
-            _msg_box(
-                QMessageBox.Icon.Critical, "Error", f"Error generando documento: {e}", self
-            ).exec()
+            ModernMessageBox.error(
+                self, "Error", f"Error generando documento: {e}"
+            )

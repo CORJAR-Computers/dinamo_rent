@@ -2,14 +2,17 @@
 
 from typing import List, Optional
 
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import (
     QWidget, QLabel, QHeaderView,
-    QAbstractItemView,
+    QAbstractItemView, QApplication,
 )
+from PySide6.QtGui import QShowEvent
 from views.components import ModernMessageBox, ToastNotification
 from views.components.form_validators import (
     FormValidator, FieldValidator, ValidationRule, make_error_label,
 )
+from views.components.loading_spinner import LoadingOverlay
 
 from core.exceptions import DinamoBaseError, ValidacionError, NegocioError
 from core.logger import get_logger
@@ -18,11 +21,29 @@ from core.logger import get_logger
 class BaseWidget(QWidget):
     """Widget base con manejo de errores, toast, validación y diálogos estándar."""
 
+    _LOADING_MESSAGE = "Cargando..."
+
     def __init__(self, parent=None, session_id: str = None):
         super().__init__(parent)
         self._log = get_logger(self.__class__.__name__)
         self._session_id = session_id
         self._form_validator: Optional[FormValidator] = None
+        self._loading_overlay: Optional[LoadingOverlay] = None
+        self._datos_cargados = False
+
+    def showEvent(self, event: QShowEvent) -> None:
+        """Carga datos diferidos en la primera vez que se muestra el widget."""
+        if not self._datos_cargados:
+            self._datos_cargados = True
+            self._on_first_show()
+        super().showEvent(event)
+
+    def _on_first_show(self) -> None:
+        """Hook para cargar datos en el primer show.
+        Subclases pueden sobreescribirlo para usar un método distinto.
+        Por defecto llama a self.cargar_datos() con overlay.
+        """
+        QTimer.singleShot(0, self._deferred_load)
 
     # ── Toast ────────────────────────────────────────────────────────────────────────
 
@@ -47,8 +68,8 @@ class BaseWidget(QWidget):
         ModernMessageBox.error(self, titulo, mensaje)
 
     def mostrar_exito(self, mensaje: str, titulo: str = "Éxito") -> None:
-        """Muestra diálogo de éxito estándar."""
-        ModernMessageBox.success(self, titulo, mensaje)
+        """Muestra notificación toast de éxito (no bloqueante)."""
+        self.mostrar_toast(mensaje, "success")
 
     def mostrar_advertencia(self, mensaje: str, titulo: str = "Atención") -> None:
         """Muestra diálogo de advertencia estándar."""
@@ -122,6 +143,73 @@ class BaseWidget(QWidget):
             self.mostrar_error(f"Error inesperado: {e}")
             self._log.error("Error inesperado en %s: %s", self.__class__.__name__, e, exc_info=True)
         return None
+
+    def _init_loading_overlay(self, message: str | None = None) -> None:
+        """Inicializa el overlay de carga (llamar desde __init__ de subclases
+        si se desea spinner mientras carga datos)."""
+        if self._loading_overlay is None:
+            self._loading_overlay = LoadingOverlay(
+                self, message or self._LOADING_MESSAGE
+            )
+        elif message:
+            self._loading_overlay.set_message(message)
+
+    def _deferred_call(self, func) -> None:
+        """Ejecuta func() con overlay de carga.
+
+        Muestra el spinner, forza el renderizado SIN procesar eventos
+        ajenos (evita cascadas de timers), ejecuta func() y oculta
+        el spinner al finalizar. Es seguro llamarlo desde un QTimer
+        incluso si el widget C++ ya fue eliminado.
+        """
+        # Guard: C++ object may have been deleted (e.g., QTimer fired
+        # after widget closed in tests). Return silently if so.
+        try:
+            _ = self.isWidgetType()
+        except RuntimeError:
+            self._loading_overlay = None
+            return
+
+        self._show_overlay_safe()
+        # Sync repaint of overlay — no processEvents() to avoid
+        # re-entering other deferred timers.
+        if self._loading_overlay is not None:
+            try:
+                self._loading_overlay.repaint()
+            except RuntimeError:
+                self._loading_overlay = None
+
+        try:
+            func()
+        except RuntimeError:
+            pass  # Widget C++ destroyed before deferred callback fired (tests only)
+        except Exception as e:
+            self._log.error("Error en carga: %s", e, exc_info=True)
+            raise
+        finally:
+            self._hide_overlay_safe()
+
+    def _show_overlay_safe(self) -> None:
+        """Show the loading overlay, safely ignoring deleted C++ objects."""
+        if self._loading_overlay is None:
+            return
+        try:
+            self._loading_overlay.show()
+        except RuntimeError:
+            self._loading_overlay = None
+
+    def _hide_overlay_safe(self) -> None:
+        """Hide the loading overlay, safely ignoring deleted C++ objects."""
+        if self._loading_overlay is None:
+            return
+        try:
+            self._loading_overlay.hide()
+        except RuntimeError:
+            self._loading_overlay = None
+
+    def _deferred_load(self) -> None:
+        """Conveniencia: ejecuta self.cargar_datos() con overlay de carga."""
+        self._deferred_call(self.cargar_datos)
 
     @staticmethod
     def ajustar_tabla(tabla, columnas: list[str]) -> None:

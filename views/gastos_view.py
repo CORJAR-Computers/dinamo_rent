@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QPushButton, QHeaderView, QLabel, QComboBox,
     QDateEdit, QDoubleSpinBox, QGroupBox, QLineEdit, QAbstractItemView, QWidget,
 )
-from PySide6.QtCore import QDate
+from PySide6.QtCore import QDate, QTimer
 from PySide6.QtGui import QColor, QBrush, QFont
 
 from core.config import COLOR_PELIGRO
@@ -40,7 +40,8 @@ class GastosWidget(BaseWidget):
     def __init__(self, session_id: str = None):
         super().__init__(session_id=session_id)
         self._setup_ui()
-        self.cargar_datos()
+        self._init_loading_overlay()
+        QTimer.singleShot(0, self._deferred_load)
 
     def _setup_ui(self):
         self.setStyleSheet(f"QWidget {{ background: {_BG}; }} QLabel {{ color: {_TEXT}; }}")

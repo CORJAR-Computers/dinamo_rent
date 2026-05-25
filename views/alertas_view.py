@@ -3,6 +3,7 @@ from views.components import ModernMessageBox
 views/alertas_view.py — Centro de Notificaciones y Alertas
 Estilos via views.styles.py.
 """
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import (
     QVBoxLayout, QTableWidget, QTableWidgetItem,
     QPushButton, QHeaderView, QTabWidget, QAbstractItemView, QWidget,
@@ -13,7 +14,7 @@ from core.config import COLOR_PELIGRO, COLOR_ALERTA
 from services.alerta_service import AlertaService
 from core.utils import abrir_whatsapp
 from views.base_widget import BaseWidget
-from views.styles import btn_success, table_widget
+from views.styles import btn_success, table_widget, tab_widget_pane_style, tab_bar_style
 
 # ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
 _NAV   = "#1a3558"
@@ -29,7 +30,8 @@ class AlertasWidget(BaseWidget):
     def __init__(self, session_id: str = None):
         super().__init__(session_id=session_id)
         self._setup_ui()
-        self.cargar_alertas()
+        self._init_loading_overlay("Cargando alertas...")
+        QTimer.singleShot(0, lambda: self._deferred_call(self.cargar_alertas))
 
     def _setup_ui(self):
         self.setStyleSheet(f"QWidget {{ background: {_BG}; }} QLabel {{ color: {_TEXT}; }}")
@@ -50,6 +52,8 @@ class AlertasWidget(BaseWidget):
         main_layout.addWidget(content, stretch=1)
 
         self.tabs = QTabWidget()
+        tab_widget_pane_style(self.tabs)
+        tab_bar_style(self.tabs.tabBar())
         self.tab_clientes = QTableWidget()  # simplified
         self.tab_internas = QTableWidget()
         self.tabs.addTab(QWidget(), "Enviar a Clientes (WhatsApp)")

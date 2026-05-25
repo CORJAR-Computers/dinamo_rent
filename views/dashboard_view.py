@@ -6,8 +6,9 @@ from datetime import datetime
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QFrame,
     QTableWidgetItem, QComboBox, QTableWidget, QWidget,
+    QProgressBar,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QBrush, QFont
 
 from services.dashboard_service import DashboardService
@@ -59,14 +60,14 @@ QComboBox:focus {{
 
 
 class _KpiCard(QFrame):
-    """Tarjeta KPI con banda de gradiente superior y valor prominente."""
+    """Tarjeta KPI compacta con banda superior y valor prominente."""
 
     def __init__(self, titulo: str, icono: str, color: str, color_end: str = ""):
         super().__init__()
         self.setProperty("dashcard", "true")
         color_end = color_end or color
-        self.setMinimumHeight(110)
-        self.setMaximumHeight(130)
+        self.setMinimumHeight(90)
+        self.setMaximumHeight(100)
 
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
@@ -74,7 +75,7 @@ class _KpiCard(QFrame):
 
         # ── Banda superior con gradiente de color ──
         banner = QWidget()
-        banner.setFixedHeight(6)
+        banner.setFixedHeight(4)
         banner.setStyleSheet(f"""
             background: qlineargradient(x1:0,y1:0,x2:1,y2:0,
                 stop:0 {color}, stop:1 {color_end});
@@ -87,42 +88,177 @@ class _KpiCard(QFrame):
         body = QWidget()
         body.setStyleSheet("QWidget { background: transparent; }")
         body_lay = QHBoxLayout(body)
-        body_lay.setContentsMargins(18, 12, 18, 14)
-        body_lay.setSpacing(12)
+        body_lay.setContentsMargins(14, 8, 14, 10)
+        body_lay.setSpacing(10)
 
-        # Columna izquierda: texto
-        left = QVBoxLayout()
-        left.setSpacing(4)
-
-        lbl_titulo = QLabel(titulo.upper())
-        lbl_titulo.setStyleSheet(
-            f"QLabel {{ font-size:8.5pt; font-weight:700; color:{_MUTED}; letter-spacing:0.8px; }}"
-        )
-
-        self.lbl_valor = QLabel("—")
-        self.lbl_valor.setStyleSheet(
-            f"QLabel {{ color:{color}; font-size:30pt; font-weight:700; letter-spacing:-1px; }}"
-        )
-
-        left.addWidget(lbl_titulo)
-        left.addWidget(self.lbl_valor)
-        left.addStretch()
-        body_lay.addLayout(left, stretch=1)
-
-        # Icono decorativo derecho
+        # Icono decorativo izquierdo
         lbl_ico = QLabel(icono)
         lbl_ico.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_ico.setFixedSize(44, 44)
+        lbl_ico.setFixedSize(40, 40)
         lbl_ico.setStyleSheet(f"""
             QLabel {{
                 background: qlineargradient(x1:0,y1:0,x2:1,y2:1,
                     stop:0 {color}22, stop:1 {color}44);
-                border-radius: 22px;
-                font-size: 20px;
+                border-radius: 20px;
+                font-size: 18px;
             }}
         """)
         body_lay.addWidget(lbl_ico)
 
+        # Columna derecha: texto
+        right = QVBoxLayout()
+        right.setSpacing(2)
+
+        self.lbl_valor = QLabel("—")
+        self.lbl_valor.setStyleSheet(
+            f"QLabel {{ color:{color}; font-size:24pt; font-weight:700; letter-spacing:-1px; }}"
+        )
+
+        lbl_titulo = QLabel(titulo.upper())
+        lbl_titulo.setStyleSheet(
+            f"QLabel {{ font-size:8pt; font-weight:700; color:{_MUTED}; letter-spacing:0.8px; }}"
+        )
+
+        right.addWidget(self.lbl_valor)
+        right.addWidget(lbl_titulo)
+        body_lay.addLayout(right, stretch=1)
+
+        root.addWidget(body)
+
+    def set_value(self, v: str):
+        self.lbl_valor.setText(v)
+
+
+class _KpiCardOcupacion(QFrame):
+    """Tarjeta KPI con barra de progreso — compacta."""
+
+    def __init__(self):
+        super().__init__()
+        self.setProperty("dashcard", "true")
+        self.setMinimumHeight(90)
+        self.setMaximumHeight(100)
+
+        root = QVBoxLayout(self)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(0)
+
+        # Banda superior
+        banner = QWidget()
+        banner.setFixedHeight(4)
+        banner.setStyleSheet(f"""
+            background: qlineargradient(x1:0,y1:0,x2:1,y2:0,
+                stop:0 {_BLUE}, stop:1 #7c3aed);
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        """)
+        root.addWidget(banner)
+
+        body = QWidget()
+        body.setStyleSheet("QWidget { background: transparent; }")
+        body_lay = QVBoxLayout(body)
+        body_lay.setContentsMargins(14, 8, 14, 10)
+        body_lay.setSpacing(4)
+
+        # Valor + detalle en fila
+        val_row = QHBoxLayout()
+        val_row.setSpacing(8)
+
+        self.lbl_valor = QLabel("—")
+        self.lbl_valor.setStyleSheet(
+            f"QLabel {{ color:{_BLUE}; font-size:22pt; font-weight:700; letter-spacing:-0.5px; }}"
+        )
+        val_row.addWidget(self.lbl_valor)
+
+        self.lbl_detalle = QLabel("0 / 0")
+        self.lbl_detalle.setStyleSheet(
+            f"QLabel {{ color:{_MUTED}; font-size:8.5pt; background:transparent; }}"
+        )
+        val_row.addWidget(self.lbl_detalle)
+        val_row.addStretch()
+
+        # Título
+        lbl_titulo = QLabel("OCUPACIÓN FLOTA".upper())
+        lbl_titulo.setStyleSheet(
+            f"QLabel {{ font-size:8pt; font-weight:700; color:{_MUTED}; letter-spacing:0.8px; }}"
+        )
+
+        body_lay.addLayout(val_row)
+        body_lay.addWidget(lbl_titulo)
+
+        # Barra de progreso
+        self.progress = QProgressBar()
+        self.progress.setFixedHeight(6)
+        self.progress.setTextVisible(False)
+        self.progress.setRange(0, 100)
+        self.progress.setValue(0)
+        self.progress.setStyleSheet(f"""
+            QProgressBar {{
+                background: #e2e8f0;
+                border: none;
+                border-radius: 3px;
+            }}
+            QProgressBar::chunk {{
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:0,
+                    stop:0 {_BLUE}, stop:1 #7c3aed);
+                border-radius: 3px;
+            }}
+        """)
+        body_lay.addWidget(self.progress)
+
+        root.addWidget(body)
+
+    def set_value(self, pct: float, rentados: int = 0, activos: int = 0):
+        self.progress.setValue(int(pct))
+        self.lbl_valor.setText(f"{pct:.0f}%")
+        self.lbl_detalle.setText(f"{rentados} rentados / {activos} activos")
+        self.setToolTip(f"Ocupación: {pct:.1f}% — {rentados} vehículos rentados de {activos} activos en flota")
+
+
+class _MiniCard(QFrame):
+    """Tarjeta financiera compacta — sin banda, con ícono circular a la izquierda."""
+
+    def __init__(self, titulo: str, icono: str, color: str):
+        super().__init__()
+        self.setProperty("dashcard", "true")
+        self.setMinimumHeight(72)
+        self.setMaximumHeight(80)
+
+        root = QVBoxLayout(self)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(0)
+
+        body = QWidget()
+        body.setStyleSheet("QWidget { background: transparent; }")
+        body_lay = QHBoxLayout(body)
+        body_lay.setContentsMargins(12, 6, 14, 8)
+        body_lay.setSpacing(10)
+
+        lbl_ico = QLabel(icono)
+        lbl_ico.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lbl_ico.setFixedSize(34, 34)
+        lbl_ico.setStyleSheet(f"""
+            QLabel {{
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:1,
+                    stop:0 {color}18, stop:1 {color}38);
+                border-radius: 17px;
+                font-size: 15px;
+            }}
+        """)
+        body_lay.addWidget(lbl_ico)
+
+        right = QVBoxLayout()
+        right.setSpacing(0)
+        self.lbl_valor = QLabel("—")
+        self.lbl_valor.setStyleSheet(
+            f"QLabel {{ color:{color}; font-size:16pt; font-weight:700; letter-spacing:-0.3px; }}"
+        )
+        lbl_titulo = QLabel(titulo.upper())
+        lbl_titulo.setStyleSheet(
+            f"QLabel {{ font-size:7.5pt; font-weight:700; color:{_MUTED}; letter-spacing:0.6px; }}"
+        )
+        right.addWidget(self.lbl_valor)
+        right.addWidget(lbl_titulo)
+        body_lay.addLayout(right, stretch=1)
         root.addWidget(body)
 
     def set_value(self, v: str):
@@ -205,7 +341,8 @@ class DashboardWidget(BaseWidget):
         self.setLayout(main_layout)
 
         self._construir_ui()
-        self.cargar_datos()
+        self._init_loading_overlay()
+        QTimer.singleShot(0, self._deferred_load)
 
     def _construir_ui(self):
         # ── Banner superior ──────────────────────────────────────────────
@@ -221,16 +358,29 @@ class DashboardWidget(BaseWidget):
         c_lay.setSpacing(16)
         self.layout().addWidget(content, stretch=1)
 
-        # ── KPIs ─────────────────────────────────────────────────────────
+        # ── KPIs — Fila única esencial ──────────────────────────────────
         kpi_row = QHBoxLayout()
-        kpi_row.setSpacing(14)
-        self.card_disp    = _KpiCard("Disponibles",     "🟢", COLOR_EXITO,   "#22c55e")
-        self.card_activas = _KpiCard("Rentas Activas",  "🚗", COLOR_PRIMARIO, _BLUE)
-        self.card_taller  = _KpiCard("En Taller",       "🔧", COLOR_ALERTA,  "#f59e0b")
-        self.card_alertas = _KpiCard("Alertas Críticas","⚠️", COLOR_PELIGRO, "#ef4444")
-        for c in (self.card_disp, self.card_activas, self.card_taller, self.card_alertas):
+        kpi_row.setSpacing(12)
+        self.card_activas   = _KpiCard("Rentas Activas",  "🚗", COLOR_PRIMARIO, _BLUE)
+        self.card_disp      = _KpiCard("Disponibles",     "🟢", COLOR_EXITO,   "#22c55e")
+        self.card_taller    = _KpiCard("En Taller",       "🔧", COLOR_ALERTA,  "#f59e0b")
+        self.card_alertas   = _KpiCard("Alertas Críticas","⚠️", COLOR_PELIGRO, "#ef4444")
+        self.card_ocupacion = _KpiCardOcupacion()
+        for c in (self.card_activas, self.card_disp, self.card_taller, self.card_alertas, self.card_ocupacion):
             kpi_row.addWidget(c)
         c_lay.addLayout(kpi_row)
+
+        # ── Resumen Financiero (una fila compacta de 4 mini-cards) ──────
+        fin_row = QHBoxLayout()
+        fin_row.setSpacing(12)
+        self.card_fin_ingresos  = _MiniCard("Ingresos Mes",  "📈", "#059669")
+        self.card_fin_taller    = _MiniCard("Taller",        "🔧", COLOR_ALERTA)
+        self.card_fin_caja      = _MiniCard("Gastos Caja",   "💳", "#7c3aed")
+        self.card_fin_utilidad  = _MiniCard("Utilidad Neta", "🏆", _BLUE)
+        for c in (self.card_fin_ingresos, self.card_fin_taller,
+                  self.card_fin_caja, self.card_fin_utilidad):
+            fin_row.addWidget(c)
+        c_lay.addLayout(fin_row)
 
         # ── Sección media (Alertas + Rentas) ─────────────────────────────
         mid = QHBoxLayout()
@@ -288,13 +438,33 @@ class DashboardWidget(BaseWidget):
         # Obtener alertas
         alertas = self.ejecutar_seguro(AutoService.obtener_alertas) or []
 
+        # Obtener resumen financiero
+        fin = self.ejecutar_seguro(DashboardService.obtener_resumen_financiero) or {}
+
         # Actualizar tarjetas KPI
-        self.card_disp.set_value(str(kpis.get("autos_disponibles", 0)))
         self.card_activas.set_value(str(kpis.get("rentas_activas", 0)))
+        self.card_disp.set_value(str(kpis.get("autos_disponibles", 0)))
         self.card_taller.set_value(str(kpis.get("autos_mantenimiento", 0)))
         self.card_alertas.set_value(str(len(alertas)))
 
+        ocupacion = float(kpis.get("ocupacion_flota", 0))
+        rentados = int(kpis.get("autos_rentados", 0))
+        activos = int(kpis.get("total_flota", 0))
+        self.card_ocupacion.set_value(ocupacion, rentados, activos)
+
+        # Actualizar resumen financiero
+        fi = float(fin.get("ingresos_mes", 0))
+        ft = float(fin.get("egresos_taller_mes", 0))
+        fc = float(fin.get("gastos_caja_mes", 0))
+        fu = float(fin.get("utilidad_mes", 0))
+        self.card_fin_ingresos.set_value(f"$ {fi:,.0f}")
+        self.card_fin_taller.set_value(f"$ {ft:,.0f}")
+        self.card_fin_caja.set_value(f"$ {fc:,.0f}")
+        self.card_fin_utilidad.set_value(f"$ {fu:,.0f}")
+
+        # Actualizar tabla de alertas con StatusBadge
         self.tbl_alertas.setRowCount(0)
+        from views.components.status_badge import StatusBadge
         for a in alertas:
             r = self.tbl_alertas.rowCount()
             self.tbl_alertas.insertRow(r)
@@ -303,11 +473,9 @@ class DashboardWidget(BaseWidget):
             self.tbl_alertas.setItem(r, 2, QTableWidgetItem(a.get("detalle", "")))
 
             est = a.get("estado", "")
-            it = QTableWidgetItem(est)
-            it.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
             critico = "VENCIDO" in est or "CRÍTICO" in est
-            it.setForeground(QBrush(QColor(COLOR_PELIGRO if critico else COLOR_ALERTA)))
-            self.tbl_alertas.setItem(r, 3, it)
+            badge = StatusBadge(est, "danger" if critico else "warning")
+            self.tbl_alertas.setCellWidget(r, 3, badge)
 
         self.filtrar_tabla()
 

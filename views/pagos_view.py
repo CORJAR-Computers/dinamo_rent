@@ -14,9 +14,11 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QLabel, QLineEdit,
     QDoubleSpinBox, QComboBox, QPushButton, QTableWidget, QTableWidgetItem,
     QHeaderView, QGroupBox, QAbstractItemView,
+    QWidget,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QBrush, QFont
+from views.base_dialog import BaseDialog
 
 from core.config import COLOR_EXITO
 from services.pago_service import PagoService
@@ -24,7 +26,7 @@ from core.exceptions import DinamoBaseError
 from views.styles import btn_default, btn_primary, lbl_section, lbl_subtitle, group_box, input_field, input_combo, input_spinbox, status_active, status_inactive, dialog_background
 
 
-class PagosDialog(QDialog):
+class PagosDialog(BaseDialog):
     """Dialogo de Estado de Cuenta y Pagos de una Renta."""
 
     def __init__(self, parent=None, id_renta=None, total_renta=0.0, cliente=""):
@@ -35,17 +37,28 @@ class PagosDialog(QDialog):
 
         self.setWindowTitle(f"Estado de Cuenta - Renta #{id_renta}")
         self.setMinimumSize(650, 600)
-        dialog_background(self)
         self._setup_ui()
-        self.cargar_pagos()
+        self._init_overlay("Cargando pagos...")
+        QTimer.singleShot(0, self._deferred_load)
+
+    def _deferred_load(self):
+        self._deferred_call(self.cargar_pagos)
 
     def _setup_ui(self):
-        layout = QVBoxLayout(self)
+        root = QVBoxLayout(self)
+        root.setSpacing(0)
+        root.setContentsMargins(0, 0, 0, 0)
 
-        # ── Titulo ──
-        titulo = QLabel(f"Cliente: {self.cliente}")
-        lbl_subtitle(titulo)
-        layout.addWidget(titulo)
+        from views.layouts.form_helpers import build_dialog_header
+        root.addWidget(build_dialog_header("💰", "Estado de Cuenta", f"Cliente: {self.cliente} — Renta #{self.id_renta}"))
+
+        from views.styles import dialog_body_style
+        body = QWidget()
+        body.setObjectName("dlg_body")
+        dialog_body_style(body)
+        body_lay = QVBoxLayout(body)
+        body_lay.setSpacing(14)
+        body_lay.setContentsMargins(20, 16, 20, 14)
 
         # ── Resumen financiero ──
         gb_resumen = QGroupBox("Resumen Financiero")
@@ -53,7 +66,7 @@ class PagosDialog(QDialog):
         lay_resumen = QHBoxLayout(gb_resumen)
 
         self.lbl_total = QLabel(f"Total Renta:\n$ {self.total_renta:,.0f}")
-        self.lbl_section(self.lbl_total)
+        lbl_section(self.lbl_total)
 
         self.lbl_abonado = QLabel("Abonado:\n$ 0")
         status_active(self.lbl_abonado)
@@ -64,7 +77,7 @@ class PagosDialog(QDialog):
         lay_resumen.addWidget(self.lbl_total)
         lay_resumen.addWidget(self.lbl_abonado)
         lay_resumen.addWidget(self.lbl_saldo)
-        layout.addWidget(gb_resumen)
+        body_lay.addWidget(gb_resumen)
 
         # ── Formulario nuevo pago ──
         gb_nuevo = QGroupBox("Registrar Nuevo Pago")
@@ -109,12 +122,12 @@ class PagosDialog(QDialog):
         form_pago.addRow("Concepto:", self.cmb_concepto)
         form_pago.addRow("Observaciones:", self.txt_obs)
         form_pago.addRow("", btn_registrar)
-        layout.addWidget(gb_nuevo)
+        body_lay.addWidget(gb_nuevo)
 
         # ── Historial ──
         lbl_hist = QLabel("Historial de Recibos")
         lbl_section(lbl_hist)
-        layout.addWidget(lbl_hist)
+        body_lay.addWidget(lbl_hist)
 
         self.tbl = QTableWidget()
         self.tbl.setAlternatingRowColors(True)
@@ -125,13 +138,28 @@ class PagosDialog(QDialog):
         self.tbl.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tbl.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.tbl.verticalHeader().setVisible(False)
-        layout.addWidget(self.tbl)
+        body_lay.addWidget(self.tbl)
+
+        body_lay.addStretch()
+
+        # Separador
+        from PySide6.QtWidgets import QFrame
+        sep = QFrame()
+        sep.setFrameShape(QFrame.Shape.HLine)
+        sep.setStyleSheet("QFrame { background: #cbd5e1; max-height: 1px; border: none; }")
+        body_lay.addWidget(sep)
 
         # Boton cerrar
+        btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(10)
         btn_cerrar = QPushButton("Cerrar Ventana")
         btn_default(btn_cerrar)
         btn_cerrar.clicked.connect(self.accept)
-        layout.addWidget(btn_cerrar, alignment=Qt.AlignmentFlag.AlignRight)
+        btn_layout.addStretch()
+        btn_layout.addWidget(btn_cerrar)
+        body_lay.addLayout(btn_layout)
+
+        root.addWidget(body)
 
     # ── Carga de datos ─────────────────────────────────────────
 
@@ -209,9 +237,8 @@ class PagosDialog(QDialog):
 
         try:
             PagoService.registrar(datos)
-            ModernMessageBox.success(
-                self, "Exito", "Pago registrado correctamente en caja."
-            )
+            from views.components.toast_notification import ToastNotification
+            ToastNotification(self.window(), "Pago registrado correctamente en caja.", "success")
             self.txt_obs.clear()
             self.cargar_pagos()
 

@@ -6,11 +6,12 @@ El usuario debe cambiar su contraseña antes de acceder al sistema.
 """
 
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
+    QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QFrame, QProgressBar, QApplication,
 )
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QColor, QFont
+
+from views.base_dialog import BaseDialog
 
 from services.auth_service import AuthService
 from core.exceptions import DinamoBaseError, ValidacionError, CredencialesInvalidas
@@ -35,7 +36,7 @@ _LBL_REQUISITO_NOK = (
 )
 
 
-class ForceChangePasswordDialog(QDialog):
+class ForceChangePasswordDialog(BaseDialog):
     """Diálogo modal que fuerza el cambio de contraseña obligatorio.
 
     Args:
@@ -266,6 +267,7 @@ class ForceChangePasswordDialog(QDialog):
         btn_lay.addWidget(btn_cancel)
 
         self.btn_save = QPushButton("  Cambiar y Entrar")
+        self.btn_save.setObjectName("btnGuardar")
         btn_primary(self.btn_save, large=True)
         self.btn_save.clicked.connect(self._guardar)
         btn_lay.addWidget(self.btn_save)

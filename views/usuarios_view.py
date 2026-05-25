@@ -1,4 +1,3 @@
-from views.components import ModernMessageBox
 """
 views/usuarios_view.py — Vista para la Administracion de Usuarios.
 """
@@ -8,15 +7,14 @@ from PySide6.QtWidgets import (
     QFormLayout, QComboBox, QGroupBox, QWidget,
     QAbstractItemView, QMenu,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QBrush, QFont
 
 from core.config import COLOR_EXITO, COLOR_PELIGRO
-from services.backup_service import BackupService
 from services.usuario_service import UsuarioService
 from core.exceptions import DinamoBaseError
 from views.base_widget import BaseWidget
-from views.styles import btn_danger, btn_primary, btn_success, btn_warning, edit_search, group_box, input_field, input_combo, dialog_background, dialog_title
+from views.styles import btn_danger, btn_primary, btn_success, btn_warning, edit_search, group_box, input_field, input_combo
 
 # ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
 _NAV   = "#1a3558"
@@ -38,7 +36,6 @@ class UsuarioFormDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Gestion de Usuario")
         self.setMinimumSize(450, 500)
-        dialog_background(self)
         self.datos_usuario = datos_usuario or {}
         self._session_id = session_id
 
@@ -47,14 +44,25 @@ class UsuarioFormDialog(QDialog):
             self._cargar_datos()
 
     def _setup_ui(self):
-        layout = QVBoxLayout(self)
+        root = QVBoxLayout(self)
+        root.setSpacing(0)
+        root.setContentsMargins(0, 0, 0, 0)
 
-        # Titulo
-        titulo = QLabel(
-            "Editar Usuario" if self.datos_usuario else "Nuevo Usuario"
-        )
-        dialog_title(titulo)
-        layout.addWidget(titulo)
+        # ── Banner de encabezado ──────────────────────────────────────
+        from views.layouts.form_helpers import build_dialog_header
+        es_editar = bool(self.datos_usuario)
+        titulo = "Editar Usuario" if es_editar else "Nuevo Usuario"
+        subtitulo = f"Editando: {self.datos_usuario.get('nombre', self.datos_usuario.get('username', ''))}" if es_editar else "Registra un nuevo usuario en el sistema"
+        root.addWidget(build_dialog_header("👤", titulo, subtitulo))
+
+        # ── Cuerpo principal ─────────────────────────────────────────
+        from views.styles import dialog_body_style
+        body = QWidget()
+        body.setObjectName("dlg_body")
+        dialog_body_style(body)
+        body_lay = QVBoxLayout(body)
+        body_lay.setSpacing(12)
+        body_lay.setContentsMargins(20, 16, 20, 14)
 
         # Formulario
         form_layout = QFormLayout()
@@ -74,7 +82,7 @@ class UsuarioFormDialog(QDialog):
         form_layout.addRow("Email:", self.txt_email)
         form_layout.addRow("Rol / Perfil:", self.cmb_rol)
         form_layout.addRow("Estado:", self.cmb_estado)
-        layout.addLayout(form_layout)
+        body_lay.addLayout(form_layout)
 
         # Seccion contrasena
         group_pass = QGroupBox("Seguridad")
@@ -96,23 +104,35 @@ class UsuarioFormDialog(QDialog):
         lay_pass.addRow("Contrasena:", self.txt_pass)
         lay_pass.addRow("Confirmar:", self.txt_confirm)
         group_pass.setLayout(lay_pass)
-        layout.addWidget(group_pass)
+        body_lay.addWidget(group_pass)
+
+        body_lay.addStretch()
+
+        # Separador
+        from PySide6.QtWidgets import QFrame
+        sep = QFrame()
+        sep.setFrameShape(QFrame.Shape.HLine)
+        sep.setStyleSheet("QFrame { background: #cbd5e1; max-height: 1px; border: none; }")
+        body_lay.addWidget(sep)
 
         # Botones
         btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(10)
 
-        btn_cancel = QPushButton("Cancelar")
+        btn_cancel = QPushButton("  Cancelar")
         btn_danger(btn_cancel)
         btn_cancel.clicked.connect(self.reject)
 
-        btn_save = QPushButton("Guardar Usuario")
-        btn_primary(btn_save)
+        btn_save = QPushButton("💾  Guardar Usuario")
+        btn_primary(btn_save, large=True)
         btn_save.clicked.connect(self._guardar)
 
         btn_layout.addStretch()
         btn_layout.addWidget(btn_cancel)
         btn_layout.addWidget(btn_save)
-        layout.addLayout(btn_layout)
+        body_lay.addLayout(btn_layout)
+
+        root.addWidget(body)
 
     def _cargar_datos(self):
         d = self.datos_usuario
@@ -158,7 +178,8 @@ class UsuarioFormDialog(QDialog):
             else:
                 UsuarioService.crear(datos, session_id=self._session_id)
 
-            ModernMessageBox.success(self, "Exito", "Usuario guardado correctamente.")
+            from views.components.toast_notification import ToastNotification
+            ToastNotification(self.window(), "Usuario guardado correctamente.", "success")
             self.accept()
         except DinamoBaseError as e:
             ModernMessageBox.error(self, "Error", str(e))
@@ -228,7 +249,8 @@ class UsuariosWidget(BaseWidget):
         c_lay.addWidget(self.tabla)
 
         self._lista: list[dict] = []
-        self.cargar_usuarios()
+        self._init_loading_overlay("Cargando usuarios...")
+        QTimer.singleShot(0, lambda: self._deferred_call(self.cargar_usuarios))
 
     def _configurar_tabla(self):
         cols = ["Usuario", "Nombre Completo", "Rol", "Email", "Estado", "Último Acceso", "Debe Cambiar"]
@@ -277,15 +299,10 @@ class UsuariosWidget(BaseWidget):
             ]
 
             for j, val in enumerate(items):
+                if j == 4:  # Columna Estado — se maneja con StatusBadge abajo
+                    continue
                 it = QTableWidgetItem(str(val))
                 it.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-
-                if j == 4:  # Columna de Estado
-                    color = COLOR_EXITO if estado == "Activo" else COLOR_PELIGRO
-                    it.setForeground(QBrush(QColor(color)))
-                    fnt = QFont(it.font())
-                    fnt.setBold(True)
-                    it.setFont(fnt)
 
                 if j == 6 and debe_cambiar:  # Columna Debe Cambiar
                     it.setForeground(QBrush(QColor("#d97706")))  # amber-600
@@ -295,6 +312,12 @@ class UsuariosWidget(BaseWidget):
                     it.setToolTip("Este usuario debe cambiar su contraseña en el próximo inicio de sesión")
 
                 self.tabla.setItem(i, j, it)
+
+            # Columna de Estado con StatusBadge
+            from views.components.status_badge import StatusBadge
+            _ESTADO_BADGE_MAP = {"Activo": "success", "Inactivo": "danger"}
+            badge = StatusBadge(estado, _ESTADO_BADGE_MAP.get(estado, "info"))
+            self.tabla.setCellWidget(i, 4, badge)
 
     # ── Filtro ─────────────────────────────────────────────────
 
@@ -403,6 +426,7 @@ class UsuariosWidget(BaseWidget):
                 self.mostrar_error(str(e))
 
     def _hacer_backup(self):
+        from services.backup_service import BackupService
         btn = self.sender()
         if btn:
             btn.setEnabled(False)
@@ -411,9 +435,9 @@ class UsuariosWidget(BaseWidget):
         try:
             ok, msg = BackupService.crear()
             if ok:
-                ModernMessageBox.success(self, "Respaldo Exitoso", msg)
+                self.mostrar_toast(msg, "success")
             else:
-                ModernMessageBox.error(self, "Error", msg)
+                self.mostrar_error(msg)
         except Exception as e:
             self.mostrar_error(str(e))
         finally:
