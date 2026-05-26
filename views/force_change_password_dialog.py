@@ -6,8 +6,14 @@ El usuario debe cambiar su contraseña antes de acceder al sistema.
 """
 
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-    QPushButton, QFrame, QProgressBar, QApplication,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QFrame,
+    QProgressBar,
+    QApplication,
 )
 from PySide6.QtCore import Qt, QTimer
 
@@ -17,22 +23,18 @@ from services.auth_service import AuthService
 from core.exceptions import DinamoBaseError, ValidacionError, CredencialesInvalidas
 from core.logger import get_logger
 
-from views.styles import (
-    input_field, btn_primary, btn_danger,
-    apply_shadow,
-)
 from views.components import ModernMessageBox
+from PySide6.QtWidgets import QGraphicsDropShadowEffect
+from PySide6.QtGui import QColor
 
 log = get_logger(__name__)
 
 # ── Estilos ───────────────────────────────────────────────────────────────────
 _LBL_REQUISITO_OK = (
-    "QLabel { color: #16a34a; font-size: 10pt; font-weight: 500; "
-    "padding: 2px 0px; }"
+    "QLabel { color: #16a34a; font-size: 10pt; font-weight: 500; padding: 2px 0px; }"
 )
 _LBL_REQUISITO_NOK = (
-    "QLabel { color: #94a3b8; font-size: 10pt; font-weight: 400; "
-    "padding: 2px 0px; }"
+    "QLabel { color: #94a3b8; font-size: 10pt; font-weight: 400; padding: 2px 0px; }"
 )
 
 
@@ -62,10 +64,7 @@ class ForceChangePasswordDialog(BaseDialog):
 
         self.setWindowTitle("Cambio de Contraseña Requerido")
         self.setFixedSize(520, 620)
-        self.setWindowFlags(
-            Qt.WindowType.Dialog
-            | Qt.WindowType.FramelessWindowHint
-        )
+        self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setModal(True)
 
@@ -89,7 +88,11 @@ class ForceChangePasswordDialog(BaseDialog):
                 border-radius: 20px;
             }
         """)
-        apply_shadow(outer, blur_radius=30, y_offset=4)
+        _shadow = QGraphicsDropShadowEffect(outer)
+        _shadow.setBlurRadius(30)
+        _shadow.setColor(QColor(0, 0, 0, 30))
+        _shadow.setOffset(0, 4)
+        outer.setGraphicsEffect(_shadow)
 
         main_layout = QVBoxLayout(outer)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -112,7 +115,7 @@ class ForceChangePasswordDialog(BaseDialog):
         h_lay.setContentsMargins(24, 0, 24, 0)
         h_lay.setSpacing(16)
 
-        icono = QLabel("\U0001F512")  # 🔒
+        icono = QLabel("\U0001f512")  # 🔒
         icono.setFixedSize(48, 48)
         icono.setAlignment(Qt.AlignmentFlag.AlignCenter)
         icono.setStyleSheet("""
@@ -129,13 +132,11 @@ class ForceChangePasswordDialog(BaseDialog):
         txt_col.addStretch()
         lbl_tit = QLabel("Cambio de Contraseña")
         lbl_tit.setStyleSheet(
-            "QLabel { color: #ffffff; font-size: 16pt; font-weight: 700; "
-            "background: transparent; }"
+            "QLabel { color: #ffffff; font-size: 16pt; font-weight: 700; background: transparent; }"
         )
         lbl_sub = QLabel("Por seguridad, debes cambiar tu contraseña para continuar")
         lbl_sub.setStyleSheet(
-            "QLabel { color: rgba(255,255,255,0.78); font-size: 9pt; "
-            "background: transparent; }"
+            "QLabel { color: rgba(255,255,255,0.78); font-size: 9pt; background: transparent; }"
         )
         lbl_sub.setWordWrap(True)
         txt_col.addWidget(lbl_tit)
@@ -168,14 +169,12 @@ class ForceChangePasswordDialog(BaseDialog):
         info_lay.setSpacing(2)
         info_user = QLabel(f"Usuario: {self._username}")
         info_user.setStyleSheet(
-            "QLabel { color: #1e40af; font-size: 11pt; font-weight: 600; "
-            "background: transparent; }"
+            "QLabel { color: #1e40af; font-size: 11pt; font-weight: 600; background: transparent; }"
         )
         info_name = QLabel(self._nombre or "")
         if self._nombre:
             info_name.setStyleSheet(
-                "QLabel { color: #3b82f6; font-size: 9pt; "
-                "background: transparent; }"
+                "QLabel { color: #3b82f6; font-size: 9pt; background: transparent; }"
             )
             info_lay.addWidget(info_name)
         info_lay.addWidget(info_user)
@@ -183,28 +182,22 @@ class ForceChangePasswordDialog(BaseDialog):
 
         # ── Contraseña actual ─────────────────────────────────────────────────
         lbl_current = QLabel("Contraseña Actual:")
-        lbl_current.setStyleSheet(
-            "QLabel { color: #334155; font-size: 10pt; font-weight: 600; }"
-        )
+        lbl_current.setStyleSheet("QLabel { color: #334155; font-size: 10pt; font-weight: 600; }")
         body_lay.addWidget(lbl_current)
 
         self.txt_current = QLineEdit()
         self.txt_current.setPlaceholderText("Ingresa tu contraseña actual")
         self.txt_current.setEchoMode(QLineEdit.EchoMode.Password)
-        input_field(self.txt_current)
         body_lay.addWidget(self.txt_current)
 
         # ── Nueva contraseña ──────────────────────────────────────────────────
         lbl_new = QLabel("Nueva Contraseña:")
-        lbl_new.setStyleSheet(
-            "QLabel { color: #334155; font-size: 10pt; font-weight: 600; }"
-        )
+        lbl_new.setStyleSheet("QLabel { color: #334155; font-size: 10pt; font-weight: 600; }")
         body_lay.addWidget(lbl_new)
 
         self.txt_new = QLineEdit()
         self.txt_new.setPlaceholderText("Mínimo 8 caracteres")
         self.txt_new.setEchoMode(QLineEdit.EchoMode.Password)
-        input_field(self.txt_new)
         body_lay.addWidget(self.txt_new)
 
         # ── Indicador de fortaleza ────────────────────────────────────────────
@@ -235,23 +228,19 @@ class ForceChangePasswordDialog(BaseDialog):
 
         # ── Confirmar contraseña ──────────────────────────────────────────────
         lbl_confirm = QLabel("Confirmar Nueva Contraseña:")
-        lbl_confirm.setStyleSheet(
-            "QLabel { color: #334155; font-size: 10pt; font-weight: 600; }"
-        )
+        lbl_confirm.setStyleSheet("QLabel { color: #334155; font-size: 10pt; font-weight: 600; }")
         body_lay.addWidget(lbl_confirm)
 
         self.txt_confirm = QLineEdit()
         self.txt_confirm.setPlaceholderText("Repite la nueva contraseña")
         self.txt_confirm.setEchoMode(QLineEdit.EchoMode.Password)
-        input_field(self.txt_confirm)
         body_lay.addWidget(self.txt_confirm)
 
         # ── Error label ───────────────────────────────────────────────────────
         self.lbl_error = QLabel("")
         self.lbl_error.setWordWrap(True)
         self.lbl_error.setStyleSheet(
-            "QLabel { color: #dc2626; font-size: 10pt; font-weight: 500; "
-            "padding: 4px 0px; }"
+            "QLabel { color: #dc2626; font-size: 10pt; font-weight: 500; padding: 4px 0px; }"
         )
         self.lbl_error.setVisible(False)
         body_lay.addWidget(self.lbl_error)
@@ -262,13 +251,13 @@ class ForceChangePasswordDialog(BaseDialog):
         btn_lay.addStretch()
 
         btn_cancel = QPushButton("  Cerrar Sesión")
-        btn_danger(btn_cancel)
+        btn_cancel.setProperty("class", "danger")
         btn_cancel.clicked.connect(self.reject)
         btn_lay.addWidget(btn_cancel)
 
         self.btn_save = QPushButton("  Cambiar y Entrar")
         self.btn_save.setObjectName("btnGuardar")
-        btn_primary(self.btn_save, large=True)
+        self.btn_save.setProperty("class", "primary")
         self.btn_save.clicked.connect(self._guardar)
         btn_lay.addWidget(self.btn_save)
 
@@ -296,7 +285,7 @@ class ForceChangePasswordDialog(BaseDialog):
             "mayuscula": any(c.isupper() for c in pwd),
             "minuscula": any(c.islower() for c in pwd),
             "numero": any(c.isdigit() for c in pwd),
-            "especial": any(c in "!@#$%^&*(),.?\":{}|<>" for c in pwd),
+            "especial": any(c in '!@#$%^&*(),.?":{}|<>' for c in pwd),
         }
 
         cumplidos = sum(1 for v in checks.values() if v)
@@ -346,9 +335,9 @@ class ForceChangePasswordDialog(BaseDialog):
             )
             log.info("Contraseña cambiada exitosamente por: %s", self._username)
             ModernMessageBox.success(
-                self, "Contraseña Actualizada",
-                "Tu contraseña ha sido cambiada exitosamente.\n"
-                "Ahora puedes acceder al sistema."
+                self,
+                "Contraseña Actualizada",
+                "Tu contraseña ha sido cambiada exitosamente.\nAhora puedes acceder al sistema.",
             )
             self.accept()
         except CredencialesInvalidas as e:
@@ -381,7 +370,5 @@ class ForceChangePasswordDialog(BaseDialog):
         self.txt_new.setEnabled(not loading)
         self.txt_confirm.setEnabled(not loading)
         self.btn_save.setEnabled(not loading)
-        self.btn_save.setText(
-            "  Cambiando..." if loading else "  Cambiar y Entrar"
-        )
+        self.btn_save.setText("  Cambiando..." if loading else "  Cambiar y Entrar")
         QApplication.processEvents()

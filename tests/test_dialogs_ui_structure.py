@@ -16,10 +16,12 @@ from unittest.mock import patch
 
 # ── QApplication fixture (module-scoped, created once) ────────────────────────
 
+
 @pytest.fixture(scope="module")
 def qapp():
     """Create a QApplication instance for Qt widget testing."""
     from PySide6.QtWidgets import QApplication
+
     app = QApplication.instance()
     if app is None:
         app = QApplication([])
@@ -29,6 +31,7 @@ def qapp():
 # ═══════════════════════════════════════════════════════════════════════════════
 # Helpers
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _check_dialog_structure(dlg):
     """Assert that the dialog has the standard header+body structure."""
@@ -47,9 +50,7 @@ def _check_dialog_structure(dlg):
     # Should have a layout with the header as first major child
     root_layout = dlg.layout()
     assert root_layout is not None
-    assert root_layout.count() >= 2, (
-        "Expected at least 2 items in root layout (header + body)"
-    )
+    assert root_layout.count() >= 2, "Expected at least 2 items in root layout (header + body)"
 
 
 def _count_widgets(dlg, widget_type=type(None)):
@@ -126,7 +127,6 @@ SIMPLE_DIALOGS = [
         ["QLineEdit", "QComboBox", "QDoubleSpinBox", "QTabWidget", "QPushButton"],
         id="auto-nuevo",
     ),
-
 ]
 
 
@@ -142,6 +142,7 @@ class TestSimpleDialogs:
     ):
         """Dialog instantiates, has header+body structure, and expected widgets."""
         import importlib
+
         mod = importlib.import_module(module_path)
         cls = getattr(mod, class_name)
 
@@ -156,9 +157,15 @@ class TestSimpleDialogs:
     def _assert_expected_widgets(dlg, widget_names):
         """Verify at least one instance of each expected widget type exists."""
         from PySide6.QtWidgets import (
-            QLineEdit, QComboBox, QPushButton, QTableWidget,
-            QDoubleSpinBox, QCheckBox, QTabWidget,
+            QLineEdit,
+            QComboBox,
+            QPushButton,
+            QTableWidget,
+            QDoubleSpinBox,
+            QCheckBox,
+            QTabWidget,
         )
+
         type_map = {
             "QLineEdit": QLineEdit,
             "QComboBox": QComboBox,
@@ -174,6 +181,7 @@ class TestSimpleDialogs:
             if qt_type is None:
                 # Import the specific widget class (e.g. UpperLineEdit)
                 from PySide6.QtWidgets import QLineEdit
+
                 qt_type = QLineEdit
             count = len(dlg.findChildren(qt_type))
             assert count > 0, f"Expected at least one {name} widget, found 0"
@@ -182,6 +190,7 @@ class TestSimpleDialogs:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Tests — NuevaRentaDialog (calls services internally)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestNuevaRentaDialog:
     """NuevaRentaDialog loads autos from AutoService on init."""
@@ -196,9 +205,11 @@ class TestNuevaRentaDialog:
             _check_dialog_structure(dlg)
             # Should have key financial widgets
             from PySide6.QtWidgets import QGroupBox
+
             gboxes = dlg.findChildren(QGroupBox)
             assert len(gboxes) >= 2, "Expected at least 2 QGroupBox sections"
             from PySide6.QtWidgets import QGroupBox
+
             gboxes = dlg.findChildren(QGroupBox)
             assert len(gboxes) >= 2, "Expected at least 2 QGroupBox sections"
         finally:
@@ -208,6 +219,7 @@ class TestNuevaRentaDialog:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Tests — CierreRentaDialog (needs id_renta, mocks service)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestCierreRentaDialog:
     """CierreRentaDialog requires an id_renta and fetches renta data."""
@@ -231,7 +243,6 @@ class TestCierreRentaDialog:
         Note: _cargar_datos() is deferred via QTimer.singleShot(0, ...),
         so we need to process events to trigger the deferred call.
         """
-        from PySide6.QtCore import QTimer
         from PySide6.QtWidgets import QApplication
 
         from views.cierre_renta_view import CierreRentaDialog
@@ -245,6 +256,7 @@ class TestCierreRentaDialog:
 
             # Should have labels for renta info
             from PySide6.QtWidgets import QLabel
+
             labels = dlg.findChildren(QLabel)
             assert any("ABC123" in lbl.text() for lbl in labels), (
                 "Expected placa to appear in a label"
@@ -256,6 +268,7 @@ class TestCierreRentaDialog:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Tests — PagosDialog (needs id_renta, total, cliente)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestPagosDialog:
     """PagosDialog requires renta data but doesn't fetch from service on init."""
@@ -269,6 +282,7 @@ class TestPagosDialog:
             _check_dialog_structure(dlg)
             # Should show the total
             from PySide6.QtWidgets import QLabel
+
             labels = dlg.findChildren(QLabel)
             # Expected format: "Total Renta:\n$ 500,000" or similar
             assert any("500" in lbl.text().replace(",", "") for lbl in labels), (
@@ -281,6 +295,7 @@ class TestPagosDialog:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Tests — DialogoExtenderRenta (needs id_renta, mocks RentaService)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestDialogoExtenderRenta:
     """DialogoExtenderRenta fetches renta data from RentaService on init."""
@@ -306,6 +321,7 @@ class TestDialogoExtenderRenta:
         try:
             _check_dialog_structure(dlg)
             from PySide6.QtWidgets import QGroupBox, QPushButton
+
             assert len(dlg.findChildren(QGroupBox)) >= 1
             buttons = dlg.findChildren(QPushButton)
             assert any("CONFIRMAR" in btn.text().upper() for btn in buttons)
@@ -326,6 +342,7 @@ class TestDialogoExtenderRenta:
 # Tests — DialogoCambioVehiculo
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestDialogoCambioVehiculo:
     """DialogoCambioVehiculo loads data from AutoService on init."""
 
@@ -339,6 +356,7 @@ class TestDialogoCambioVehiculo:
         try:
             _check_dialog_structure(dlg)
             from PySide6.QtWidgets import QGroupBox, QPushButton
+
             gboxes = dlg.findChildren(QGroupBox)
             assert len(gboxes) >= 2, "Expected 2 QGroupBox sections (out + in)"
             buttons = dlg.findChildren(QPushButton)
@@ -350,4 +368,3 @@ class TestDialogoCambioVehiculo:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Helpers
 # ═══════════════════════════════════════════════════════════════════════════════
-

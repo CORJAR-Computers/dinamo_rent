@@ -3,6 +3,7 @@ usuario_repository_sa.py — Repositorio de Usuarios
 
 F1C: Extraído y completado para separación de responsabilidades.
 """
+
 from typing import List, Dict, Optional
 from datetime import datetime
 
@@ -17,7 +18,6 @@ log = get_logger(__name__)
 
 
 class UsuarioRepositorySA:
-
     @staticmethod
     def obtener_todos() -> List[Dict]:
         """Obtiene todos los usuarios del sistema."""
@@ -29,9 +29,7 @@ class UsuarioRepositorySA:
     def obtener_por_username(username: str) -> Optional[Dict]:
         """Obtiene un usuario por su nombre de usuario."""
         with get_session() as session:
-            usuario = session.query(Usuario).filter(
-                Usuario.username == username.strip()
-            ).first()
+            usuario = session.query(Usuario).filter(Usuario.username == username.strip()).first()
             return UsuarioRepositorySA._to_dict(usuario) if usuario else None
 
     @staticmethod
@@ -61,14 +59,14 @@ class UsuarioRepositorySA:
         para identificar el registro a actualizar.
         """
         with get_session() as session:
-            usuario = session.query(Usuario).filter(
-                Usuario.username == datos.username
-            ).first()
+            usuario = session.query(Usuario).filter(Usuario.username == datos.username).first()
 
             if not usuario:
                 raise RegistroNoEncontrado(f"Usuario '{datos.username}' no encontrado.")
 
-            update_fields = datos.model_dump(exclude_unset=True, exclude={'password_raw', 'username'})
+            update_fields = datos.model_dump(
+                exclude_unset=True, exclude={"password_raw", "username"}
+            )
 
             # Hash de nueva contraseña si viene
             if datos.password_raw:
@@ -77,7 +75,7 @@ class UsuarioRepositorySA:
             for campo, valor in update_fields.items():
                 if hasattr(usuario, campo):
                     # Convertir bool a int para activo
-                    if campo == 'activo' and isinstance(valor, bool):
+                    if campo == "activo" and isinstance(valor, bool):
                         valor = 1 if valor else 0
                     setattr(usuario, campo, valor)
 
@@ -107,16 +105,16 @@ class UsuarioRepositorySA:
         if not usuario:
             return None
         return {
-            'id': usuario.id,
-            'username': usuario.username,
-            'password': usuario.password,
-            'nombre': usuario.nombre,
-            'rol': usuario.rol,
-            'email': usuario.email,
-            'activo': bool(usuario.activo),
-            'debe_cambiar_password': bool(usuario.debe_cambiar_password),
-            'intentos_fallidos': usuario.intentos_fallidos,
-            'ultimo_acceso': usuario.ultimo_acceso,
-            'created_at': usuario.created_at,
-            'updated_at': usuario.updated_at,
+            "id": usuario.id,
+            "username": usuario.username,
+            "password": usuario.password,
+            "nombre": usuario.nombre,
+            "rol": usuario.rol,
+            "email": usuario.email,
+            "activo": bool(usuario.activo),
+            "debe_cambiar_password": bool(usuario.debe_cambiar_password),
+            "intentos_fallidos": usuario.intentos_fallidos,
+            "ultimo_acceso": usuario.ultimo_acceso,
+            "created_at": usuario.created_at,
+            "updated_at": usuario.updated_at,
         }

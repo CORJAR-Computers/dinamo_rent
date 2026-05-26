@@ -5,6 +5,7 @@ F1C: Extraído de repositories_sa.py. Sin cambios funcionales.
 F1D: Métodos insertar() y actualizar_auto() ahora aceptan parámetro
      `session` para soporte de UnitOfWork.
 """
+
 from typing import List, Dict
 
 from sqlalchemy.orm import Session
@@ -19,30 +20,33 @@ log = get_logger(__name__)
 
 
 class MantenimientoRepositorySA:
-
     @staticmethod
     def obtener_historial(limite: int = 50, session: Session = None) -> List[Dict]:
         with session_scope(session) as s:
-            mantenimientos = s.query(MantenimientoVehiculo).order_by(
-                MantenimientoVehiculo.created_at.desc()
-            ).limit(limite).all()
+            mantenimientos = (
+                s.query(MantenimientoVehiculo)
+                .order_by(MantenimientoVehiculo.created_at.desc())
+                .limit(limite)
+                .all()
+            )
 
             return [MantenimientoRepositorySA._to_dict(m) for m in mantenimientos]
 
     @staticmethod
     def obtener_autos_con_km(session: Session = None) -> List[Dict]:
         with session_scope(session) as s:
-            autos = s.query(Auto).filter(
-                Auto.estado.notin_(['Vendido', 'Baja'])
-            ).all()
+            autos = s.query(Auto).filter(Auto.estado.notin_(["Vendido", "Baja"])).all()
 
-            return [{
-                'placa': a.placa,
-                'marca': a.marca,
-                'modelo': a.modelo,
-                'kilometraje': a.kilometraje,
-                'estado': a.estado,
-            } for a in autos]
+            return [
+                {
+                    "placa": a.placa,
+                    "marca": a.marca,
+                    "modelo": a.modelo,
+                    "kilometraje": a.kilometraje,
+                    "estado": a.estado,
+                }
+                for a in autos
+            ]
 
     @staticmethod
     def insertar(datos: MantenimientoCreate, session: Session = None) -> int:
@@ -70,7 +74,9 @@ class MantenimientoRepositorySA:
 
             s.add(nuevo_mant)
             s.flush()
-            log.info("Mantenimiento registrado: placa=%s, tipo=%s", datos.placa, datos.pieza_varias_tipo)
+            log.info(
+                "Mantenimiento registrado: placa=%s, tipo=%s", datos.placa, datos.pieza_varias_tipo
+            )
             return nuevo_mant.id
 
     @staticmethod
@@ -99,15 +105,15 @@ class MantenimientoRepositorySA:
     @staticmethod
     def _to_dict(mant: MantenimientoVehiculo) -> Dict:
         return {
-            'id': mant.id,
-            'placa': mant.placa,
-            'pieza_varias_tipo': mant.pieza_varias_tipo,
-            'pieza_varias_fecha': mant.pieza_varias_fecha,
-            'pieza_varias_desc': mant.pieza_varias_desc,
-            'pieza_varias_obs': mant.pieza_varias_obs,
-            'cost_varios': float(mant.cost_varios or 0),
-            'km_proximo_cambio_aceite': mant.km_proximo_cambio_aceite,
-            'total_mantenimiento': float(mant.total_mantenimiento or 0),
-            'created_at': mant.created_at,
-            'updated_at': mant.updated_at,
+            "id": mant.id,
+            "placa": mant.placa,
+            "pieza_varias_tipo": mant.pieza_varias_tipo,
+            "pieza_varias_fecha": mant.pieza_varias_fecha,
+            "pieza_varias_desc": mant.pieza_varias_desc,
+            "pieza_varias_obs": mant.pieza_varias_obs,
+            "cost_varios": float(mant.cost_varios or 0),
+            "km_proximo_cambio_aceite": mant.km_proximo_cambio_aceite,
+            "total_mantenimiento": float(mant.total_mantenimiento or 0),
+            "created_at": mant.created_at,
+            "updated_at": mant.updated_at,
         }

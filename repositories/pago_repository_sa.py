@@ -5,6 +5,7 @@ F1C: Extraído de repositories_sa.py. Sin cambios funcionales.
 F1D: Métodos insertar() y actualizar_abono_renta() ahora aceptan
      parámetro `session` para soporte de UnitOfWork.
 """
+
 from typing import List, Dict
 
 from sqlalchemy import func
@@ -19,13 +20,12 @@ log = get_logger(__name__)
 
 
 class PagoRepositorySA:
-
     @staticmethod
     def obtener_por_renta(id_renta: int, session: Session = None) -> List[Dict]:
         with session_scope(session) as s:
-            pagos = s.query(Pago).filter(
-                Pago.id_renta == id_renta
-            ).order_by(Pago.fecha.desc()).all()
+            pagos = (
+                s.query(Pago).filter(Pago.id_renta == id_renta).order_by(Pago.fecha.desc()).all()
+            )
 
             return [PagoRepositorySA._to_dict(p) for p in pagos]
 
@@ -69,9 +69,11 @@ class PagoRepositorySA:
             session: Sesión de UnitOfWork (opcional)
         """
         with session_scope(session) as s:
-            total_abonado = s.query(func.coalesce(func.sum(Pago.monto), 0)).filter(
-                Pago.id_renta == id_renta
-            ).scalar()
+            total_abonado = (
+                s.query(func.coalesce(func.sum(Pago.monto), 0))
+                .filter(Pago.id_renta == id_renta)
+                .scalar()
+            )
 
             renta = s.query(Renta).filter(Renta.id == id_renta).first()
             if renta:
@@ -81,13 +83,13 @@ class PagoRepositorySA:
     @staticmethod
     def _to_dict(pago: Pago) -> Dict:
         return {
-            'id': pago.id,
-            'id_renta': pago.id_renta,
-            'fecha': pago.fecha,
-            'monto': float(pago.monto or 0),
-            'metodo_pago': pago.metodo_pago,
-            'concepto': pago.concepto,
-            'observaciones': pago.observaciones,
-            'usuario': pago.usuario,
-            'updated_at': pago.updated_at,
+            "id": pago.id,
+            "id_renta": pago.id_renta,
+            "fecha": pago.fecha,
+            "monto": float(pago.monto or 0),
+            "metodo_pago": pago.metodo_pago,
+            "concepto": pago.concepto,
+            "observaciones": pago.observaciones,
+            "usuario": pago.usuario,
+            "updated_at": pago.updated_at,
         }

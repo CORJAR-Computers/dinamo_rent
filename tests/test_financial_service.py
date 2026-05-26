@@ -17,12 +17,9 @@ from decimal import Decimal
 import pytest
 
 from services.financial_service import FinancialService
-from services.auto_service import AutoService
-from services.renta_service import RentaService
 from repositories.repositories_sa import (
     AutoRepositorySA,
     RentaRepositorySA,
-    InformeRepositorySA,
 )
 from repositories.mantenimiento_repository_sa import MantenimientoRepositorySA
 from repositories.gasto_repository_sa import GastoRepositorySA
@@ -51,60 +48,70 @@ def _next_placa(prefix: str = "FIN") -> str:
 # calcular_total_renta Tests  (pure calculation — no DB needed)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestCalcularTotalRenta:
 
+class TestCalcularTotalRenta:
     def test_basico_dias_por_valor_dia(self):
         """3 días × $100.000 = $300.000 — sin extras ni descuentos."""
-        total = FinancialService.calcular_total_renta({
-            "dias_calculados": 3,
-            "valor_dia": 100000,
-        })
+        total = FinancialService.calcular_total_renta(
+            {
+                "dias_calculados": 3,
+                "valor_dia": 100000,
+            }
+        )
         assert total == 300000.0
 
     def test_con_horas_extras(self):
         """3 días × $100.000 + 2 horas extra × $20.000 = $340.000."""
-        total = FinancialService.calcular_total_renta({
-            "dias_calculados": 3,
-            "valor_dia": 100000,
-            "horas_extras": 2,
-            "valor_hora_extra": 20000,
-        })
+        total = FinancialService.calcular_total_renta(
+            {
+                "dias_calculados": 3,
+                "valor_dia": 100000,
+                "horas_extras": 2,
+                "valor_hora_extra": 20000,
+            }
+        )
         assert total == 340000.0
 
     def test_con_todos_los_extras(self):
         """Incluye todos los costos extra adicionales."""
-        total = FinancialService.calcular_total_renta({
-            "dias_calculados": 2,
-            "valor_dia": 80000,
-            "costo_lavado": 30000,
-            "costo_silla": 15000,
-            "costo_retorno": 50000,
-            "costo_domicilio": 20000,
-            "costo_cables": 10000,
-            "costo_inversor": 25000,
-        })
+        total = FinancialService.calcular_total_renta(
+            {
+                "dias_calculados": 2,
+                "valor_dia": 80000,
+                "costo_lavado": 30000,
+                "costo_silla": 15000,
+                "costo_retorno": 50000,
+                "costo_domicilio": 20000,
+                "costo_cables": 10000,
+                "costo_inversor": 25000,
+            }
+        )
         # 2 × 80000 + 30000 + 15000 + 50000 + 20000 + 10000 + 25000
         # = 160000 + 150000 = 310000
         assert total == 310000.0
 
     def test_con_descuento(self):
         """Subtotal con descuento aplicado."""
-        total = FinancialService.calcular_total_renta({
-            "dias_calculados": 5,
-            "valor_dia": 100000,
-            "descuento": 50000,
-        })
+        total = FinancialService.calcular_total_renta(
+            {
+                "dias_calculados": 5,
+                "valor_dia": 100000,
+                "descuento": 50000,
+            }
+        )
         # 5 × 100000 - 50000 = 450000
         assert total == 450000.0
 
     def test_con_descuento_e_impuestos(self):
         """Subtotal - descuento + impuestos."""
-        total = FinancialService.calcular_total_renta({
-            "dias_calculados": 3,
-            "valor_dia": 100000,
-            "descuento": 30000,
-            "impuestos": 57000,
-        })
+        total = FinancialService.calcular_total_renta(
+            {
+                "dias_calculados": 3,
+                "valor_dia": 100000,
+                "descuento": 30000,
+                "impuestos": 57000,
+            }
+        )
         # (3 × 100000) - 30000 + 57000 = 300000 - 30000 + 57000 = 327000
         assert total == 327000.0
 
@@ -115,30 +122,36 @@ class TestCalcularTotalRenta:
 
     def test_solo_extras_sin_dias(self):
         """Extras sin días ni valor_día se suman correctamente."""
-        total = FinancialService.calcular_total_renta({
-            "costo_lavado": 40000,
-            "costo_silla": 20000,
-        })
+        total = FinancialService.calcular_total_renta(
+            {
+                "costo_lavado": 40000,
+                "costo_silla": 20000,
+            }
+        )
         assert total == 60000.0
 
     def test_valores_como_strings(self):
         """Valores pasados como strings se convierten a float."""
-        total = FinancialService.calcular_total_renta({
-            "dias_calculados": "3",
-            "valor_dia": "100000",
-            "horas_extras": "2",
-            "valor_hora_extra": "25000",
-            "costo_lavado": "15000",
-            "descuento": "10000",
-        })
+        total = FinancialService.calcular_total_renta(
+            {
+                "dias_calculados": "3",
+                "valor_dia": "100000",
+                "horas_extras": "2",
+                "valor_hora_extra": "25000",
+                "costo_lavado": "15000",
+                "descuento": "10000",
+            }
+        )
         # 3 × 100000 + 2 × 25000 + 15000 - 10000 = 300000 + 50000 + 15000 - 10000 = 355000
         assert total == 355000.0
 
     def test_impuestos_sin_subtotal(self):
         """Solo impuestos sin días ni valor_día."""
-        total = FinancialService.calcular_total_renta({
-            "impuestos": 19000,
-        })
+        total = FinancialService.calcular_total_renta(
+            {
+                "impuestos": 19000,
+            }
+        )
         assert total == 19000.0
 
 
@@ -146,8 +159,8 @@ class TestCalcularTotalRenta:
 # calcular_total_cierre Tests  (pure calculation — no DB needed)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestCalcularTotalCierre:
 
+class TestCalcularTotalCierre:
     def test_devolucion_a_tiempo_sin_cargos(self):
         """Misma fecha pactada y real = solo el total original."""
         total = FinancialService.calcular_total_cierre(
@@ -226,16 +239,25 @@ class TestCalcularTotalCierre:
 # roi_flota Tests  (requires DB with autos, rentas, mantenimiento, gastos)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestRoiFlota:
 
+class TestRoiFlota:
     def test_roi_retorna_lista_con_estructura_correcta(self):
         """roi_flota() retorna lista de dicts con las claves esperadas."""
         reporte = FinancialService.roi_flota()
         assert isinstance(reporte, list)
         if reporte:
             item = reporte[0]
-            expected_keys = {"placa", "vehiculo", "ingresos", "mantenimiento",
-                             "gastos", "costos_fijos", "utilidad", "roi_pct", "equilibrio_dias"}
+            expected_keys = {
+                "placa",
+                "vehiculo",
+                "ingresos",
+                "mantenimiento",
+                "gastos",
+                "costos_fijos",
+                "utilidad",
+                "roi_pct",
+                "equilibrio_dias",
+            }
             assert expected_keys.issubset(item.keys())
             # Tipos correctos
             assert isinstance(item["placa"], str)
@@ -245,16 +267,18 @@ class TestRoiFlota:
     def test_auto_sin_ingresos_ni_gastos(self):
         """Auto sin rentas, mantenimiento ni gastos → utilidad negativa (solo costos fijos)."""
         p = _next_placa()
-        AutoRepositorySA.insertar(AutoCreate(
-            placa=p,
-            marca="Test",
-            modelo="Zero",
-            tipo="Automóvil",
-            estado="Disponible",
-            costo_fijo_mensual=Decimal("500000"),
-            kilometraje=0,
-            fecha_ingreso=datetime.date.today(),
-        ))
+        AutoRepositorySA.insertar(
+            AutoCreate(
+                placa=p,
+                marca="Test",
+                modelo="Zero",
+                tipo="Automóvil",
+                estado="Disponible",
+                costo_fijo_mensual=Decimal("500000"),
+                kilometraje=0,
+                fecha_ingreso=datetime.date.today(),
+            )
+        )
 
         reporte = FinancialService.roi_flota()
         item = next(r for r in reporte if r["placa"] == p)
@@ -269,32 +293,36 @@ class TestRoiFlota:
     def test_auto_con_ingresos_por_rentas(self):
         """Auto con renta finalizada genera ingresos en el ROI."""
         p = _next_placa()
-        AutoRepositorySA.insertar(AutoCreate(
-            placa=p,
-            marca="Test",
-            modelo="Income",
-            tipo="Automóvil",
-            estado="Disponible",
-            costo_fijo_mensual=Decimal("300000"),
-            kilometraje=0,
-            fecha_ingreso=datetime.date.today(),
-        ))
+        AutoRepositorySA.insertar(
+            AutoCreate(
+                placa=p,
+                marca="Test",
+                modelo="Income",
+                tipo="Automóvil",
+                estado="Disponible",
+                costo_fijo_mensual=Decimal("300000"),
+                kilometraje=0,
+                fecha_ingreso=datetime.date.today(),
+            )
+        )
         # Crear una renta y cerrarla para que genere ingresos
         hoy = datetime.date.today()
-        renta_id = RentaRepositorySA.insertar(RentaCreate(
-            placa=p,
-            nombre_cliente="ROI Test",
-            fecha_recogida=hoy - datetime.timedelta(days=5),
-            hora_recogida=datetime.time(10, 0),
-            fecha_retorno=hoy - datetime.timedelta(days=2),
-            hora_retorno=datetime.time(10, 0),
-            dias_calculados=3,
-            valor_dia=Decimal("100000"),
-            total=Decimal("300000"),
-            abono=Decimal("300000"),
-            saldo_pendiente=Decimal("0"),
-            estado="Finalizado",  # ya finalizada
-        ))
+        _renta_id = RentaRepositorySA.insertar(
+            RentaCreate(
+                placa=p,
+                nombre_cliente="ROI Test",
+                fecha_recogida=hoy - datetime.timedelta(days=5),
+                hora_recogida=datetime.time(10, 0),
+                fecha_retorno=hoy - datetime.timedelta(days=2),
+                hora_retorno=datetime.time(10, 0),
+                dias_calculados=3,
+                valor_dia=Decimal("100000"),
+                total=Decimal("300000"),
+                abono=Decimal("300000"),
+                saldo_pendiente=Decimal("0"),
+                estado="Finalizado",  # ya finalizada
+            )
+        )
 
         reporte = FinancialService.roi_flota()
         item = next(r for r in reporte if r["placa"] == p)
@@ -306,14 +334,16 @@ class TestRoiFlota:
     def test_auto_vendido_excluido(self):
         """Auto con estado 'Vendido' no aparece en el reporte."""
         p = _next_placa()
-        AutoRepositorySA.insertar(AutoCreate(
-            placa=p,
-            marca="Test",
-            modelo="Sold",
-            tipo="Automóvil",
-            estado="Vendido",
-            fecha_ingreso=datetime.date.today(),
-        ))
+        AutoRepositorySA.insertar(
+            AutoCreate(
+                placa=p,
+                marca="Test",
+                modelo="Sold",
+                tipo="Automóvil",
+                estado="Vendido",
+                fecha_ingreso=datetime.date.today(),
+            )
+        )
 
         reporte = FinancialService.roi_flota()
         placas = [r["placa"] for r in reporte]
@@ -322,14 +352,16 @@ class TestRoiFlota:
     def test_auto_baja_excluido(self):
         """Auto con estado 'Baja' no aparece en el reporte."""
         p = _next_placa()
-        AutoRepositorySA.insertar(AutoCreate(
-            placa=p,
-            marca="Test",
-            modelo="Retired",
-            tipo="Automóvil",
-            estado="Baja",
-            fecha_ingreso=datetime.date.today(),
-        ))
+        AutoRepositorySA.insertar(
+            AutoCreate(
+                placa=p,
+                marca="Test",
+                modelo="Retired",
+                tipo="Automóvil",
+                estado="Baja",
+                fecha_ingreso=datetime.date.today(),
+            )
+        )
 
         reporte = FinancialService.roi_flota()
         placas = [r["placa"] for r in reporte]
@@ -338,52 +370,60 @@ class TestRoiFlota:
     def test_auto_con_gastos_e_ingresos(self):
         """Auto con ingresos, mantenimiento y gastos calcula ROI correctamente."""
         p = _next_placa()
-        AutoRepositorySA.insertar(AutoCreate(
-            placa=p,
-            marca="Test",
-            modelo="Full ROI",
-            tipo="Automóvil",
-            estado="Disponible",
-            costo_fijo_mensual=Decimal("200000"),
-            kilometraje=0,
-            fecha_ingreso=datetime.date.today(),
-        ))
+        AutoRepositorySA.insertar(
+            AutoCreate(
+                placa=p,
+                marca="Test",
+                modelo="Full ROI",
+                tipo="Automóvil",
+                estado="Disponible",
+                costo_fijo_mensual=Decimal("200000"),
+                kilometraje=0,
+                fecha_ingreso=datetime.date.today(),
+            )
+        )
 
         hoy = datetime.date.today()
 
         # Crear renta finalizada: $500,000 de ingresos
-        RentaRepositorySA.insertar(RentaCreate(
-            placa=p,
-            nombre_cliente="ROI Full",
-            fecha_recogida=hoy - datetime.timedelta(days=10),
-            hora_recogida=datetime.time(10, 0),
-            fecha_retorno=hoy - datetime.timedelta(days=6),
-            hora_retorno=datetime.time(10, 0),
-            dias_calculados=4,
-            valor_dia=Decimal("125000"),
-            total=Decimal("500000"),
-            abono=Decimal("500000"),
-            saldo_pendiente=Decimal("0"),
-            estado="Finalizado",
-        ))
+        RentaRepositorySA.insertar(
+            RentaCreate(
+                placa=p,
+                nombre_cliente="ROI Full",
+                fecha_recogida=hoy - datetime.timedelta(days=10),
+                hora_recogida=datetime.time(10, 0),
+                fecha_retorno=hoy - datetime.timedelta(days=6),
+                hora_retorno=datetime.time(10, 0),
+                dias_calculados=4,
+                valor_dia=Decimal("125000"),
+                total=Decimal("500000"),
+                abono=Decimal("500000"),
+                saldo_pendiente=Decimal("0"),
+                estado="Finalizado",
+            )
+        )
 
         # Agregar mantenimiento: $80,000
-        MantenimientoRepositorySA.insertar(MantenimientoCreate(
-            placa=p,
-            pieza_varias_tipo="Cambio Aceite",
-            pieza_varias_fecha=hoy,
-            cost_varios=Decimal("80000"),
-            total_mantenimiento=Decimal("80000"),
-        ))
+        MantenimientoRepositorySA.insertar(
+            MantenimientoCreate(
+                placa=p,
+                pieza_varias_tipo="Cambio Aceite",
+                pieza_varias_fecha=hoy,
+                cost_varios=Decimal("80000"),
+                total_mantenimiento=Decimal("80000"),
+            )
+        )
 
         # Agregar gasto: $20,000
-        GastoRepositorySA.insertar(GastoCreate(
-            placa=p,
-            fecha=hoy,
-            categoria="Lavado",
-            descripcion="Lavado general",
-            monto=Decimal("20000"),
-        ))
+        GastoRepositorySA.insertar(
+            GastoCreate(
+                placa=p,
+                fecha=hoy,
+                categoria="Lavado",
+                descripcion="Lavado general",
+                monto=Decimal("20000"),
+            )
+        )
 
         reporte = FinancialService.roi_flota()
         item = next(r for r in reporte if r["placa"] == p)
@@ -410,37 +450,58 @@ class TestRoiFlota:
         hoy = datetime.date.today()
 
         # Auto 1: rentable ($600,000 ingresos, $250,000 costo fijo)
-        AutoRepositorySA.insertar(AutoCreate(
-            placa=p1, marca="Test", modelo="Profit",
-            tipo="Automóvil", estado="Disponible",
-            costo_fijo_mensual=Decimal("250000"),
-            fecha_ingreso=hoy,
-        ))
-        RentaRepositorySA.insertar(RentaCreate(
-            placa=p1, nombre_cliente="Profit",
-            fecha_recogida=hoy - datetime.timedelta(days=5),
-            hora_recogida=datetime.time(10, 0),
-            fecha_retorno=hoy - datetime.timedelta(days=1),
-            hora_retorno=datetime.time(10, 0),
-            dias_calculados=4, valor_dia=Decimal("150000"),
-            total=Decimal("600000"), abono=Decimal("600000"),
-            saldo_pendiente=Decimal("0"), estado="Finalizado",
-        ))
+        AutoRepositorySA.insertar(
+            AutoCreate(
+                placa=p1,
+                marca="Test",
+                modelo="Profit",
+                tipo="Automóvil",
+                estado="Disponible",
+                costo_fijo_mensual=Decimal("250000"),
+                fecha_ingreso=hoy,
+            )
+        )
+        RentaRepositorySA.insertar(
+            RentaCreate(
+                placa=p1,
+                nombre_cliente="Profit",
+                fecha_recogida=hoy - datetime.timedelta(days=5),
+                hora_recogida=datetime.time(10, 0),
+                fecha_retorno=hoy - datetime.timedelta(days=1),
+                hora_retorno=datetime.time(10, 0),
+                dias_calculados=4,
+                valor_dia=Decimal("150000"),
+                total=Decimal("600000"),
+                abono=Decimal("600000"),
+                saldo_pendiente=Decimal("0"),
+                estado="Finalizado",
+            )
+        )
 
         # Auto 2: pérdida (solo costo fijo, sin ingresos)
-        AutoRepositorySA.insertar(AutoCreate(
-            placa=p2, marca="Test", modelo="Loss",
-            tipo="Automóvil", estado="Disponible",
-            costo_fijo_mensual=Decimal("400000"),
-            fecha_ingreso=hoy,
-        ))
+        AutoRepositorySA.insertar(
+            AutoCreate(
+                placa=p2,
+                marca="Test",
+                modelo="Loss",
+                tipo="Automóvil",
+                estado="Disponible",
+                costo_fijo_mensual=Decimal("400000"),
+                fecha_ingreso=hoy,
+            )
+        )
 
         # Auto 3: Vendido (excluido)
-        AutoRepositorySA.insertar(AutoCreate(
-            placa=p3, marca="Test", modelo="Sold",
-            tipo="Automóvil", estado="Vendido",
-            fecha_ingreso=hoy,
-        ))
+        AutoRepositorySA.insertar(
+            AutoCreate(
+                placa=p3,
+                marca="Test",
+                modelo="Sold",
+                tipo="Automóvil",
+                estado="Vendido",
+                fecha_ingreso=hoy,
+            )
+        )
 
         reporte = FinancialService.roi_flota()
         placas = [r["placa"] for r in reporte]
@@ -462,16 +523,18 @@ class TestRoiFlota:
         p = _next_placa()
         hace_3_meses = datetime.date.today() - datetime.timedelta(days=90)
 
-        AutoRepositorySA.insertar(AutoCreate(
-            placa=p,
-            marca="Test",
-            modelo="Old Timer",
-            tipo="Automóvil",
-            estado="Disponible",
-            costo_fijo_mensual=Decimal("100000"),
-            kilometraje=0,
-            fecha_ingreso=hace_3_meses,
-        ))
+        AutoRepositorySA.insertar(
+            AutoCreate(
+                placa=p,
+                marca="Test",
+                modelo="Old Timer",
+                tipo="Automóvil",
+                estado="Disponible",
+                costo_fijo_mensual=Decimal("100000"),
+                kilometraje=0,
+                fecha_ingreso=hace_3_meses,
+            )
+        )
 
         reporte = FinancialService.roi_flota()
         item = next(r for r in reporte if r["placa"] == p)
@@ -484,29 +547,37 @@ class TestRoiFlota:
     def test_roi_equilibrio_dias(self):
         """equilibrio_dias se calcula correctamente cuando hay ingresos."""
         p = _next_placa()
-        AutoRepositorySA.insertar(AutoCreate(
-            placa=p,
-            marca="Test",
-            modelo="BreakEven",
-            tipo="Automóvil",
-            estado="Disponible",
-            costo_fijo_mensual=Decimal("300000"),
-            fecha_ingreso=datetime.date.today(),
-        ))
+        AutoRepositorySA.insertar(
+            AutoCreate(
+                placa=p,
+                marca="Test",
+                modelo="BreakEven",
+                tipo="Automóvil",
+                estado="Disponible",
+                costo_fijo_mensual=Decimal("300000"),
+                fecha_ingreso=datetime.date.today(),
+            )
+        )
 
         # Ingresos altos para probar el cálculo de días de equilibrio
         # Si mes = 1, ingresos = 600000, promedio_dia = 600000 / 30 = 20000
         # equilibrio_dias = 300000 / 20000 = 15
-        RentaRepositorySA.insertar(RentaCreate(
-            placa=p, nombre_cliente="BreakEven",
-            fecha_recogida=datetime.date.today() - datetime.timedelta(days=10),
-            hora_recogida=datetime.time(10, 0),
-            fecha_retorno=datetime.date.today() - datetime.timedelta(days=5),
-            hora_retorno=datetime.time(10, 0),
-            dias_calculados=5, valor_dia=Decimal("120000"),
-            total=Decimal("600000"), abono=Decimal("600000"),
-            saldo_pendiente=Decimal("0"), estado="Finalizado",
-        ))
+        RentaRepositorySA.insertar(
+            RentaCreate(
+                placa=p,
+                nombre_cliente="BreakEven",
+                fecha_recogida=datetime.date.today() - datetime.timedelta(days=10),
+                hora_recogida=datetime.time(10, 0),
+                fecha_retorno=datetime.date.today() - datetime.timedelta(days=5),
+                hora_retorno=datetime.time(10, 0),
+                dias_calculados=5,
+                valor_dia=Decimal("120000"),
+                total=Decimal("600000"),
+                abono=Decimal("600000"),
+                saldo_pendiente=Decimal("0"),
+                estado="Finalizado",
+            )
+        )
 
         reporte = FinancialService.roi_flota()
         item = next(r for r in reporte if r["placa"] == p)

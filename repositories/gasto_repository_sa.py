@@ -3,6 +3,7 @@ gasto_repository_sa.py — Repositorio de Gastos / Caja Menor
 
 F1C: Extraído de repositories_sa.py. Sin cambios funcionales.
 """
+
 from typing import List, Dict
 
 
@@ -15,7 +16,6 @@ log = get_logger(__name__)
 
 
 class GastoRepositorySA:
-
     @staticmethod
     def obtener_todos(limite: int = 200) -> List[Dict]:
         with get_session() as session:
@@ -26,9 +26,12 @@ class GastoRepositorySA:
     def obtener_por_placa(placa: str) -> List[Dict]:
         """Obtiene todos los gastos vinculados a un vehiculo."""
         with get_session() as session:
-            gastos = session.query(Gasto).filter(
-                Gasto.placa == placa.upper()
-            ).order_by(Gasto.fecha.desc()).all()
+            gastos = (
+                session.query(Gasto)
+                .filter(Gasto.placa == placa.upper())
+                .order_by(Gasto.fecha.desc())
+                .all()
+            )
             return [GastoRepositorySA._to_dict(g) for g in gastos]
 
     @staticmethod
@@ -46,21 +49,25 @@ class GastoRepositorySA:
 
             session.add(nuevo_gasto)
             session.flush()
-            log.info("Gasto registrado: $%s en '%s' placa=%s",
-                     datos.monto, datos.categoria, datos.placa or 'N/A')
+            log.info(
+                "Gasto registrado: $%s en '%s' placa=%s",
+                datos.monto,
+                datos.categoria,
+                datos.placa or "N/A",
+            )
             return nuevo_gasto.id
 
     @staticmethod
     def _to_dict(gasto: Gasto) -> Dict:
         return {
-            'id': gasto.id,
-            'placa': gasto.placa,
-            'fecha': gasto.fecha,
-            'categoria': gasto.categoria,
-            'descripcion': gasto.descripcion,
-            'monto': float(gasto.monto or 0),
-            'comprobante': gasto.comprobante,
-            'usuario': gasto.usuario,
-            'created_at': gasto.created_at,
-            'updated_at': gasto.updated_at,
+            "id": gasto.id,
+            "placa": gasto.placa,
+            "fecha": gasto.fecha,
+            "categoria": gasto.categoria,
+            "descripcion": gasto.descripcion,
+            "monto": float(gasto.monto or 0),
+            "comprobante": gasto.comprobante,
+            "usuario": gasto.usuario,
+            "created_at": gasto.created_at,
+            "updated_at": gasto.updated_at,
         }

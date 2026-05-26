@@ -4,6 +4,7 @@ Alembic environment configuration for Dinamo Rent ERP.
 This module configures the Alembic migration environment to work with
 SQLAlchemy models in both MySQL and SQLite databases.
 """
+
 import sys
 from logging.config import fileConfig
 from pathlib import Path
@@ -45,7 +46,7 @@ def get_database_url():
     if DB_ENGINE == "mysql":
         # Build MySQL URL
         mysql_config = DB_MYSQL
-        password = f":{mysql_config['password']}" if mysql_config['password'] else ""
+        password = f":{mysql_config['password']}" if mysql_config["password"] else ""
         return (
             f"mysql+pymysql://{mysql_config['user']}{password}"
             f"@{mysql_config['host']}:{mysql_config['port']}"
@@ -102,6 +103,7 @@ def run_migrations_online() -> None:
         # Enable foreign keys for SQLite
         if DB_ENGINE != "mysql":
             from sqlalchemy import text
+
             connection.execute(text("PRAGMA foreign_keys = ON"))
 
         context.configure(

@@ -6,6 +6,7 @@ que eran referenciados por los servicios pero no existían.
 F1D: Método cambiar_estado() ahora acepta parámetro `session` para
      soporte de UnitOfWork en operaciones transaccionales.
 """
+
 from typing import List, Dict, Optional
 
 from sqlalchemy.orm import Session
@@ -20,7 +21,6 @@ log = get_logger(__name__)
 
 
 class AutoRepositorySA:
-
     @staticmethod
     def obtener_todos(session: Session = None) -> List[Dict]:
         """Obtiene todos los vehículos registrados."""
@@ -32,9 +32,7 @@ class AutoRepositorySA:
     def obtener_disponibles(session: Session = None) -> List[Dict]:
         """Obtiene solo los vehículos con estado 'Disponible'."""
         with session_scope(session) as s:
-            autos = s.query(Auto).filter(
-                Auto.estado == 'Disponible'
-            ).order_by(Auto.placa).all()
+            autos = s.query(Auto).filter(Auto.estado == "Disponible").order_by(Auto.placa).all()
             return [AutoRepositorySA._to_dict(a) for a in autos]
 
     @staticmethod
@@ -99,7 +97,7 @@ class AutoRepositorySA:
             if not auto:
                 raise RegistroNoEncontrado(f"Vehículo {datos.placa} no encontrado.")
 
-            update_fields = datos.model_dump(exclude_unset=True, exclude={'placa'})
+            update_fields = datos.model_dump(exclude_unset=True, exclude={"placa"})
             for campo, valor in update_fields.items():
                 if hasattr(auto, campo):
                     setattr(auto, campo, valor)
@@ -107,8 +105,9 @@ class AutoRepositorySA:
             log.info("Auto actualizado: placa=%s", datos.placa)
 
     @staticmethod
-    def cambiar_estado(placa: str, nuevo_estado: str, kilometraje=None,
-                       session: Session = None) -> None:
+    def cambiar_estado(
+        placa: str, nuevo_estado: str, kilometraje=None, session: Session = None
+    ) -> None:
         """Cambia el estado de un vehículo y opcionalmente su kilometraje.
 
         F1D: Ahora acepta parámetro `session` para UnitOfWork.
@@ -146,73 +145,77 @@ class AutoRepositorySA:
             hoy = date.today()
             limite_dias = 15
 
-            autos = s.query(Auto).filter(
-                Auto.estado.notin_(['Vendido', 'Baja'])
-            ).all()
+            autos = s.query(Auto).filter(Auto.estado.notin_(["Vendido", "Baja"])).all()
 
             for a in autos:
                 # Alerta de aceite
                 if a.proximo_aceite and a.proximo_aceite > 0:
                     if a.kilometraje >= (a.proximo_aceite - 500):
-                        alertas.append({
-                            'tipo': 'Aceite',
-                            'placa': a.placa,
-                            'km_actual': int(a.kilometraje or 0),
-                            'km_proximo': a.proximo_aceite,
-                        })
+                        alertas.append(
+                            {
+                                "tipo": "Aceite",
+                                "placa": a.placa,
+                                "km_actual": int(a.kilometraje or 0),
+                                "km_proximo": a.proximo_aceite,
+                            }
+                        )
 
                 # Alerta de SOAT
                 if a.vencimiento_soat:
                     dias = (a.vencimiento_soat - hoy).days
                     if -30 <= dias <= limite_dias:
-                        alertas.append({
-                            'tipo': 'SOAT',
-                            'placa': a.placa,
-                            'dias_restantes': dias,
-                            'vencimiento': str(a.vencimiento_soat),
-                        })
+                        alertas.append(
+                            {
+                                "tipo": "SOAT",
+                                "placa": a.placa,
+                                "dias_restantes": dias,
+                                "vencimiento": str(a.vencimiento_soat),
+                            }
+                        )
 
                 # Alerta de tecno-mecánica
                 if a.vencimiento_tecnico:
                     dias = (a.vencimiento_tecnico - hoy).days
                     if -30 <= dias <= limite_dias:
-                        alertas.append({
-                            'tipo': 'Tecno-mecánica',
-                            'placa': a.placa,
-                            'dias_restantes': dias,
-                            'vencimiento': str(a.vencimiento_tecnico),
-                        })
+                        alertas.append(
+                            {
+                                "tipo": "Tecno-mecánica",
+                                "placa": a.placa,
+                                "dias_restantes": dias,
+                                "vencimiento": str(a.vencimiento_tecnico),
+                            }
+                        )
 
             return alertas
 
     @staticmethod
     def _to_dict(auto: Auto) -> Dict:
         return {
-            'placa': auto.placa,
-            'marca': auto.marca,
-            'modelo': auto.modelo,
-            'version': auto.version,
-            'color': auto.color,
-            'tipo': auto.tipo,
-            'cilindraje': auto.cilindraje,
-            'transmision': auto.transmision,
-            'combustible': auto.combustible,
-            'no_motor': auto.no_motor,
-            'no_chasis': auto.no_chasis,
-            'propietario': auto.propietario,
-            'estado': auto.estado,
-            'costo_fijo_mensual': float(auto.costo_fijo_mensual or 0),
-            'kilometraje': float(auto.kilometraje or 0),
-            'ubicacion': auto.ubicacion,
-            'tipo_adquisicion': auto.tipo_adquisicion,
-            'proximo_aceite': auto.proximo_aceite,
-            'proximo_frenos': auto.proximo_frenos,
-            'vencimiento_soat': auto.vencimiento_soat,
-            'vencimiento_tecnico': auto.vencimiento_tecnico,
-            'vencimiento_extintor': auto.vencimiento_extintor,
-            'vencimiento_bateria': auto.vencimiento_bateria,
-            'observaciones': auto.observaciones,
-            'fecha_ingreso': auto.fecha_ingreso,
-            'created_at': auto.created_at,
-            'updated_at': auto.updated_at,
+            "placa": auto.placa,
+            "marca": auto.marca,
+            "modelo": auto.modelo,
+            "version": auto.version,
+            "color": auto.color,
+            "tipo": auto.tipo,
+            "cilindraje": auto.cilindraje,
+            "transmision": auto.transmision,
+            "combustible": auto.combustible,
+            "no_motor": auto.no_motor,
+            "no_chasis": auto.no_chasis,
+            "propietario": auto.propietario,
+            "estado": auto.estado,
+            "costo_fijo_mensual": float(auto.costo_fijo_mensual or 0),
+            "kilometraje": float(auto.kilometraje or 0),
+            "ubicacion": auto.ubicacion,
+            "tipo_adquisicion": auto.tipo_adquisicion,
+            "proximo_aceite": auto.proximo_aceite,
+            "proximo_frenos": auto.proximo_frenos,
+            "vencimiento_soat": auto.vencimiento_soat,
+            "vencimiento_tecnico": auto.vencimiento_tecnico,
+            "vencimiento_extintor": auto.vencimiento_extintor,
+            "vencimiento_bateria": auto.vencimiento_bateria,
+            "observaciones": auto.observaciones,
+            "fecha_ingreso": auto.fecha_ingreso,
+            "created_at": auto.created_at,
+            "updated_at": auto.updated_at,
         }

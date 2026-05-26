@@ -30,16 +30,16 @@ from repositories.alerta_repository_sa import AlertaRepositorySA
 from repositories.informe_repository_sa import InformeRepositorySA
 
 __all__ = [
-    'AutoRepositorySA',
-    'ClienteRepositorySA',
-    'RentaRepositorySA',
-    'UsuarioRepositorySA',
-    'ReservaRepositorySA',
-    'MantenimientoRepositorySA',
-    'ComparendoRepositorySA',
-    'PagoRepositorySA',
-    'GastoRepositorySA',
-    'InspeccionRepositorySA',
-    'AlertaRepositorySA',
-    'InformeRepositorySA',
+    "AutoRepositorySA",
+    "ClienteRepositorySA",
+    "RentaRepositorySA",
+    "UsuarioRepositorySA",
+    "ReservaRepositorySA",
+    "MantenimientoRepositorySA",
+    "ComparendoRepositorySA",
+    "PagoRepositorySA",
+    "GastoRepositorySA",
+    "InspeccionRepositorySA",
+    "AlertaRepositorySA",
+    "InformeRepositorySA",
 ]

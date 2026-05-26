@@ -5,7 +5,8 @@ from datetime import date
 
 from core.logger import get_logger
 from core.schemas import (
-    KpiGlobalesResponse, ResumenFinancieroResponse,
+    KpiGlobalesResponse,
+    ResumenFinancieroResponse,
     AlertasResponse,
 )
 from repositories.repositories_sa import (
@@ -19,34 +20,30 @@ log = get_logger(__name__)
 
 
 class DashboardService:
-
     @staticmethod
     def kpi_globales() -> KpiGlobalesResponse:
         autos = AutoRepositorySA.obtener_todos()
         rentas_activas = RentaRepositorySA.obtener_activas()
 
-        disponibles = sum(1 for a in autos if a.get('estado') == 'Disponible')
-        rentados = sum(1 for a in autos if a.get('estado') == 'Rentado')
-        en_mantenimiento = sum(1 for a in autos if a.get('estado') == 'Mantenimiento')
+        disponibles = sum(1 for a in autos if a.get("estado") == "Disponible")
+        rentados = sum(1 for a in autos if a.get("estado") == "Rentado")
+        en_mantenimiento = sum(1 for a in autos if a.get("estado") == "Mantenimiento")
         total_flota = len(autos)
 
         ocupacion = 0.0
         if total_flota > 0:
-            activos = sum(1 for a in autos if a.get('estado') not in ['Vendido', 'Baja'])
+            activos = sum(1 for a in autos if a.get("estado") not in ["Vendido", "Baja"])
             ocupacion = round((rentados / activos) * 100, 1) if activos > 0 else 0.0
 
         mes_actual = date.today().strftime("%Y-%m")
         balance = InformeRepositorySA.obtener_balance_consolidado()
         ingresos_mes = 0.0
         for b in balance:
-            if str(b.get('mes', '')) == mes_actual:
-                ingresos_mes = float(b.get('ingresos', 0) or 0)
+            if str(b.get("mes", "")) == mes_actual:
+                ingresos_mes = float(b.get("ingresos", 0) or 0)
                 break
 
-        pagos_pendientes = sum(
-            float(r.get('saldo_pendiente', 0) or 0)
-            for r in rentas_activas
-        )
+        pagos_pendientes = sum(float(r.get("saldo_pendiente", 0) or 0) for r in rentas_activas)
 
         return {
             "rentas_activas": len(rentas_activas),
@@ -70,6 +67,7 @@ class DashboardService:
     @staticmethod
     def obtener_alertas() -> AlertasResponse:
         from services.alerta_service import AlertaService
+
         return AlertaService.obtener_todas_las_alertas()
 
     @staticmethod
@@ -90,10 +88,10 @@ class DashboardService:
         balance = InformeRepositorySA.obtener_balance_consolidado()
 
         for b in balance:
-            if str(b.get('mes', '')) == mes_actual:
-                ingresos = float(b.get('ingresos', 0) or 0)
-                taller = float(b.get('egresos_taller', 0) or 0)
-                caja = float(b.get('gastos_caja', 0) or 0)
+            if str(b.get("mes", "")) == mes_actual:
+                ingresos = float(b.get("ingresos", 0) or 0)
+                taller = float(b.get("egresos_taller", 0) or 0)
+                caja = float(b.get("gastos_caja", 0) or 0)
                 return {
                     "mes": mes_actual,
                     "ingresos_mes": ingresos,

@@ -23,7 +23,7 @@ Uso:
 
 from typing import Any, Optional
 
-from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QTimer, Qt
+from PySide6.QtCore import QPropertyAnimation, QEasingCurve, Qt
 from PySide6.QtGui import QKeyEvent
 from PySide6.QtWidgets import (
     QComboBox,
@@ -95,9 +95,7 @@ class BaseDialog(QDialog):
         múltiples veces (solo crea si es None).
         """
         if self._loading_overlay is None:
-            self._loading_overlay = LoadingOverlay(
-                self, message or self.LOADING_MESSAGE
-            )
+            self._loading_overlay = LoadingOverlay(self, message or self.LOADING_MESSAGE)
         elif message:
             self._loading_overlay.set_message(message)
         self._loading_overlay.show()
@@ -137,7 +135,7 @@ class BaseDialog(QDialog):
             func()
         except RuntimeError:
             pass
-        except Exception as e:
+        except Exception:
             raise
         finally:
             self._hide_overlay_safe()
@@ -276,4 +274,3 @@ class BaseDialog(QDialog):
             self._loading_overlay.hide()
         except RuntimeError:
             self._loading_overlay = None
-

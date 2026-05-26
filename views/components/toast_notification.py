@@ -5,16 +5,15 @@ Niveles: "success", "warning", "error", "info"
 Posiciones: "top-right" (defecto), "top-left", "bottom-right", "bottom-left"
 """
 
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QApplication
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton
 from PySide6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QPoint
-from PySide6.QtGui import QColor
 
 
 _THEMES = {
     "success": {"accent": "#15803d", "bg": "#dcfce7", "icon": "\u2713"},
-    "warning": {"accent": "#c2410c", "bg": "#ffedd5", "icon": "\u26A0"},
-    "error":   {"accent": "#b91c1c", "bg": "#fee2e2", "icon": "\u2717"},
-    "info":    {"accent": "#1e40af", "bg": "#dbeafe", "icon": "\u2139"},
+    "warning": {"accent": "#c2410c", "bg": "#ffedd5", "icon": "\u26a0"},
+    "error": {"accent": "#b91c1c", "bg": "#fee2e2", "icon": "\u2717"},
+    "info": {"accent": "#1e40af", "bg": "#dbeafe", "icon": "\u2139"},
 }
 
 
@@ -94,8 +93,14 @@ class ToastNotification(QFrame):
         position: "top-right" | "top-left" | "bottom-right" | "bottom-left"
     """
 
-    def __init__(self, parent, message: str, level: str = "info",
-                 duration: int = 3500, position: str = "top-right"):
+    def __init__(
+        self,
+        parent,
+        message: str,
+        level: str = "info",
+        duration: int = 3500,
+        position: str = "top-right",
+    ):
         super().__init__(parent)
         self._position = position
         self._dismiss_timer = QTimer(self)
@@ -107,8 +112,8 @@ class ToastNotification(QFrame):
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground)
         self.setStyleSheet(f"""
             QFrame {{
-                background-color: {theme['bg']};
-                border-left: 4px solid {theme['accent']};
+                background-color: {theme["bg"]};
+                border-left: 4px solid {theme["accent"]};
                 border-radius: 8px;
             }}
         """)
@@ -127,12 +132,12 @@ class ToastNotification(QFrame):
         msg_lbl.setWordWrap(True)
         msg_lbl.setMaximumWidth(360)
 
-        close_btn = QPushButton("\u00D7")
+        close_btn = QPushButton("\u00d7")
         close_btn.setFixedSize(22, 22)
         close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         close_btn.setStyleSheet(f"""
             QPushButton {{
-                background: transparent; color: {theme['accent']};
+                background: transparent; color: {theme["accent"]};
                 border: none; font-size: 15px; font-weight: bold;
                 border-radius: 4px;
             }}
@@ -158,6 +163,22 @@ class ToastNotification(QFrame):
 
         if duration > 0:
             self._dismiss_timer.start(duration)
+
+    @classmethod
+    def show_info(cls, parent, message: str, duration: int = 3500, position: str = "top-right"):
+        return cls(parent, message, level="info", duration=duration, position=position)
+
+    @classmethod
+    def show_success(cls, parent, message: str, duration: int = 3500, position: str = "top-right"):
+        return cls(parent, message, level="success", duration=duration, position=position)
+
+    @classmethod
+    def show_warning(cls, parent, message: str, duration: int = 3500, position: str = "top-right"):
+        return cls(parent, message, level="warning", duration=duration, position=position)
+
+    @classmethod
+    def show_error(cls, parent, message: str, duration: int = 3500, position: str = "top-right"):
+        return cls(parent, message, level="error", duration=duration, position=position)
 
     def _animate_show(self):
         """Aparición con fade-in."""

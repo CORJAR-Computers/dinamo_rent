@@ -2,15 +2,21 @@ from core.models import Auto
 from services.auto_service import AutoService
 from services.dashboard_service import DashboardService
 
+
 def test_kpi_globales_estructura(db_session):
     """Validate KPI globales response structure (keys, types)."""
     kpi = DashboardService.kpi_globales()
     assert isinstance(kpi, dict)
     # All expected keys exist
     expected_keys = [
-        "rentas_activas", "autos_disponibles", "autos_rentados",
-        "autos_mantenimiento", "total_flota", "ocupacion_flota",
-        "ingresos_mes", "pagos_pendientes",
+        "rentas_activas",
+        "autos_disponibles",
+        "autos_rentados",
+        "autos_mantenimiento",
+        "total_flota",
+        "ocupacion_flota",
+        "ingresos_mes",
+        "pagos_pendientes",
     ]
     for key in expected_keys:
         assert key in kpi, f"Missing key: {key}"
@@ -18,6 +24,7 @@ def test_kpi_globales_estructura(db_session):
     for key in expected_keys:
         assert isinstance(kpi[key], (int, float)), f"{key} should be numeric, got {type(kpi[key])}"
         assert kpi[key] >= 0, f"{key}={kpi[key]} should be >= 0"
+
 
 def test_kpi_globales_incluye_nuevos_autos(db_session):
     """KPI globales includes newly created autos in its counts."""

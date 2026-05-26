@@ -13,7 +13,6 @@ audit = get_audit_logger()
 
 
 class InspeccionService:
-
     @staticmethod
     def listar_por_renta(id_renta: int) -> List[Dict]:
         return InspeccionRepositorySA.obtener_por_renta(id_renta)

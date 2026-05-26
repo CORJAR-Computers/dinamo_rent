@@ -14,7 +14,6 @@ audit = get_audit_logger()
 
 
 class PagoService:
-
     @staticmethod
     def listar_por_renta(id_renta: int) -> List[Dict]:
         return PagoRepositorySA.obtener_por_renta(id_renta)
@@ -47,5 +46,10 @@ class PagoService:
             id_pago = PagoRepositorySA.insertar(pago_validado, session=uow.session)
             PagoRepositorySA.actualizar_abono_renta(id_renta, session=uow.session)
 
-        audit.info("Pago de $%s registrado para la renta #%s (%s)", monto, datos["id_renta"], datos["metodo_pago"])
+        audit.info(
+            "Pago de $%s registrado para la renta #%s (%s)",
+            monto,
+            datos["id_renta"],
+            datos["metodo_pago"],
+        )
         return id_pago

@@ -4,6 +4,7 @@ views/widgets.py — Componentes compartidos entre vistas.
 Centraliza widgets personalizados que se usan en múltiples archivos
 para evitar duplicación (DRY).
 """
+
 from PySide6.QtWidgets import QLineEdit, QLabel
 from PySide6.QtCore import Qt
 
@@ -22,15 +23,9 @@ class UpperLineEdit(QLineEdit):
             self.blockSignals(False)
 
 
-def make_legend_label(text: str, style_func) -> QLabel:
-    """Crea un QLabel de leyenda y le aplica la funcion de estilo.
-
-    Uso:
-        from views.styles import legend_available
-        lbl = make_legend_label("Disponible", legend_available)
-    """
+def make_legend_label(text: str, css_class: str = "badge") -> QLabel:
+    """Crea un QLabel de leyenda con clase QSS."""
     lbl = QLabel(f"  {text}  ")
-    if style_func:
-        style_func(lbl)
+    lbl.setProperty("class", css_class)
     lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
     return lbl

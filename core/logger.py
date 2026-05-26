@@ -8,20 +8,29 @@ Uso:
     log.warning("SOAT vencido para placa ABC123")
     log.error("Error al conectar a la BD", exc_info=True)
 """
+
 import logging
 import logging.handlers
 
 from core.config import LOGS_DIR, APP_NAME
 
 # ─── Formato ──────────────────────────────────────────────────────────────────
-_FMT_DETALLE = (
-    "%(asctime)s | %(levelname)-8s | %(name)-30s | %(message)s"
-)
+_FMT_DETALLE = "%(asctime)s | %(levelname)-8s | %(name)-30s | %(message)s"
 _FMT_CONSOLA = "%(levelname)-8s | %(name)s | %(message)s"
-_DATE_FMT    = "%Y-%m-%d %H:%M:%S"
+_DATE_FMT = "%Y-%m-%d %H:%M:%S"
 
 # ─── Singleton de configuración ───────────────────────────────────────────────
 _configured = False
+
+
+class SafeRotatingFileHandler(logging.handlers.RotatingFileHandler):
+    """Maneja el error WinError 32 en Windows cuando múltiples procesos intentan rotar el log."""
+
+    def doRollover(self):
+        try:
+            super().doRollover()
+        except PermissionError:
+            pass  # Ignorar si el archivo está bloqueado por otro proceso
 
 
 def _setup_root_logger() -> None:
@@ -35,7 +44,7 @@ def _setup_root_logger() -> None:
 
     # — Archivo principal: rotativo por tamaño (5 MB × 5 archivos) —
     log_file = LOGS_DIR / "dinamo_rent.log"
-    fh = logging.handlers.RotatingFileHandler(
+    fh = SafeRotatingFileHandler(
         log_file,
         maxBytes=5 * 1024 * 1024,
         backupCount=5,
@@ -47,7 +56,7 @@ def _setup_root_logger() -> None:
 
     # — Archivo de errores: solo WARNING+ —
     err_file = LOGS_DIR / "errores.log"
-    eh = logging.handlers.RotatingFileHandler(
+    eh = SafeRotatingFileHandler(
         err_file,
         maxBytes=2 * 1024 * 1024,
         backupCount=3,

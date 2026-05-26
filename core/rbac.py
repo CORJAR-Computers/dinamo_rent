@@ -11,6 +11,7 @@ CORRECCIONES vs versión original:
     o como primer argumento posicional identificado por convención
   - Añadido @require_permissions para verificaciones múltiples
 """
+
 from functools import wraps
 from typing import Callable, Any, Optional
 
@@ -30,9 +31,9 @@ def _extract_session_id(args: tuple, kwargs: dict) -> Optional[str]:
     legítimos por error. Si necesitas pasar session_id posicionalmente,
     usa el keyword argument en su lugar.
     """
-    session_id = kwargs.pop('session_id', None)
+    session_id = kwargs.pop("session_id", None)
     if session_id is None:
-        session_id = kwargs.pop('sid', None)
+        session_id = kwargs.pop("sid", None)
     return session_id
 
 
@@ -52,14 +53,14 @@ def _validate_session(session_id: str) -> dict:
     if not session_id:
         raise PermisoInsuficiente(
             detalle="No se proporcionó sesión activa",
-            mensaje_usuario="Debes iniciar sesión para realizar esta acción."
+            mensaje_usuario="Debes iniciar sesión para realizar esta acción.",
         )
 
     session_data = SessionManager.get(session_id)
     if not session_data:
         raise PermisoInsuficiente(
             detalle="Sesión inválida o expirada",
-            mensaje_usuario="Tu sesión ha expirado. Inicia sesión nuevamente."
+            mensaje_usuario="Tu sesión ha expirado. Inicia sesión nuevamente.",
         )
 
     return session_data
@@ -68,13 +69,14 @@ def _validate_session(session_id: str) -> dict:
 def _log_access_denied(session_data: dict, func_name: str, required: tuple) -> None:
     """Registra intento de acceso denegado en el log de auditoría."""
     from core.logger import get_audit_logger
+
     audit = get_audit_logger()
     audit.warning(
         "ACCESO DENEGADO: usuario=%s, rol=%s, función=%s, roles_requeridos=%s",
         session_data.get("username"),
         session_data.get("role"),
         func_name,
-        required
+        required,
     )
 
 
@@ -96,6 +98,7 @@ def require_role(*allowed_roles: str) -> Callable:
     Raises:
         PermisoInsuficiente: Si el usuario no tiene un rol permitido
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs) -> Any:
@@ -107,11 +110,13 @@ def require_role(*allowed_roles: str) -> Callable:
                 _log_access_denied(session_data, func.__name__, allowed_roles)
                 raise PermisoInsuficiente(
                     detalle=f"Rol '{user_role}' no tiene permisos para {func.__name__}",
-                    mensaje_usuario="No tienes permisos para realizar esta acción."
+                    mensaje_usuario="No tienes permisos para realizar esta acción.",
                 )
 
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -127,11 +132,13 @@ def require_active_session(func: Callable) -> Callable:
     IMPORTANTE: session_id debe pasarse como keyword argument:
         obtener_datos(session_id=sid, ...)
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs) -> Any:
         session_id = _extract_session_id(args, kwargs)
         _validate_session(session_id)  # Raises if invalid
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -153,18 +160,19 @@ class PermissionChecker:
         if not session_data:
             raise PermisoInsuficiente(
                 detalle="Sesión inválida o expirada",
-                mensaje_usuario="Tu sesión ha expirado. Inicia sesión nuevamente."
+                mensaje_usuario="Tu sesión ha expirado. Inicia sesión nuevamente.",
             )
 
         user_role = session_data.get("role")
         if required_roles and user_role not in required_roles:
             from core.logger import get_audit_logger
+
             audit = get_audit_logger()
             audit.warning(
                 "PERMISO INSUFICIENTE: usuario=%s, rol=%s, requeridos=%s",
                 session_data.get("username"),
                 user_role,
-                required_roles
+                required_roles,
             )
             raise PermisoInsuficiente()
 
@@ -174,6 +182,7 @@ class PermissionChecker:
     def can_access_informes(session_id: str) -> bool:
         """Verifica si el usuario puede acceder a informes financieros."""
         from core.config import ROLES_CON_INFORMES
+
         try:
             PermissionChecker.check_role(session_id, *ROLES_CON_INFORMES)
             return True
@@ -184,6 +193,7 @@ class PermissionChecker:
     def can_manage_users(session_id: str) -> bool:
         """Verifica si el usuario puede gestionar otros usuarios."""
         from core.config import ROLES_CON_USUARIOS
+
         try:
             PermissionChecker.check_role(session_id, *ROLES_CON_USUARIOS)
             return True

@@ -12,8 +12,12 @@ from decimal import Decimal
 import pytest
 
 from core.exceptions import (
-    NegocioError, ValidacionError, VehiculoNoDisponible,
-    RentaYaCerrada, ClienteEnListaNegra, RegistroNoEncontrado,
+    NegocioError,
+    ValidacionError,
+    VehiculoNoDisponible,
+    RentaYaCerrada,
+    ClienteEnListaNegra,
+    RegistroNoEncontrado,
 )
 from services.auto_service import AutoService
 from services.cliente_service import ClienteService
@@ -23,6 +27,7 @@ from services.renta_service import RentaService
 # ═══════════════════════════════════════════════════════════════════════════════
 # Helpers
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _crear_auto(placa: str, **kwargs):
     """Create a test auto with defaults."""
@@ -84,17 +89,27 @@ def _make_disponible(placa: str):
 # AutoService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestAutoService:
 
+class TestAutoService:
     def test_listar_autos_estructura(self):
         """listar() returns a list with expected keys in each auto dict."""
         autos = AutoService.listar()
         assert isinstance(autos, list)
         if autos:
             auto = autos[0]
-            expected_keys = {"placa", "marca", "modelo", "estado", "kilometraje",
-                            "tipo", "transmision", "combustible"}
-            assert expected_keys.issubset(auto.keys()), f"Missing keys in auto dict: {expected_keys - auto.keys()}"
+            expected_keys = {
+                "placa",
+                "marca",
+                "modelo",
+                "estado",
+                "kilometraje",
+                "tipo",
+                "transmision",
+                "combustible",
+            }
+            assert expected_keys.issubset(auto.keys()), (
+                f"Missing keys in auto dict: {expected_keys - auto.keys()}"
+            )
 
     def test_guardar_y_listar_auto(self):
         """guardar() creates an auto, then listar() returns it."""
@@ -127,13 +142,15 @@ class TestAutoService:
     def test_actualizar_auto(self):
         """guardar() with an existing placa updates the auto."""
         _crear_auto("UPD001", modelo="Base", color="Blanco")
-        AutoService.guardar({
-            "placa": "UPD001",
-            "marca": "Test",
-            "modelo": "Premium",
-            "color": "Rojo",
-            "kilometraje": 20000,
-        })
+        AutoService.guardar(
+            {
+                "placa": "UPD001",
+                "marca": "Test",
+                "modelo": "Premium",
+                "color": "Rojo",
+                "kilometraje": 20000,
+            }
+        )
         auto = AutoService.obtener("UPD001")
         assert auto["modelo"] == "Premium"
         assert auto["color"] == "Rojo"
@@ -142,10 +159,12 @@ class TestAutoService:
     def test_guardar_placa_invalida_lanza_error(self):
         """guardar() raises ValidacionError for an invalid placa format."""
         with pytest.raises((ValidacionError, NegocioError)):
-            AutoService.guardar({
-                "placa": "INVALIDA12345",  # exceeds regex ^[A-Z0-9]{3,8}$
-                "marca": "Test",
-            })
+            AutoService.guardar(
+                {
+                    "placa": "INVALIDA12345",  # exceeds regex ^[A-Z0-9]{3,8}$
+                    "marca": "Test",
+                }
+            )
 
     def test_alertas_aceite(self):
         """obtener_alertas() detects oil change alerts when km nears threshold."""
@@ -178,8 +197,8 @@ class TestAutoService:
 # ClienteService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestClienteService:
 
+class TestClienteService:
     def test_guardar_y_buscar_cliente(self):
         """guardar() creates a client, then buscar() finds it by name."""
         _crear_cliente("1111111111", nombres="Carlos", apellidos="Méndez")
@@ -220,12 +239,14 @@ class TestClienteService:
         clientes = ClienteService.buscar("5555555555")
         cliente_id = clientes[0]["id"]
 
-        ClienteService.guardar({
-            "id": cliente_id,
-            "nombres": "Updated",
-            "apellidos": "Name",
-            "celular": "+573009999999",
-        })
+        ClienteService.guardar(
+            {
+                "id": cliente_id,
+                "nombres": "Updated",
+                "apellidos": "Name",
+                "celular": "+573009999999",
+            }
+        )
         cliente = ClienteService.obtener(cliente_id)
         assert cliente["nombres"] == "Updated"
         assert cliente["celular"] == "+573009999999"
@@ -233,20 +254,22 @@ class TestClienteService:
     def test_guardar_sin_nombres_lanza_error(self):
         """guardar() without 'nombres' raises ValidacionError."""
         with pytest.raises((ValidacionError, NegocioError)):
-            ClienteService.guardar({
-                "tipo_doc": "Cédula",
-                "no_doc": "6666666666",
-                "nombres": "",
-                "apellidos": "",
-            })
+            ClienteService.guardar(
+                {
+                    "tipo_doc": "Cédula",
+                    "no_doc": "6666666666",
+                    "nombres": "",
+                    "apellidos": "",
+                }
+            )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # RentaService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestRentaService:
 
+class TestRentaService:
     def test_crear_renta(self):
         """crear() creates a rental and marks the vehicle as Rentado."""
         _crear_auto("RTA001")
@@ -261,17 +284,19 @@ class TestRentaService:
         """crear() auto-calculates total via FinancialService if not provided."""
         _crear_auto("RTA002")
         hoy = datetime.date.today()
-        renta_id = RentaService.crear({
-            "placa": "RTA002",
-            "nombre_cliente": "AutoCalc Test",
-            "fecha_recogida": hoy,
-            "hora_recogida": datetime.time(8, 0),
-            "fecha_retorno": hoy + datetime.timedelta(days=2),
-            "hora_retorno": datetime.time(8, 0),
-            "dias_calculados": 2,
-            "valor_dia": Decimal("150000"),
-            # No total — should auto-calculate to 300000
-        })
+        renta_id = RentaService.crear(
+            {
+                "placa": "RTA002",
+                "nombre_cliente": "AutoCalc Test",
+                "fecha_recogida": hoy,
+                "hora_recogida": datetime.time(8, 0),
+                "fecha_retorno": hoy + datetime.timedelta(days=2),
+                "hora_retorno": datetime.time(8, 0),
+                "dias_calculados": 2,
+                "valor_dia": Decimal("150000"),
+                # No total — should auto-calculate to 300000
+            }
+        )
         renta = RentaService.obtener(renta_id)
         # Total should be 2 * 150000 = 300000 (no extras)
         assert renta["total"] == 300000.0
@@ -287,16 +312,18 @@ class TestRentaService:
         """crear() raises ClienteEnListaNegra if estado_cliente is 'Lista Negra'."""
         _crear_auto("RTA004")
         with pytest.raises(ClienteEnListaNegra):
-            RentaService.crear({
-                "placa": "RTA004",
-                "nombre_cliente": "Blacklisted Client",
-                "estado_cliente": "Lista Negra",
-                "fecha_recogida": datetime.date.today(),
-                "hora_recogida": datetime.time(10, 0),
-                "fecha_retorno": datetime.date.today() + datetime.timedelta(days=1),
-                "hora_retorno": datetime.time(10, 0),
-                "total": Decimal("50000"),
-            })
+            RentaService.crear(
+                {
+                    "placa": "RTA004",
+                    "nombre_cliente": "Blacklisted Client",
+                    "estado_cliente": "Lista Negra",
+                    "fecha_recogida": datetime.date.today(),
+                    "hora_recogida": datetime.time(10, 0),
+                    "fecha_retorno": datetime.date.today() + datetime.timedelta(days=1),
+                    "hora_retorno": datetime.time(10, 0),
+                    "total": Decimal("50000"),
+                }
+            )
 
     def test_obtener_renta_por_id(self):
         """obtener() returns rental details by ID."""
@@ -318,18 +345,25 @@ class TestRentaService:
     def test_cerrar_renta(self):
         """cerrar() closes a rental, marks auto Disponible, calculates total."""
         _crear_auto("RTA007")
-        renta_id = _crear_renta("RTA007", nombre_cliente="CloseTest",
-                                valor_dia=Decimal("120000"), total=Decimal("360000"))
+        renta_id = _crear_renta(
+            "RTA007",
+            nombre_cliente="CloseTest",
+            valor_dia=Decimal("120000"),
+            total=Decimal("360000"),
+        )
 
         hoy = datetime.date.today()
-        total = RentaService.cerrar(renta_id, {
-            "fecha_devolucion_real": hoy,
-            "hora_devolucion_real": datetime.time(14, 30),
-            "km_final": "20500",
-            "tanque_final": "Lleno",
-            "nota_cierre": "Devuelto en buen estado",
-            "otros_cobros": Decimal("0"),
-        })
+        total = RentaService.cerrar(
+            renta_id,
+            {
+                "fecha_devolucion_real": hoy,
+                "hora_devolucion_real": datetime.time(14, 30),
+                "km_final": "20500",
+                "tanque_final": "Lleno",
+                "nota_cierre": "Devuelto en buen estado",
+                "otros_cobros": Decimal("0"),
+            },
+        )
         assert total == 360000.0  # No retraso, no otros cobros
 
         # Auto should be Disponible again
@@ -344,22 +378,28 @@ class TestRentaService:
         """cerrar() includes delay charges when returned late."""
         _crear_auto("RTA008")
         hoy = datetime.date.today()
-        renta_id = _crear_renta("RTA008", nombre_cliente="LateTest",
-                                fecha_recogida=hoy - datetime.timedelta(days=5),
-                                fecha_retorno=hoy - datetime.timedelta(days=2),
-                                dias_calculados=3,
-                                valor_dia=Decimal("100000"),
-                                total=Decimal("300000"))
+        renta_id = _crear_renta(
+            "RTA008",
+            nombre_cliente="LateTest",
+            fecha_recogida=hoy - datetime.timedelta(days=5),
+            fecha_retorno=hoy - datetime.timedelta(days=2),
+            dias_calculados=3,
+            valor_dia=Decimal("100000"),
+            total=Decimal("300000"),
+        )
 
         # Return 2 days late
-        late_total = RentaService.cerrar(renta_id, {
-            "fecha_devolucion_real": hoy,
-            "hora_devolucion_real": datetime.time(14, 0),
-            "km_final": "25000",
-            "tanque_final": "Medio",
-            "nota_cierre": "Llegó tarde",
-            "otros_cobros": Decimal("0"),
-        })
+        late_total = RentaService.cerrar(
+            renta_id,
+            {
+                "fecha_devolucion_real": hoy,
+                "hora_devolucion_real": datetime.time(14, 0),
+                "km_final": "25000",
+                "tanque_final": "Medio",
+                "nota_cierre": "Llegó tarde",
+                "otros_cobros": Decimal("0"),
+            },
+        )
         # 2 days late * 100000 + original 300000 = 500000
         assert late_total == 500000.0
 
@@ -368,18 +408,24 @@ class TestRentaService:
         _crear_auto("RTA009")
         renta_id = _crear_renta("RTA009", nombre_cliente="DoubleClose")
         hoy = datetime.date.today()
-        RentaService.cerrar(renta_id, {
-            "fecha_devolucion_real": hoy,
-            "hora_devolucion_real": datetime.time(12, 0),
-            "otros_cobros": Decimal("0"),
-        })
-        # Second close should fail
-        with pytest.raises(RentaYaCerrada):
-            RentaService.cerrar(renta_id, {
+        RentaService.cerrar(
+            renta_id,
+            {
                 "fecha_devolucion_real": hoy,
                 "hora_devolucion_real": datetime.time(12, 0),
                 "otros_cobros": Decimal("0"),
-            })
+            },
+        )
+        # Second close should fail
+        with pytest.raises(RentaYaCerrada):
+            RentaService.cerrar(
+                renta_id,
+                {
+                    "fecha_devolucion_real": hoy,
+                    "hora_devolucion_real": datetime.time(12, 0),
+                    "otros_cobros": Decimal("0"),
+                },
+            )
 
     def test_cambiar_vehiculo(self):
         """cambiar_vehiculo() swaps vehicle on an active rental atomically."""

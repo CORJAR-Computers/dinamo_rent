@@ -4,8 +4,9 @@ SQLAlchemy database layer with auto-migrations. Dual MySQL/SQLite support.
 Engine and session factory are lazily initialized (deferred until first use)
 to speed up module import time by ~300-500ms.
 """
+
 from contextlib import contextmanager
-from typing import Generator, Optional
+from typing import Generator
 
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import Session as SASession
@@ -26,7 +27,7 @@ _SessionMaker = None
 def _get_database_url() -> str:
     if DB_ENGINE == "mysql":
         cfg = DB_MYSQL
-        password_part = f":{cfg['password']}" if cfg['password'] else ""
+        password_part = f":{cfg['password']}" if cfg["password"] else ""
         return (
             f"mysql+pymysql://{cfg['user']}{password_part}"
             f"@{cfg['host']}:{cfg['port']}/{cfg['database']}"
@@ -83,6 +84,7 @@ class _LazySessionMaker:
     def __call__(self):
         if self._maker is None:
             from sqlalchemy.orm import sessionmaker
+
             self._maker = sessionmaker(
                 autocommit=False,
                 autoflush=False,
@@ -112,25 +114,35 @@ def get_session() -> Generator[SASession, None, None]:
 # ── Migrations ──────────────────────────────────────────────────────────────
 
 _MIGRATIONS_F1A = [
-    ("clientes.updated_at",
-     "ALTER TABLE clientes ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"),
-    ("reservas.updated_at",
-     "ALTER TABLE reservas ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"),
-    ("mantenimiento_vehiculos.updated_at",
-     "ALTER TABLE mantenimiento_vehiculos ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"),
-    ("comparendos.updated_at",
-     "ALTER TABLE comparendos ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"),
-    ("pagos.updated_at",
-     "ALTER TABLE pagos ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"),
-    ("gastos.updated_at",
-     "ALTER TABLE gastos ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"),
-    ("gastos.placa",
-     "ALTER TABLE gastos ADD COLUMN placa VARCHAR(20) NULL"),
+    (
+        "clientes.updated_at",
+        "ALTER TABLE clientes ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP",
+    ),
+    (
+        "reservas.updated_at",
+        "ALTER TABLE reservas ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP",
+    ),
+    (
+        "mantenimiento_vehiculos.updated_at",
+        "ALTER TABLE mantenimiento_vehiculos ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP",
+    ),
+    (
+        "comparendos.updated_at",
+        "ALTER TABLE comparendos ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP",
+    ),
+    (
+        "pagos.updated_at",
+        "ALTER TABLE pagos ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP",
+    ),
+    (
+        "gastos.updated_at",
+        "ALTER TABLE gastos ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP",
+    ),
+    ("gastos.placa", "ALTER TABLE gastos ADD COLUMN placa VARCHAR(20) NULL"),
 ]
 
 _MIGRATIONS_INDEXES = [
-    ("ix_gastos_placa",
-     "CREATE INDEX ix_gastos_placa ON gastos (placa)"),
+    ("ix_gastos_placa", "CREATE INDEX ix_gastos_placa ON gastos (placa)"),
 ]
 
 
@@ -219,4 +231,3 @@ def reset_database_connection() -> None:
     _engine = None
     _SessionMaker = None
     log.info("Database connection singletons reset successfully")
-

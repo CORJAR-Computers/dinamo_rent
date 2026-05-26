@@ -1,4 +1,5 @@
 from views.components import ModernMessageBox
+
 """
 views/pagos_view.py — Vista para el historial y registro de pagos de caja.
 
@@ -11,19 +12,29 @@ Mejoras UI/UX:
   - Sugerir saldo pendiente en el monto
 """
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QLabel, QLineEdit,
-    QDoubleSpinBox, QComboBox, QPushButton, QTableWidget, QTableWidgetItem,
-    QHeaderView, QGroupBox, QAbstractItemView,
+    QVBoxLayout,
+    QHBoxLayout,
+    QFormLayout,
+    QLabel,
+    QLineEdit,
+    QDoubleSpinBox,
+    QComboBox,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
+    QGroupBox,
+    QAbstractItemView,
     QWidget,
 )
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import QTimer
 from PySide6.QtGui import QColor, QBrush, QFont
 from views.base_dialog import BaseDialog
 
 from core.config import COLOR_EXITO
 from services.pago_service import PagoService
 from core.exceptions import DinamoBaseError
-from views.styles import btn_default, btn_primary, lbl_section, lbl_subtitle, group_box, input_field, input_combo, input_spinbox, status_active, status_inactive, dialog_background
+# Estilos via QSS global (sin styles.py inline)
 
 
 class PagosDialog(BaseDialog):
@@ -50,29 +61,31 @@ class PagosDialog(BaseDialog):
         root.setContentsMargins(0, 0, 0, 0)
 
         from views.layouts.form_helpers import build_dialog_header
-        root.addWidget(build_dialog_header("💰", "Estado de Cuenta", f"Cliente: {self.cliente} — Renta #{self.id_renta}"))
 
-        from views.styles import dialog_body_style
+        root.addWidget(
+            build_dialog_header(
+                "💰", "Estado de Cuenta", f"Cliente: {self.cliente} — Renta #{self.id_renta}"
+            )
+        )
+
         body = QWidget()
         body.setObjectName("dlg_body")
-        dialog_body_style(body)
         body_lay = QVBoxLayout(body)
         body_lay.setSpacing(14)
         body_lay.setContentsMargins(20, 16, 20, 14)
 
         # ── Resumen financiero ──
         gb_resumen = QGroupBox("Resumen Financiero")
-        group_box(gb_resumen)
         lay_resumen = QHBoxLayout(gb_resumen)
 
         self.lbl_total = QLabel(f"Total Renta:\n$ {self.total_renta:,.0f}")
-        lbl_section(self.lbl_total)
+        self.lbl_total.setProperty("class", "section")
 
         self.lbl_abonado = QLabel("Abonado:\n$ 0")
-        status_active(self.lbl_abonado)
+        self.lbl_abonado.setProperty("class", "status-success")
 
         self.lbl_saldo = QLabel("Saldo Pendiente:\n$ 0")
-        status_inactive(self.lbl_saldo)
+        self.lbl_saldo.setProperty("class", "status-danger")
 
         lay_resumen.addWidget(self.lbl_total)
         lay_resumen.addWidget(self.lbl_abonado)
@@ -81,40 +94,38 @@ class PagosDialog(BaseDialog):
 
         # ── Formulario nuevo pago ──
         gb_nuevo = QGroupBox("Registrar Nuevo Pago")
-        group_box(gb_nuevo)
         form_pago = QFormLayout(gb_nuevo)
 
         self.sp_monto = QDoubleSpinBox()
         self.sp_monto.setRange(1, 100_000_000)
         self.sp_monto.setPrefix("$ ")
-        input_spinbox(self.sp_monto)
 
         self.cmb_metodo = QComboBox()
-        self.cmb_metodo.addItems([
-            "Efectivo",
-            "Tarjeta de Credito",
-            "Tarjeta de Debito",
-            "Transferencia / Nequi",
-        ])
+        self.cmb_metodo.addItems(
+            [
+                "Efectivo",
+                "Tarjeta de Credito",
+                "Tarjeta de Debito",
+                "Transferencia / Nequi",
+            ]
+        )
 
         self.cmb_concepto = QComboBox()
-        input_combo(self.cmb_concepto)
-        self.cmb_concepto.addItems([
-            "Abono / Anticipo",
-            "Pago Final",
-            "Garantia",
-            "Cobro por Danos",
-            "Cobro por Retraso",
-        ])
+        self.cmb_concepto.addItems(
+            [
+                "Abono / Anticipo",
+                "Pago Final",
+                "Garantia",
+                "Cobro por Danos",
+                "Cobro por Retraso",
+            ]
+        )
 
         self.txt_obs = QLineEdit()
-        self.txt_obs.setPlaceholderText(
-            "Referencia de transaccion, recibo manual, etc."
-        )
-        input_field(self.txt_obs)
+        self.txt_obs.setPlaceholderText("Referencia de transaccion, recibo manual, etc.")
 
         btn_registrar = QPushButton("Registrar Recibo")
-        btn_primary(btn_registrar)
+        btn_registrar.setProperty("class", "primary")
         btn_registrar.clicked.connect(self._registrar_pago)
 
         form_pago.addRow("Monto a Pagar:", self.sp_monto)
@@ -126,7 +137,7 @@ class PagosDialog(BaseDialog):
 
         # ── Historial ──
         lbl_hist = QLabel("Historial de Recibos")
-        lbl_section(lbl_hist)
+        lbl_hist.setProperty("class", "section")
         body_lay.addWidget(lbl_hist)
 
         self.tbl = QTableWidget()
@@ -144,16 +155,17 @@ class PagosDialog(BaseDialog):
 
         # Separador
         from PySide6.QtWidgets import QFrame
+
         sep = QFrame()
         sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet("QFrame { background: #cbd5e1; max-height: 1px; border: none; }")
+        sep.setProperty("class", "divider")
         body_lay.addWidget(sep)
 
         # Boton cerrar
         btn_layout = QHBoxLayout()
         btn_layout.setSpacing(10)
         btn_cerrar = QPushButton("Cerrar Ventana")
-        btn_default(btn_cerrar)
+        btn_cerrar.setProperty("class", "ghost")
         btn_cerrar.clicked.connect(self.accept)
         btn_layout.addStretch()
         btn_layout.addWidget(btn_cerrar)
@@ -175,9 +187,7 @@ class PagosDialog(BaseDialog):
                 monto = float(p.get("monto", 0))
                 total_abonado += monto
 
-                self.tbl.setItem(
-                    i, 0, QTableWidgetItem(str(p.get("fecha", ""))[:16])
-                )
+                self.tbl.setItem(i, 0, QTableWidgetItem(str(p.get("fecha", ""))[:16]))
 
                 # Monto en verde y negrita (BUG FIX: QFont value-type)
                 it_monto = QTableWidgetItem(f"$ {monto:,.0f}")
@@ -187,15 +197,9 @@ class PagosDialog(BaseDialog):
                 it_monto.setFont(fnt)
                 self.tbl.setItem(i, 1, it_monto)
 
-                self.tbl.setItem(
-                    i, 2, QTableWidgetItem(str(p.get("metodo_pago", "")))
-                )
-                self.tbl.setItem(
-                    i, 3, QTableWidgetItem(str(p.get("concepto", "")))
-                )
-                self.tbl.setItem(
-                    i, 4, QTableWidgetItem(str(p.get("observaciones", "")))
-                )
+                self.tbl.setItem(i, 2, QTableWidgetItem(str(p.get("metodo_pago", ""))))
+                self.tbl.setItem(i, 3, QTableWidgetItem(str(p.get("concepto", ""))))
+                self.tbl.setItem(i, 4, QTableWidgetItem(str(p.get("observaciones", ""))))
 
             # Actualizar resumen financiero
             self.lbl_abonado.setText(f"Abonado:\n$ {total_abonado:,.0f}")
@@ -203,10 +207,10 @@ class PagosDialog(BaseDialog):
             saldo = self.total_renta - total_abonado
             if saldo > 0:
                 self.lbl_saldo.setText(f"Saldo Pendiente:\n$ {saldo:,.0f}")
-                status_inactive(self.lbl_saldo)
+                self.lbl_saldo.setProperty("class", "status-danger")
             else:
                 self.lbl_saldo.setText("Saldo Pendiente:\n$ 0 - PAZ Y SALVO")
-                status_active(self.lbl_saldo)
+                self.lbl_saldo.setProperty("class", "status-success")
 
             # Forzar repintado para que QSS tome el cambio de propiedad
             self.lbl_saldo.style().unpolish(self.lbl_saldo)
@@ -222,9 +226,7 @@ class PagosDialog(BaseDialog):
 
     def _registrar_pago(self):
         if self.sp_monto.value() <= 0:
-            ModernMessageBox.warning(
-                self, "Validacion", "El monto debe ser mayor a cero"
-            )
+            ModernMessageBox.warning(self, "Validacion", "El monto debe ser mayor a cero")
             return
 
         datos = {
@@ -238,6 +240,7 @@ class PagosDialog(BaseDialog):
         try:
             PagoService.registrar(datos)
             from views.components.toast_notification import ToastNotification
+
             ToastNotification(self.window(), "Pago registrado correctamente en caja.", "success")
             self.txt_obs.clear()
             self.cargar_pagos()

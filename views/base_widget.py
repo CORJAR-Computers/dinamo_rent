@@ -1,18 +1,24 @@
 """Clase base para widgets: errores UI, toast, validación y utilidades de tabla."""
 
-from typing import List, Optional
+from typing import Optional
 
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import (
-    QWidget, QLabel, QHeaderView,
-    QAbstractItemView, QApplication,
+    QWidget,
+    QLabel,
+    QHeaderView,
+    QAbstractItemView,
 )
 from PySide6.QtGui import QShowEvent
 from views.components import ModernMessageBox, ToastNotification
 from views.components.form_validators import (
-    FormValidator, FieldValidator, ValidationRule, make_error_label,
+    FormValidator,
+    FieldValidator,
+    make_error_label,
 )
 from views.components.loading_spinner import LoadingOverlay
+from PySide6.QtCore import QThreadPool
+from core.worker import Worker
 
 from core.exceptions import DinamoBaseError, ValidacionError, NegocioError
 from core.logger import get_logger
@@ -30,6 +36,7 @@ class BaseWidget(QWidget):
         self._form_validator: Optional[FormValidator] = None
         self._loading_overlay: Optional[LoadingOverlay] = None
         self._datos_cargados = False
+        self._threadpool = QThreadPool.globalInstance()
 
     def showEvent(self, event: QShowEvent) -> None:
         """Carga datos diferidos en la primera vez que se muestra el widget."""
@@ -47,9 +54,9 @@ class BaseWidget(QWidget):
 
     # ── Toast ────────────────────────────────────────────────────────────────────────
 
-    def mostrar_toast(self, message: str, level: str = "info",
-                      duration: int = 3500,
-                      position: str = "top-right") -> None:
+    def mostrar_toast(
+        self, message: str, level: str = "info", duration: int = 3500, position: str = "top-right"
+    ) -> None:
         """Muestra notificación toast con apilamiento y animación.
 
         Args:
@@ -78,6 +85,7 @@ class BaseWidget(QWidget):
     def confirmar(self, mensaje: str, titulo: str = "Confirmar") -> bool:
         """Muestra diálogo de confirmación Sí/No."""
         from PySide6.QtWidgets import QDialog
+
         return ModernMessageBox.question(self, titulo, mensaje) == QDialog.Accepted
 
     # ── Validación de formularios ───────────────────────────────────────────────────
@@ -148,9 +156,7 @@ class BaseWidget(QWidget):
         """Inicializa el overlay de carga (llamar desde __init__ de subclases
         si se desea spinner mientras carga datos)."""
         if self._loading_overlay is None:
-            self._loading_overlay = LoadingOverlay(
-                self, message or self._LOADING_MESSAGE
-            )
+            self._loading_overlay = LoadingOverlay(self, message or self._LOADING_MESSAGE)
         elif message:
             self._loading_overlay.set_message(message)
 
@@ -207,6 +213,48 @@ class BaseWidget(QWidget):
         except RuntimeError:
             self._loading_overlay = None
 
+    def _async_call(self, func, callback=None, error_callback=None, *args, **kwargs) -> None:
+        """
+        Ejecuta func() en un hilo de fondo (QThreadPool) mostrando el overlay.
+        Al finalizar exitosamente llama a callback(result).
+        Si falla llama a error_callback(exctype, value, traceback_str) o lo maneja genéricamente.
+        """
+        try:
+            _ = self.isWidgetType()
+        except RuntimeError:
+            return
+
+        self._show_overlay_safe()
+
+        worker = Worker(func, *args, **kwargs)
+
+        def _on_result(result):
+            try:
+                _ = self.isWidgetType()
+                if callback:
+                    callback(result)
+            except RuntimeError:
+                pass
+
+        def _on_error(err_tuple):
+            try:
+                _ = self.isWidgetType()
+                if error_callback:
+                    error_callback(*err_tuple)
+                else:
+                    self.mostrar_error(f"Error asíncrono: {err_tuple[1]}")
+            except RuntimeError:
+                pass
+
+        def _on_finished():
+            self._hide_overlay_safe()
+
+        worker.signals.result.connect(_on_result)
+        worker.signals.error.connect(_on_error)
+        worker.signals.finished.connect(_on_finished)
+
+        self._threadpool.start(worker)
+
     def _deferred_load(self) -> None:
         """Conveniencia: ejecuta self.cargar_datos() con overlay de carga."""
         self._deferred_call(self.cargar_datos)
@@ -221,9 +269,7 @@ class BaseWidget(QWidget):
         tabla.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         tabla.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         try:
-            tabla.horizontalHeader().setSectionResizeMode(
-                QHeaderView.ResizeMode.Stretch
-            )
+            tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         except Exception:
             pass
 
@@ -231,6 +277,7 @@ class BaseWidget(QWidget):
     def set_row_color(tabla, row: int, color: str) -> None:
         """Aplica color de texto a toda una fila de la tabla."""
         from PySide6.QtGui import QBrush, QColor
+
         brush = QBrush(QColor(color))
         for col in range(tabla.columnCount()):
             item = tabla.item(row, col)

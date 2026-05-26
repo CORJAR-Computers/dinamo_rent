@@ -50,8 +50,9 @@ class LoadingOverlay(QWidget):
 
     _OVERLAY_COLOR = QColor(255, 255, 255, 210)
 
-    def __init__(self, parent=None, message="Cargando...",
-                 spinner_size=42, spinner_color="#2563eb"):
+    def __init__(
+        self, parent=None, message="Cargando...", spinner_size=42, spinner_color="#2563eb"
+    ):
         super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, False)
 
@@ -62,8 +63,7 @@ class LoadingOverlay(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.setSpacing(14)
 
-        self.spinner = LoadingSpinner(size=spinner_size, color=spinner_color,
-                                      parent=self)
+        self.spinner = LoadingSpinner(size=spinner_size, color=spinner_color, parent=self)
         layout.addWidget(self.spinner, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.lbl_msg = QLabel(message, self)

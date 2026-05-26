@@ -47,6 +47,7 @@ if _app is None:
 # Helper dialog — reuses LoaderTestDialog from tests/helpers
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class _DialogoConTimer(LoaderTestDialog):
     """Test dialog that mimics the standard LoadingOverlay + QTimer.singleShot
     pattern using the reusable LoaderTestDialog base class."""
@@ -66,6 +67,7 @@ class _DialogoConTimer(LoaderTestDialog):
 # ═══════════════════════════════════════════════════════════════════════════════
 # Tests — RuntimeError guard at the top of deferred callbacks
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestGuardEnDialogo(LoaderTestMixin):
     """Verifies the RuntimeError guard pattern inside dialog deferred callbacks.
@@ -129,6 +131,7 @@ class TestGuardEnDialogo(LoaderTestMixin):
 # Tests — BaseWidget._deferred_call() suppression of RuntimeError
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestDeferredCall(BaseWidgetTestMixin):
     """Verifies BaseWidget._deferred_call() suppresses RuntimeError from callback.
 
@@ -147,15 +150,14 @@ class TestDeferredCall(BaseWidgetTestMixin):
             exception=RuntimeError("Simulated C++ deletion"),
             skip_banner=True,
         )
-        assert not w.callback_executed, (
-            "Callback should NOT have completed due to RuntimeError"
-        )
+        assert not w.callback_executed, "Callback should NOT have completed due to RuntimeError"
 
     def test_deferred_load_suprime_runtimeerror(self) -> None:
         """_deferred_load (convenience wrapper) also suppresses RuntimeError.
 
         Uses custom helper that raises RuntimeError in cargar_datos.
         """
+
         class _WidgetCrashHelper(BaseWidgetTestHelper):
             def _setup_content(self) -> None:
                 pass
@@ -182,15 +184,14 @@ class TestDeferredCall(BaseWidgetTestMixin):
             exception=ValueError("Real error — should propagate"),
             skip_banner=True,
         )
-        assert not w.callback_executed, (
-            "Callback should NOT have completed due to ValueError"
-        )
+        assert not w.callback_executed, "Callback should NOT have completed due to ValueError"
 
     def test_overlay_se_oculta_en_finally(self) -> None:
         """_deferred_call hides overlay in finally even if callback crashes.
 
         Uses custom helper that tracks _hide_overlay_safe execution.
         """
+
         class _WidgetOverlayHelper(BaseWidgetTestHelper):
             def __init__(self: Any) -> None:
                 self._finally_ejecutado: bool = False
@@ -215,9 +216,7 @@ class TestDeferredCall(BaseWidgetTestMixin):
             w._hide_overlay_safe = _tracking_hide
 
             w._deferred_call(w.cargar_datos)  # Should not crash
-            assert w._finally_ejecutado, (
-                "_hide_overlay_safe should have been called in finally"
-            )
+            assert w._finally_ejecutado, "_hide_overlay_safe should have been called in finally"
         finally:
             self._cleanup_widget(w)
 
@@ -226,6 +225,7 @@ class TestDeferredCall(BaseWidgetTestMixin):
 # Tests — Integration with real production dialogs
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestIntegracionDialogosReales(LoaderTestMixin):
     """Integration tests using real production dialogs that implement the guard
     pattern. Uses run_stale_timer() from LoaderTestMixin for consistent cleanup."""
@@ -233,39 +233,53 @@ class TestIntegracionDialogosReales(LoaderTestMixin):
     def test_comparendo_guard_con_timer_stale(self) -> None:
         """NuevoComparendoDialog's RuntimeError guard handles stale timer."""
         from views.comparendos_view import NuevoComparendoDialog
+
         self.run_stale_timer(NuevoComparendoDialog, parent=None)
 
     def test_mantenimiento_guard_con_timer_stale(self) -> None:
         """NuevoMantenimientoDialog's RuntimeError guard handles stale timer."""
         from views.mantenimiento_view import NuevoMantenimientoDialog
+
         self.run_stale_timer(NuevoMantenimientoDialog, parent=None)
 
     def test_pagos_guard_con_timer_stale(self) -> None:
         """PagosDialog's RuntimeError guard handles stale timer."""
         from views.pagos_view import PagosDialog
-        self.run_stale_timer(PagosDialog, parent=None, id_renta=1,
-                             total_renta=100000.0, cliente="Test")
+
+        self.run_stale_timer(
+            PagosDialog, parent=None, id_renta=1, total_renta=100000.0, cliente="Test"
+        )
 
     def test_reservas_selector_guard_con_timer_stale(self) -> None:
         """DialogoSelectorCliente (reservas) guard handles stale timer."""
         from views.reservas_view import DialogoSelectorCliente
+
         self.run_stale_timer(DialogoSelectorCliente, parent=None)
 
     def test_rentas_selector_guard_con_timer_stale(self) -> None:
         """DialogoSelectorCliente (rentas) guard handles stale timer."""
         from views.rentas_view import DialogoSelectorCliente
+
         self.run_stale_timer(DialogoSelectorCliente, parent=None)
 
-    @pytest.mark.parametrize("module_path,class_name,kwargs", [
-        pytest.param("views.rentas_view", "DialogoExtenderRenta",
-                     {"id_renta": 1}, id="extender-renta"),
-        pytest.param("views.rentas_view", "DialogoCambioVehiculo",
-                     {"id_renta": 1, "placa_actual": "ABC123"}, id="cambio-vehiculo"),
-        pytest.param("views.autos_view", "DialogoAuto",
-                     {"placa_editar": "ABC123"}, id="auto-editar"),
-        pytest.param("views.clientes_view", "ClienteFormDialog",
-                     {}, id="cliente-form"),
-    ])
+    @pytest.mark.parametrize(
+        "module_path,class_name,kwargs",
+        [
+            pytest.param(
+                "views.rentas_view", "DialogoExtenderRenta", {"id_renta": 1}, id="extender-renta"
+            ),
+            pytest.param(
+                "views.rentas_view",
+                "DialogoCambioVehiculo",
+                {"id_renta": 1, "placa_actual": "ABC123"},
+                id="cambio-vehiculo",
+            ),
+            pytest.param(
+                "views.autos_view", "DialogoAuto", {"placa_editar": "ABC123"}, id="auto-editar"
+            ),
+            pytest.param("views.clientes_view", "ClienteFormDialog", {}, id="cliente-form"),
+        ],
+    )
     def test_dialogo_guard_con_timer_stale(
         self,
         module_path: str,
@@ -274,6 +288,7 @@ class TestIntegracionDialogosReales(LoaderTestMixin):
     ) -> None:
         """Parameterized test: various dialogs handle stale timer gracefully."""
         import importlib
+
         mod = importlib.import_module(module_path)
         cls = getattr(mod, class_name)
         kwargs["parent"] = None

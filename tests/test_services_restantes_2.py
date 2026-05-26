@@ -13,7 +13,10 @@ from decimal import Decimal
 import pytest
 
 from core.exceptions import (
-    NegocioError, ValidacionError, RegistroNoEncontrado, PlacaInvalida,
+    NegocioError,
+    ValidacionError,
+    RegistroNoEncontrado,
+    PlacaInvalida,
 )
 from services.auto_service import AutoService
 from services.cliente_service import ClienteService
@@ -26,6 +29,7 @@ from services.inspeccion_service import InspeccionService
 # ═══════════════════════════════════════════════════════════════════════════════
 # Helpers (same pattern from test_services_more.py)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _crear_auto(placa: str, **kwargs):
     """Create a test auto with defaults."""
@@ -82,8 +86,8 @@ def _crear_renta(placa: str, **kwargs) -> int:
 # ComparendoService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestComparendoService:
 
+class TestComparendoService:
     def test_listar_vacio(self):
         """listar() returns an empty list when no comparendos exist."""
         comparendos = ComparendoService.listar()
@@ -92,13 +96,15 @@ class TestComparendoService:
     def test_registrar_comparendo_basico(self):
         """registrar() creates a comparendo and returns the response."""
         _crear_auto("CMP001")
-        result = ComparendoService.registrar({
-            "placa": "CMP001",
-            "fecha": str(datetime.date.today()),
-            "hora": "14:30",
-            "monto": "150000",
-            "observaciones": "Exceso de velocidad",
-        })
+        result = ComparendoService.registrar(
+            {
+                "placa": "CMP001",
+                "fecha": str(datetime.date.today()),
+                "hora": "14:30",
+                "monto": "150000",
+                "observaciones": "Exceso de velocidad",
+            }
+        )
         assert isinstance(result, dict)
         assert result["id_comparendo"] > 0
         assert result["vinculado"] is False  # No rental for this date range
@@ -108,34 +114,40 @@ class TestComparendoService:
     def test_registrar_comparendo_listar_incluye(self):
         """After registering, listar() includes the comparendo."""
         _crear_auto("CMP002")
-        ComparendoService.registrar({
-            "placa": "CMP002",
-            "fecha": str(datetime.date.today()),
-            "hora": "10:00",
-            "monto": "200000",
-        })
+        ComparendoService.registrar(
+            {
+                "placa": "CMP002",
+                "fecha": str(datetime.date.today()),
+                "hora": "10:00",
+                "monto": "200000",
+            }
+        )
         comparendos = ComparendoService.listar()
         assert any(c["placa"] == "CMP002" for c in comparendos)
 
     def test_registrar_comparendo_sin_placa(self):
         """registrar() raises error when placa is missing."""
         with pytest.raises((ValidacionError, NegocioError), match="Placa"):
-            ComparendoService.registrar({
-                "fecha": str(datetime.date.today()),
-                "hora": "10:00",
-                "monto": "50000",
-            })
+            ComparendoService.registrar(
+                {
+                    "fecha": str(datetime.date.today()),
+                    "hora": "10:00",
+                    "monto": "50000",
+                }
+            )
 
     def test_registrar_comparendo_fecha_invalida(self):
         """registrar() raises error when fecha/hora format is invalid."""
         _crear_auto("CMP003")
         with pytest.raises(ValidacionError, match="fecha|hora|inválida"):
-            ComparendoService.registrar({
-                "placa": "CMP003",
-                "fecha": "not-a-date",
-                "hora": "10:00",
-                "monto": "50000",
-            })
+            ComparendoService.registrar(
+                {
+                    "placa": "CMP003",
+                    "fecha": "not-a-date",
+                    "hora": "10:00",
+                    "monto": "50000",
+                }
+            )
 
     def test_registrar_comparendo_vincula_renta_activa(self):
         """registrar() auto-links comparendo to an active rental in the same date range."""
@@ -151,12 +163,14 @@ class TestComparendoService:
             hora_retorno=datetime.time(18, 0),
         )
 
-        result = ComparendoService.registrar({
-            "placa": "CMP004",
-            "fecha": str(hoy),
-            "hora": "12:00",
-            "monto": "300000",
-        })
+        result = ComparendoService.registrar(
+            {
+                "placa": "CMP004",
+                "fecha": str(hoy),
+                "hora": "12:00",
+                "monto": "300000",
+            }
+        )
         assert result["id_renta"] == renta_id
         assert result["vinculado"] is False  # No id_cliente on rental
         assert result["id_cliente"] is None
@@ -164,13 +178,15 @@ class TestComparendoService:
     def test_cambiar_estado_comparendo(self):
         """cambiar_estado() updates the comparendo status."""
         _crear_auto("CMP005")
-        result = ComparendoService.registrar({
-            "placa": "CMP005",
-            "fecha": str(datetime.date.today()),
-            "hora": "09:00",
-            "monto": "100000",
-            "estado": "Pendiente",
-        })
+        result = ComparendoService.registrar(
+            {
+                "placa": "CMP005",
+                "fecha": str(datetime.date.today()),
+                "hora": "09:00",
+                "monto": "100000",
+                "estado": "Pendiente",
+            }
+        )
         cid = result["id_comparendo"]
 
         ComparendoService.cambiar_estado(cid, "Pagado")
@@ -187,12 +203,14 @@ class TestComparendoService:
     def test_listar_comparendos_estructura(self):
         """listar() returns comparendos with expected keys."""
         _crear_auto("CMP006")
-        ComparendoService.registrar({
-            "placa": "CMP006",
-            "fecha": str(datetime.date.today()),
-            "hora": "11:00",
-            "monto": "75000",
-        })
+        ComparendoService.registrar(
+            {
+                "placa": "CMP006",
+                "fecha": str(datetime.date.today()),
+                "hora": "11:00",
+                "monto": "75000",
+            }
+        )
         comparendos = ComparendoService.listar()
         cmp = next((c for c in comparendos if c["placa"] == "CMP006"), None)
         assert cmp is not None
@@ -208,8 +226,8 @@ class TestComparendoService:
 # GastoService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGastoService:
 
+class TestGastoService:
     def test_listar_recientes_vacio(self):
         """listar_recientes() returns an empty list when no gastos exist."""
         gastos = GastoService.listar_recientes()
@@ -217,36 +235,42 @@ class TestGastoService:
 
     def test_registrar_gasto_basico(self):
         """registrar() creates a gasto and returns its ID."""
-        gasto_id = GastoService.registrar({
-            "fecha": str(datetime.date.today()),
-            "categoria": "Lavado",
-            "descripcion": "Lavado general",
-            "monto": "25000",
-        })
+        gasto_id = GastoService.registrar(
+            {
+                "fecha": str(datetime.date.today()),
+                "categoria": "Lavado",
+                "descripcion": "Lavado general",
+                "monto": "25000",
+            }
+        )
         assert isinstance(gasto_id, int)
         assert gasto_id > 0
 
     def test_registrar_gasto_listar_incluye(self):
         """After registering, listar_recientes() includes the gasto."""
-        GastoService.registrar({
-            "fecha": str(datetime.date.today()),
-            "categoria": "Combustible",
-            "descripcion": "Gasolina extra",
-            "monto": "120000",
-        })
+        GastoService.registrar(
+            {
+                "fecha": str(datetime.date.today()),
+                "categoria": "Combustible",
+                "descripcion": "Gasolina extra",
+                "monto": "120000",
+            }
+        )
         gastos = GastoService.listar_recientes()
         assert any(g["descripcion"] == "Gasolina extra" for g in gastos)
 
     def test_registrar_gasto_con_placa(self):
         """registrar() with a valid placa links the gasto to a vehicle."""
         _crear_auto("GST001")
-        GastoService.registrar({
-            "placa": "GST001",
-            "fecha": str(datetime.date.today()),
-            "categoria": "Llantas",
-            "descripcion": "Cambio llanta delantera",
-            "monto": "180000",
-        })
+        GastoService.registrar(
+            {
+                "placa": "GST001",
+                "fecha": str(datetime.date.today()),
+                "categoria": "Llantas",
+                "descripcion": "Cambio llanta delantera",
+                "monto": "180000",
+            }
+        )
         gastos = GastoService.listar_por_placa("GST001")
         assert len(gastos) >= 1
         assert any(g["descripcion"] == "Cambio llanta delantera" for g in gastos)
@@ -254,31 +278,37 @@ class TestGastoService:
     def test_registrar_gasto_sin_fecha(self):
         """registrar() raises error when fecha is missing."""
         with pytest.raises((ValidacionError, NegocioError), match="Fecha"):
-            GastoService.registrar({
-                "categoria": "Lavado",
-                "descripcion": "Test",
-                "monto": "10000",
-            })
+            GastoService.registrar(
+                {
+                    "categoria": "Lavado",
+                    "descripcion": "Test",
+                    "monto": "10000",
+                }
+            )
 
     def test_registrar_gasto_monto_cero(self):
         """registrar() raises error when monto <= 0."""
         with pytest.raises(ValidacionError, match="mayor a cero"):
-            GastoService.registrar({
-                "fecha": str(datetime.date.today()),
-                "categoria": "Lavado",
-                "descripcion": "Test",
-                "monto": "0",
-            })
+            GastoService.registrar(
+                {
+                    "fecha": str(datetime.date.today()),
+                    "categoria": "Lavado",
+                    "descripcion": "Test",
+                    "monto": "0",
+                }
+            )
 
     def test_registrar_gasto_monto_negativo(self):
         """registrar() raises error when monto is negative."""
         with pytest.raises(ValidacionError, match="mayor a cero"):
-            GastoService.registrar({
-                "fecha": str(datetime.date.today()),
-                "categoria": "Lavado",
-                "descripcion": "Test",
-                "monto": "-5000",
-            })
+            GastoService.registrar(
+                {
+                    "fecha": str(datetime.date.today()),
+                    "categoria": "Lavado",
+                    "descripcion": "Test",
+                    "monto": "-5000",
+                }
+            )
 
     def test_listar_por_placa_sin_gastos(self):
         """listar_por_placa() returns empty list for a placa with no gastos."""
@@ -294,13 +324,15 @@ class TestGastoService:
 
     def test_gasto_estructura_respuesta(self):
         """listar_recientes() returns gastos with expected keys."""
-        GastoService.registrar({
-            "fecha": str(datetime.date.today()),
-            "categoria": "Papelería",
-            "descripcion": "Resmas de papel",
-            "monto": "35000",
-            "usuario": "Admin",
-        })
+        GastoService.registrar(
+            {
+                "fecha": str(datetime.date.today()),
+                "categoria": "Papelería",
+                "descripcion": "Resmas de papel",
+                "monto": "35000",
+                "usuario": "Admin",
+            }
+        )
         gastos = GastoService.listar_recientes()
         gasto = next((g for g in gastos if g["descripcion"] == "Resmas de papel"), None)
         assert gasto is not None
@@ -314,50 +346,60 @@ class TestGastoService:
     def test_gasto_sin_categoria(self):
         """registrar() raises error when categoria is missing."""
         with pytest.raises((ValidacionError, NegocioError), match="Categoría"):
-            GastoService.registrar({
-                "fecha": str(datetime.date.today()),
-                "descripcion": "Test",
-                "monto": "10000",
-            })
+            GastoService.registrar(
+                {
+                    "fecha": str(datetime.date.today()),
+                    "descripcion": "Test",
+                    "monto": "10000",
+                }
+            )
 
     def test_gasto_sin_descripcion(self):
         """registrar() raises error when descripcion is missing."""
         with pytest.raises((ValidacionError, NegocioError), match="Descripción"):
-            GastoService.registrar({
-                "fecha": str(datetime.date.today()),
-                "categoria": "Lavado",
-                "monto": "10000",
-            })
+            GastoService.registrar(
+                {
+                    "fecha": str(datetime.date.today()),
+                    "categoria": "Lavado",
+                    "monto": "10000",
+                }
+            )
 
     def test_gasto_sin_monto(self):
         """registrar() raises error when monto is missing."""
         with pytest.raises((ValidacionError, NegocioError), match="Monto"):
-            GastoService.registrar({
-                "fecha": str(datetime.date.today()),
-                "categoria": "Lavado",
-                "descripcion": "Test",
-            })
+            GastoService.registrar(
+                {
+                    "fecha": str(datetime.date.today()),
+                    "categoria": "Lavado",
+                    "descripcion": "Test",
+                }
+            )
 
     def test_gasto_con_placa_invalida(self):
         """registrar() raises error when placa format is invalid."""
         with pytest.raises((ValidacionError, PlacaInvalida), match="placa|Placa"):
-            GastoService.registrar({
-                "placa": "X",
-                "fecha": str(datetime.date.today()),
-                "categoria": "Lavado",
-                "descripcion": "Test",
-                "monto": "10000",
-            })
+            GastoService.registrar(
+                {
+                    "placa": "X",
+                    "fecha": str(datetime.date.today()),
+                    "categoria": "Lavado",
+                    "descripcion": "Test",
+                    "monto": "10000",
+                }
+            )
 
     def test_listar_recientes_limite(self):
         """listar_recientes() returns at most 200 recent gastos."""
         for i in range(5):
-            GastoService.registrar({
-                "fecha": str(datetime.date.today()),
-                "categoria": "Varios",
-                "descripcion": f"Gasto test {i}",
-                "monto": f"{1000 * (i + 1)}",
-            })
+            GastoService.registrar(
+                {
+                    "fecha": str(datetime.date.today()),
+                    "categoria": "Varios",
+                    "descripcion": f"Gasto test {i}",
+                    "monto": f"{1000 * (i + 1)}",
+                }
+            )
         gastos = GastoService.listar_recientes()
         assert len(gastos) >= 5
 
@@ -366,8 +408,8 @@ class TestGastoService:
 # InspeccionService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestInspeccionService:
 
+class TestInspeccionService:
     def _setup_renta(self, placa: str) -> int:
         """Helper: create an auto + rental and return rental ID."""
         _crear_auto(placa)
@@ -383,24 +425,28 @@ class TestInspeccionService:
     def test_registrar_inspeccion_basica(self):
         """registrar() creates an inspection and returns its ID."""
         renta_id = self._setup_renta("INP002")
-        inspeccion_id = InspeccionService.registrar({
-            "id_renta": renta_id,
-            "tipo": "Salida",
-            "kilometraje": 10000,
-            "nivel_gasolina": "Lleno",
-        })
+        inspeccion_id = InspeccionService.registrar(
+            {
+                "id_renta": renta_id,
+                "tipo": "Salida",
+                "kilometraje": 10000,
+                "nivel_gasolina": "Lleno",
+            }
+        )
         assert isinstance(inspeccion_id, int)
         assert inspeccion_id > 0
 
     def test_registrar_inspeccion_listar_incluye(self):
         """After registering, listar_por_renta() includes the inspection."""
         renta_id = self._setup_renta("INP003")
-        InspeccionService.registrar({
-            "id_renta": renta_id,
-            "tipo": "Salida",
-            "kilometraje": 15000,
-            "nivel_gasolina": "Lleno",
-        })
+        InspeccionService.registrar(
+            {
+                "id_renta": renta_id,
+                "tipo": "Salida",
+                "kilometraje": 15000,
+                "nivel_gasolina": "Lleno",
+            }
+        )
         inspecciones = InspeccionService.listar_por_renta(renta_id)
         assert len(inspecciones) == 1
         assert inspecciones[0]["tipo"] == "Salida"
@@ -408,19 +454,21 @@ class TestInspeccionService:
     def test_registrar_inspeccion_con_todos_los_campos(self):
         """registrar() works with all optional fields provided."""
         renta_id = self._setup_renta("INP004")
-        inspeccion_id = InspeccionService.registrar({
-            "id_renta": renta_id,
-            "tipo": "Retorno",
-            "kilometraje": 15300,
-            "nivel_gasolina": "3/4",
-            "limpieza": "Limpio",
-            "tiene_repuesto": True,
-            "tiene_gato_cruceta": False,
-            "tiene_kit_carretera": True,
-            "tiene_documentos": True,
-            "danos_carroceria": "Rayón puerta derecha",
-            "observaciones": "Todo en orden",
-        })
+        inspeccion_id = InspeccionService.registrar(
+            {
+                "id_renta": renta_id,
+                "tipo": "Retorno",
+                "kilometraje": 15300,
+                "nivel_gasolina": "3/4",
+                "limpieza": "Limpio",
+                "tiene_repuesto": True,
+                "tiene_gato_cruceta": False,
+                "tiene_kit_carretera": True,
+                "tiene_documentos": True,
+                "danos_carroceria": "Rayón puerta derecha",
+                "observaciones": "Todo en orden",
+            }
+        )
         assert inspeccion_id > 0
         inspecciones = InspeccionService.listar_por_renta(renta_id)
         inspeccion = next((i for i in inspecciones if i["id"] == inspeccion_id), None)
@@ -431,58 +479,72 @@ class TestInspeccionService:
     def test_registrar_inspeccion_sin_id_renta(self):
         """registrar() raises error when id_renta is missing."""
         with pytest.raises((ValidacionError, NegocioError), match="renta|Renta|ID"):
-            InspeccionService.registrar({
-                "tipo": "Salida",
-                "kilometraje": 10000,
-                "nivel_gasolina": "Lleno",
-            })
+            InspeccionService.registrar(
+                {
+                    "tipo": "Salida",
+                    "kilometraje": 10000,
+                    "nivel_gasolina": "Lleno",
+                }
+            )
 
     def test_registrar_inspeccion_sin_tipo(self):
         """registrar() raises error when tipo is missing."""
         renta_id = self._setup_renta("INP005")
         with pytest.raises((ValidacionError, NegocioError), match="tipo|Tipo|Inspección"):
-            InspeccionService.registrar({
-                "id_renta": renta_id,
-                "kilometraje": 10000,
-                "nivel_gasolina": "Lleno",
-            })
+            InspeccionService.registrar(
+                {
+                    "id_renta": renta_id,
+                    "kilometraje": 10000,
+                    "nivel_gasolina": "Lleno",
+                }
+            )
 
     def test_registrar_inspeccion_sin_kilometraje(self):
         """registrar() raises error when kilometraje is missing."""
         renta_id = self._setup_renta("INP006")
         with pytest.raises((ValidacionError, NegocioError), match="kilometraje|Kilometraje"):
-            InspeccionService.registrar({
-                "id_renta": renta_id,
-                "tipo": "Salida",
-                "nivel_gasolina": "Lleno",
-            })
+            InspeccionService.registrar(
+                {
+                    "id_renta": renta_id,
+                    "tipo": "Salida",
+                    "nivel_gasolina": "Lleno",
+                }
+            )
 
     def test_registrar_inspeccion_sin_nivel_gasolina(self):
         """registrar() raises error when nivel_gasolina is missing (required in schema)."""
         renta_id = self._setup_renta("INP007")
-        with pytest.raises((ValidacionError, NegocioError), match="nivel_gasolina|gasolina|Gasolina"):
-            InspeccionService.registrar({
-                "id_renta": renta_id,
-                "tipo": "Salida",
-                "kilometraje": 10000,
-            })
+        with pytest.raises(
+            (ValidacionError, NegocioError), match="nivel_gasolina|gasolina|Gasolina"
+        ):
+            InspeccionService.registrar(
+                {
+                    "id_renta": renta_id,
+                    "tipo": "Salida",
+                    "kilometraje": 10000,
+                }
+            )
 
     def test_registrar_varias_inspecciones_misma_renta(self):
         """registrar() can add multiple inspections for the same rental."""
         renta_id = self._setup_renta("INP008")
-        InspeccionService.registrar({
-            "id_renta": renta_id,
-            "tipo": "Salida",
-            "kilometraje": 20000,
-            "nivel_gasolina": "Lleno",
-        })
-        InspeccionService.registrar({
-            "id_renta": renta_id,
-            "tipo": "Retorno",
-            "kilometraje": 20350,
-            "nivel_gasolina": "1/2",
-            "danos_carroceria": "Ninguno",
-        })
+        InspeccionService.registrar(
+            {
+                "id_renta": renta_id,
+                "tipo": "Salida",
+                "kilometraje": 20000,
+                "nivel_gasolina": "Lleno",
+            }
+        )
+        InspeccionService.registrar(
+            {
+                "id_renta": renta_id,
+                "tipo": "Retorno",
+                "kilometraje": 20350,
+                "nivel_gasolina": "1/2",
+                "danos_carroceria": "Ninguno",
+            }
+        )
         inspecciones = InspeccionService.listar_por_renta(renta_id)
         assert len(inspecciones) == 2
 
@@ -495,12 +557,14 @@ class TestInspeccionService:
     def test_inspeccion_estructura_respuesta(self):
         """listar_por_renta() returns inspections with expected keys."""
         renta_id = self._setup_renta("INP009")
-        InspeccionService.registrar({
-            "id_renta": renta_id,
-            "tipo": "Salida",
-            "kilometraje": 5000,
-            "nivel_gasolina": "Lleno",
-        })
+        InspeccionService.registrar(
+            {
+                "id_renta": renta_id,
+                "tipo": "Salida",
+                "kilometraje": 5000,
+                "nivel_gasolina": "Lleno",
+            }
+        )
         inspecciones = InspeccionService.listar_por_renta(renta_id)
         inspeccion = inspecciones[0]
         assert "id" in inspeccion

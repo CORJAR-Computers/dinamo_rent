@@ -3,6 +3,7 @@ inspeccion_repository_sa.py — Repositorio de Inspecciones
 
 F1C: Extraído de repositories_sa.py. Sin cambios funcionales.
 """
+
 from typing import List, Dict
 
 
@@ -15,13 +16,15 @@ log = get_logger(__name__)
 
 
 class InspeccionRepositorySA:
-
     @staticmethod
     def obtener_por_renta(id_renta: int) -> List[Dict]:
         with get_session() as session:
-            inspecciones = session.query(Inspeccion).filter(
-                Inspeccion.id_renta == id_renta
-            ).order_by(Inspeccion.fecha).all()
+            inspecciones = (
+                session.query(Inspeccion)
+                .filter(Inspeccion.id_renta == id_renta)
+                .order_by(Inspeccion.fecha)
+                .all()
+            )
 
             return [InspeccionRepositorySA._to_dict(i) for i in inspecciones]
 
@@ -50,17 +53,17 @@ class InspeccionRepositorySA:
     @staticmethod
     def _to_dict(insp: Inspeccion) -> Dict:
         return {
-            'id': insp.id,
-            'id_renta': insp.id_renta,
-            'tipo': insp.tipo,
-            'fecha': insp.fecha,
-            'kilometraje': insp.kilometraje,
-            'nivel_gasolina': insp.nivel_gasolina,
-            'limpieza': insp.limpieza,
-            'tiene_repuesto': bool(insp.tiene_repuesto),
-            'tiene_gato_cruceta': bool(insp.tiene_gato_cruceta),
-            'tiene_kit_carretera': bool(insp.tiene_kit_carretera),
-            'tiene_documentos': bool(insp.tiene_documentos),
-            'danos_carroceria': insp.danos_carroceria,
-            'observaciones': insp.observaciones,
+            "id": insp.id,
+            "id_renta": insp.id_renta,
+            "tipo": insp.tipo,
+            "fecha": insp.fecha,
+            "kilometraje": insp.kilometraje,
+            "nivel_gasolina": insp.nivel_gasolina,
+            "limpieza": insp.limpieza,
+            "tiene_repuesto": bool(insp.tiene_repuesto),
+            "tiene_gato_cruceta": bool(insp.tiene_gato_cruceta),
+            "tiene_kit_carretera": bool(insp.tiene_kit_carretera),
+            "tiene_documentos": bool(insp.tiene_documentos),
+            "danos_carroceria": insp.danos_carroceria,
+            "observaciones": insp.observaciones,
         }

@@ -9,6 +9,7 @@ que Python use bytecode obsoleto.
 Uso:
     python limpiar_cache.py
 """
+
 import os
 import shutil
 

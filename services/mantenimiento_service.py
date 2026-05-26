@@ -16,7 +16,6 @@ audit = get_audit_logger()
 
 
 class MantenimientoService:
-
     @staticmethod
     def listar_historial(limite: int = 50) -> List[Dict]:
         return MantenimientoRepositorySA.obtener_historial(limite)
@@ -39,7 +38,9 @@ class MantenimientoService:
             "pieza_varias_desc": datos.get("desc"),
             "pieza_varias_obs": datos.get("obs"),
             "cost_varios": float(datos.get("costo", 0)),
-            "km_proximo_cambio_aceite": int(datos.get("prox_km", 0)) if datos["tipo"] == "Cambio Aceite" else 0,
+            "km_proximo_cambio_aceite": int(datos.get("prox_km", 0))
+            if datos["tipo"] == "Cambio Aceite"
+            else 0,
             "total_mantenimiento": float(datos.get("costo", 0)),
         }
 
@@ -74,5 +75,6 @@ class MantenimientoService:
             MantenimientoRepositorySA.insertar(mant_validado, session=uow.session)
             MantenimientoRepositorySA.actualizar_auto(placa, campos_auto, session=uow.session)
 
-        audit.info("Mantenimiento registrado: placa=%s, tipo=%s, costo=%s",
-                   placa, tipo, datos.get("costo"))
+        audit.info(
+            "Mantenimiento registrado: placa=%s, tipo=%s, costo=%s", placa, tipo, datos.get("costo")
+        )

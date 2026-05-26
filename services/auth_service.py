@@ -1,8 +1,11 @@
 """Authentication service with enhanced security."""
 
-from typing import Optional
-
-from core.exceptions import CredencialesInvalidas, CuentaBloqueadaError, RateLimitExceededError, ValidacionError
+from core.exceptions import (
+    CredencialesInvalidas,
+    CuentaBloqueadaError,
+    RateLimitExceededError,
+    ValidacionError,
+)
 from core.logger import get_logger, get_audit_logger
 from core.security import SecurityManager, SessionManager, login_tracker
 from repositories.repositories_sa import UsuarioRepositorySA
@@ -12,7 +15,6 @@ audit = get_audit_logger()
 
 
 class AuthService:
-
     @staticmethod
     def login(username: str, password: str, ip: str = None) -> dict:
         if not username or not password:
@@ -23,10 +25,15 @@ class AuthService:
             remaining_time = login_tracker.get_lockout_remaining_time(username)
             minutes = remaining_time // 60
             seconds = remaining_time % 60
-            log.warning("Intento de login en cuenta bloqueada: %s (restan %dm %ds)", username, minutes, seconds)
+            log.warning(
+                "Intento de login en cuenta bloqueada: %s (restan %dm %ds)",
+                username,
+                minutes,
+                seconds,
+            )
             raise CuentaBloqueadaError(
                 detalle=f"Cuenta bloqueada por {minutes} minutos y {seconds} segundos",
-                mensaje_usuario=f"Tu cuenta está bloqueada. Intenta nuevamente en {minutes} minutos."
+                mensaje_usuario=f"Tu cuenta está bloqueada. Intenta nuevamente en {minutes} minutos.",
             )
 
         # Verificar rate limiting por IP
@@ -36,7 +43,7 @@ class AuthService:
                 log.warning("Rate limit excedido por IP: %s (intentos: %d)", ip, attempts)
                 raise RateLimitExceededError(
                     detalle="Demasiados intentos desde esta IP",
-                    mensaje_usuario="Demasiados intentos. Espera unos minutos."
+                    mensaje_usuario="Demasiados intentos. Espera unos minutos.",
                 )
 
         # Verificar rate limiting por usuario
@@ -44,7 +51,7 @@ class AuthService:
             log.warning("Rate limit excedido para usuario: %s", username)
             raise RateLimitExceededError(
                 detalle="Demasiados intentos de login en corto tiempo",
-                mensaje_usuario="Demasiados intentos. Espera unos minutos antes de intentar nuevamente."
+                mensaje_usuario="Demasiados intentos. Espera unos minutos antes de intentar nuevamente.",
             )
 
         # Buscar usuario
@@ -55,8 +62,20 @@ class AuthService:
             attempts = login_tracker.record_failed_attempt(username, ip)
             remaining = login_tracker.get_remaining_attempts(username)
 
-            log.warning("Intento de login fallido: %s (intentos: %d, restantes: %d, IP: %s)", username, attempts, remaining, ip or "desconocida")
-            audit.info("LOGIN FALLIDO: usuario=%s, intentos=%d, restantes=%d, IP=%s", username, attempts, remaining, ip or "desconocida")
+            log.warning(
+                "Intento de login fallido: %s (intentos: %d, restantes: %d, IP: %s)",
+                username,
+                attempts,
+                remaining,
+                ip or "desconocida",
+            )
+            audit.info(
+                "LOGIN FALLIDO: usuario=%s, intentos=%d, restantes=%d, IP=%s",
+                username,
+                attempts,
+                remaining,
+                ip or "desconocida",
+            )
 
             # Bloquear cuenta si se excedieron los intentos
             if attempts >= 5:
@@ -77,7 +96,9 @@ class AuthService:
         )
 
         log.info("Login exitoso: %s (rol=%s, IP=%s)", username, usuario["rol"], ip or "desconocida")
-        audit.info("LOGIN OK: usuario=%s, rol=%s, IP=%s", username, usuario["rol"], ip or "desconocida")
+        audit.info(
+            "LOGIN OK: usuario=%s, rol=%s, IP=%s", username, usuario["rol"], ip or "desconocida"
+        )
 
         return {
             "success": True,
@@ -123,8 +144,12 @@ class AuthService:
 
         # 2. Verificar contraseña actual
         if not SecurityManager.verify_password(usuario["password"], current_password):
-            log.warning("Intento de cambio de contraseña con contraseña actual incorrecta: %s", username)
-            audit.warning("CAMBIO CONTRASEÑA FALLIDO: usuario=%s (contraseña actual incorrecta)", username)
+            log.warning(
+                "Intento de cambio de contraseña con contraseña actual incorrecta: %s", username
+            )
+            audit.warning(
+                "CAMBIO CONTRASEÑA FALLIDO: usuario=%s (contraseña actual incorrecta)", username
+            )
             raise CredencialesInvalidas(mensaje_usuario="La contraseña actual no es correcta.")
 
         # 3. No puede ser igual a la actual
@@ -139,7 +164,7 @@ class AuthService:
             error_msg = "; ".join(errors)
             raise ValidacionError(
                 detalle=f"Contraseña débil: {error_msg}",
-                mensaje_usuario=f"La contraseña no cumple los requisitos: {error_msg}"
+                mensaje_usuario=f"La contraseña no cumple los requisitos: {error_msg}",
             )
 
         # 5. Actualizar en base de datos

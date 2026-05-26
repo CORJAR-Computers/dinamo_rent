@@ -1,16 +1,25 @@
 from views.components import ModernMessageBox
+
 """
 views/calendario_view.py — Calendario de Disponibilidad
 
 Colores: Azul claro=Disponible, Verde=Rentado, Amarillo=Reservado
-Herencia: BaseWidget. Estilos via views.styles.py.
+Herencia: BaseWidget. Estilos via QSS class-based.
 """
 import calendar
 from datetime import date, datetime
 
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
-    QPushButton, QLabel, QHeaderView, QAbstractItemView, QWidget, QFrame,
+    QVBoxLayout,
+    QHBoxLayout,
+    QTableWidget,
+    QTableWidgetItem,
+    QPushButton,
+    QLabel,
+    QHeaderView,
+    QAbstractItemView,
+    QWidget,
+    QFrame,
 )
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QFont
@@ -21,54 +30,31 @@ from services.renta_service import RentaService
 from services.dashboard_service import DashboardService
 from views.base_widget import BaseWidget
 
-# ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
-_NAV   = "#1a3558"
-_BLUE  = "#2563eb"
-_BG    = "#f1f5f9"
-_SURF  = "#ffffff"
-_BORD  = "#cbd5e1"
-_TEXT  = "#1e293b"
+_NAV = "#1a3558"
+_BLUE = "#2563eb"
+_BG = "#f1f5f9"
+_SURF = "#ffffff"
+_BORD = "#cbd5e1"
+_TEXT = "#1e293b"
 _MUTED = "#64748b"
-
-_CAL_STYLE = f"""
-QWidget {{
-    font-family: 'Segoe UI', sans-serif;
-    background: {_BG};
-}}
-QTableWidget {{
-    background: {_SURF};
-    border: 1px solid {_BORD};
-    border-radius: 8px;
-        gridline-color: #ffffff;
-}}
-QHeaderView::section {{
-    background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
-        stop:0 {_NAV}, stop:1 #1e3f6e);
-    color: #ffffff;
-    font-size: 8.5pt;
-    font-weight: 700;
-    padding: 6px 4px;
-    border: none;
-    border-right: 1px solid rgba(255,255,255,0.12);
-    letter-spacing: 0.2px;
-}}
-QHeaderView::section:first {{
-    border-top-left-radius: 8px;
-    min-width: 110px;
-}}
-QTableWidget::item {{
-        border-right: 3px solid #ffffff;
-        border-bottom: 3px solid #ffffff;
-}}
-"""
 
 
 class CalendarioWidget(BaseWidget):
     """Panel de Calendario de Disponibilidad de Flota — Dinamo Pro."""
 
     _MESES = [
-        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+        "Enero",
+        "Febrero",
+        "Marzo",
+        "Abril",
+        "Mayo",
+        "Junio",
+        "Julio",
+        "Agosto",
+        "Septiembre",
+        "Octubre",
+        "Noviembre",
+        "Diciembre",
     ]
 
     def __init__(self, session_id: str = None):
@@ -76,8 +62,6 @@ class CalendarioWidget(BaseWidget):
         self.fecha_actual = date.today()
         self.mes_vista = self.fecha_actual.month
         self.anio_vista = self.fecha_actual.year
-        self.setStyleSheet(_CAL_STYLE)
-
         self._setup_ui()
         self._init_loading_overlay("Cargando calendario...")
         QTimer.singleShot(0, lambda: self._deferred_call(self.cargar_calendario))
@@ -90,10 +74,7 @@ class CalendarioWidget(BaseWidget):
         # ── Banner superior con gradiente ────────────────────────────────
         banner = QWidget()
         banner.setFixedHeight(64)
-        banner.setStyleSheet(f"""
-            background: qlineargradient(x1:0,y1:0,x2:1,y2:0,
-                stop:0 {_NAV}, stop:1 {_BLUE});
-        """)
+        banner.setProperty("class", "banner")
         b_lay = QHBoxLayout(banner)
         b_lay.setContentsMargins(22, 0, 22, 0)
         b_lay.setSpacing(14)
@@ -101,26 +82,16 @@ class CalendarioWidget(BaseWidget):
         ico = QLabel("📅")
         ico.setFixedSize(40, 40)
         ico.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        ico.setStyleSheet("""
-            QLabel {
-                background: rgba(255,255,255,0.15);
-                border-radius: 20px;
-                font-size: 18px;
-            }
-        """)
+        ico.setProperty("class", "banner-icon")
         b_lay.addWidget(ico)
 
         t_col = QVBoxLayout()
         t_col.setSpacing(1)
         t_col.addStretch()
         lbl_t = QLabel("Calendario de Disponibilidad")
-        lbl_t.setStyleSheet(
-            "QLabel { color:#fff; font-size:14pt; font-weight:700; background:transparent; }"
-        )
+        lbl_t.setProperty("class", "banner-title")
         lbl_s = QLabel("Vista mensual de la flota")
-        lbl_s.setStyleSheet(
-            "QLabel { color:rgba(255,255,255,0.72); font-size:9pt; background:transparent; }"
-        )
+        lbl_s.setProperty("class", "banner-subtitle")
         t_col.addWidget(lbl_t)
         t_col.addWidget(lbl_s)
         t_col.addStretch()
@@ -130,7 +101,7 @@ class CalendarioWidget(BaseWidget):
 
         # ── Área de contenido ────────────────────────────────────────────
         content = QWidget()
-        content.setStyleSheet(f"QWidget {{ background: {_BG}; }}")
+
         c_lay = QVBoxLayout(content)
         c_lay.setContentsMargins(20, 16, 20, 16)
         c_lay.setSpacing(12)
@@ -138,41 +109,16 @@ class CalendarioWidget(BaseWidget):
 
         # ── Barra de navegación de mes ───────────────────────────────────
         nav_card = QFrame()
-        nav_card.setStyleSheet(f"""
-            QFrame {{
-                background: {_SURF};
-                border: 1px solid {_BORD};
-                border-radius: 10px;
-            }}
-        """)
+        nav_card.setProperty("class", "card")
         nav_lay = QHBoxLayout(nav_card)
         nav_lay.setContentsMargins(14, 10, 14, 10)
         nav_lay.setSpacing(12)
 
         btn_prev = QPushButton("◀  Anterior")
         btn_next = QPushButton("Siguiente  ▶")
-        btn_act  = QPushButton("↻  Actualizar")
+        btn_act = QPushButton("↻  Actualizar")
         for b in (btn_prev, btn_next, btn_act):
-            b.setStyleSheet(f"""
-                QPushButton {{
-                    background: {_BG};
-                    color: {_TEXT};
-                    border: 1px solid {_BORD};
-                    border-radius: 7px;
-                    padding: 6px 16px;
-                    font-size: 9.5pt;
-                    font-weight: 600;
-                    min-height: 30px;
-                }}
-                QPushButton:hover {{
-                    background: #e2eaf6;
-                    border-color: {_BLUE};
-                    color: {_BLUE};
-                }}
-                QPushButton:pressed {{
-                    background: #d1ddf5;
-                }}
-            """)
+            b.setProperty("class", "ghost")
         btn_prev.clicked.connect(self.mes_anterior)
         btn_next.clicked.connect(self.mes_siguiente)
         btn_act.clicked.connect(self.cargar_calendario)
@@ -180,15 +126,9 @@ class CalendarioWidget(BaseWidget):
         # Etiqueta del mes — centrada y destacada
         self.lbl_mes = QLabel("MES AÑO")
         self.lbl_mes.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lbl_mes.setStyleSheet(f"""
-            QLabel {{
-                color: {_NAV};
-                font-size: 13pt;
-                font-weight: 700;
-                letter-spacing: 0.3px;
-                background: transparent;
-            }}
-        """)
+        self.lbl_mes.setStyleSheet(
+            "QLabel { font-size: 13pt; font-weight: 700; letter-spacing: 0.3px; }"
+        )
 
         nav_lay.addWidget(btn_prev)
         nav_lay.addStretch()
@@ -202,34 +142,19 @@ class CalendarioWidget(BaseWidget):
         ley_lay = QHBoxLayout()
         ley_lay.setSpacing(10)
 
-        for texto, color_bg, color_border, emoji in (
-            ("Disponible", "#dbeafe", "#3b82f6", "🔵"),
-            ("Rentado",    "#dcfce7", "#22c55e", "🟢"),
-            ("Reservado",  "#fef08a", "#eab308", "🟡"),
-            ("En Taller",  "#ffedd5", "#f97316", "🟠"),
+        for texto, emoji, legend_class in (
+            ("Disponible", "🔵", "legend-available"),
+            ("Rentado", "🟢", "legend-rented"),
+            ("Reservado", "🟡", "legend-reserved"),
+            ("En Taller", "🟠", "legend-warning"),
         ):
             pill = QLabel(f" {emoji}  {texto} ")
-            pill.setStyleSheet(f"""
-                background: {color_bg};
-                color: {_TEXT};
-                border: 1px solid {color_border};
-                border-radius: 12px;
-                padding: 4px 12px;
-                font-size: 9pt;
-                font-weight: 600;
-            """)
+            pill.setProperty("class", legend_class)
             ley_lay.addWidget(pill)
 
         # Leyenda de fin de semana
         pill_fe = QLabel(" 🗓  Fin de semana (negrita) ")
-        pill_fe.setStyleSheet(f"""
-            background: #f1f5f9;
-            color: {_MUTED};
-            border: 1px solid {_BORD};
-            border-radius: 12px;
-            padding: 4px 12px;
-            font-size: 9pt;
-        """)
+        pill_fe.setProperty("class", "badge")
         ley_lay.addWidget(pill_fe)
         ley_lay.addStretch()
         c_lay.addLayout(ley_lay)
@@ -268,29 +193,31 @@ class CalendarioWidget(BaseWidget):
         self.tabla.setColumnCount(dias_en_mes + 1)
         headers = ["VEHÍCULO"] + [str(d) for d in range(1, dias_en_mes + 1)]
         self.tabla.setHorizontalHeaderLabels(headers)
-        self.tabla.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.tabla.horizontalHeader().setSectionResizeMode(
+            0, QHeaderView.ResizeMode.ResizeToContents
+        )
         for c in range(1, dias_en_mes + 1):
             self.tabla.setColumnWidth(c, 44)
 
-        autos  = self._obtener_autos()
+        autos = self._obtener_autos()
         rentas = self._obtener_rentas_calendario()
         if autos is None:
             return
 
         self.tabla.setRowCount(0)
-        color_disp = QColor("#dbeafe") # Azul claro
-        color_rent = QColor("#dcfce7") # Verde claro
-        color_resv = QColor("#fef08a") # Amarillo pastel
-        color_tall = QColor("#ffedd5") # Naranja claro
+        color_disp = QColor("#dbeafe")  # Azul claro
+        color_rent = QColor("#dcfce7")  # Verde claro
+        color_resv = QColor("#fef08a")  # Amarillo pastel
+        color_tall = QColor("#ffedd5")  # Naranja claro
 
         # Color de resaltado para el día actual
         hoy = date.today()
 
         for i, auto in enumerate(autos):
             self.tabla.insertRow(i)
-            placa  = auto.get("placa", "")
+            placa = auto.get("placa", "")
             modelo = auto.get("modelo", "")
-            marca  = auto.get("marca", "")
+            marca = auto.get("marca", "")
 
             item_auto = QTableWidgetItem(f"{placa}\n{marca} {modelo}")
             item_auto.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -320,7 +247,7 @@ class CalendarioWidget(BaseWidget):
                 # Marcar el día actual con un punto sobre el color de estado
                 if fecha_dia == hoy:
                     item.setText("●")
-                    item.setForeground(QColor("#0f172a")) # Punto oscuro para buen contraste
+                    item.setForeground(QColor("#0f172a"))  # Punto oscuro para buen contraste
 
                 dia_semana = calendar.weekday(self.anio_vista, self.mes_vista, dia)
                 if dia_semana >= 5:
@@ -365,7 +292,9 @@ class CalendarioWidget(BaseWidget):
         try:
             return AutoService.listar()
         except DinamoBaseError as e:
-            ModernMessageBox.warning(self, "Error", f"No se pudo obtener la flota:\n{e.mensaje_usuario}")
+            ModernMessageBox.warning(
+                self, "Error", f"No se pudo obtener la flota:\n{e.mensaje_usuario}"
+            )
             return None
         except Exception as e:
             ModernMessageBox.warning(self, "Error", f"No se pudo obtener la flota:\n{e}")

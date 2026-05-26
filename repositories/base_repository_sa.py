@@ -9,7 +9,6 @@ Todos los repositorios usan session_scope(session) para soportar
 tanto operaciones independientes como transaccionales.
 """
 
-
 from core.database_sa import get_session
 from core.logger import get_logger
 

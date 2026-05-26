@@ -4,18 +4,23 @@ Permite alternar entre SQLite y MySQL, probar la conexión y recargar el motor e
 """
 
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-    QComboBox, QPushButton, QFormLayout, QMessageBox, QFrame
+    QDialog,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QComboBox,
+    QPushButton,
+    QFormLayout,
+    QMessageBox,
+    QFrame,
 )
 from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QGraphicsDropShadowEffect
+from PySide6.QtGui import QColor
 from sqlalchemy import create_engine, text
 
-from core.config import (
-    guardar_configuracion, DB_ENGINE, DB_PATH, DB_MYSQL
-)
-from views.styles import (
-    input_field, input_combo, btn_primary, btn_default, dialog_background, apply_shadow
-)
+from core.config import guardar_configuracion, DB_ENGINE, DB_MYSQL
 import core.config
 import core.database_sa
 import importlib
@@ -29,8 +34,6 @@ class DatabaseConfigDialog(QDialog):
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         # Aplicar estilos base
-        dialog_background(self)
-
         self._connection_ok = False
         self._init_ui()
 
@@ -42,7 +45,9 @@ class DatabaseConfigDialog(QDialog):
         # Título y descripción
         lbl_title = QLabel("Configurar Base de Datos")
         lbl_title.setStyleSheet("font-size: 16pt; font-weight: bold; color: #1e3a8a;")
-        lbl_desc = QLabel("Seleccione el motor de base de datos e ingrese los parámetros de conexión.")
+        lbl_desc = QLabel(
+            "Seleccione el motor de base de datos e ingrese los parámetros de conexión."
+        )
         lbl_desc.setWordWrap(True)
         lbl_desc.setStyleSheet("color: #64748b; font-size: 10pt;")
 
@@ -52,8 +57,14 @@ class DatabaseConfigDialog(QDialog):
         # Card del Formulario
         self.form_card = QFrame()
         self.form_card.setObjectName("formCard")
-        self.form_card.setStyleSheet("QFrame#formCard { background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; }")
-        apply_shadow(self.form_card)
+        self.form_card.setStyleSheet(
+            "QFrame#formCard { background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; }"
+        )
+        _shadow = QGraphicsDropShadowEffect(self.form_card)
+        _shadow.setBlurRadius(15)
+        _shadow.setColor(QColor(0, 0, 0, 30))
+        _shadow.setOffset(0, 2)
+        self.form_card.setGraphicsEffect(_shadow)
 
         card_layout = QVBoxLayout(self.form_card)
         card_layout.setContentsMargins(15, 15, 15, 15)
@@ -66,13 +77,11 @@ class DatabaseConfigDialog(QDialog):
         # Selector de Motor
         self.cmb_engine = QComboBox()
         self.cmb_engine.addItems(["sqlite", "mysql"])
-        input_combo(self.cmb_engine)
         self.cmb_engine.currentTextChanged.connect(self._toggle_engine_fields)
         self.form_layout.addRow("Motor de BD:", self.cmb_engine)
 
         # Campos de SQLite
         self.txt_path = QLineEdit()
-        input_field(self.txt_path)
         self.lbl_path = QLabel("Ruta del archivo:")
         self.form_layout.addRow(self.lbl_path, self.txt_path)
 
@@ -83,9 +92,6 @@ class DatabaseConfigDialog(QDialog):
         self.txt_pass = QLineEdit()
         self.txt_pass.setEchoMode(QLineEdit.EchoMode.Password)
         self.txt_db = QLineEdit()
-
-        for widget in (self.txt_host, self.txt_port, self.txt_user, self.txt_pass, self.txt_db):
-            input_field(widget)
 
         self.lbl_host = QLabel("Host:")
         self.lbl_port = QLabel("Puerto:")
@@ -108,7 +114,7 @@ class DatabaseConfigDialog(QDialog):
         # Botón de Probar Conexión e Indicador de Estado
         hbox_test = QHBoxLayout()
         self.btn_test = QPushButton("Probar Conexión")
-        btn_default(self.btn_test)
+        self.btn_test.setProperty("class", "ghost")
         self.btn_test.clicked.connect(self._test_connection)
 
         self.lbl_status = QLabel("Sin comprobar")
@@ -122,11 +128,11 @@ class DatabaseConfigDialog(QDialog):
         # Botones de Aceptar / Cancelar
         hbox_buttons = QHBoxLayout()
         self.btn_save = QPushButton("Guardar y Aplicar")
-        btn_primary(self.btn_save)
+        self.btn_save.setProperty("class", "primary")
         self.btn_save.clicked.connect(self._save_and_apply)
 
         self.btn_cancel = QPushButton("Cancelar")
-        btn_default(self.btn_cancel)
+        self.btn_cancel.setProperty("class", "ghost")
         self.btn_cancel.clicked.connect(self.reject)
 
         hbox_buttons.addStretch()
@@ -142,7 +148,6 @@ class DatabaseConfigDialog(QDialog):
         self.cmb_engine.setCurrentText(DB_ENGINE)
 
         # Cargar SQLite
-        import os
         db_name = core.config._cfg.get("database", "path", "dinamo_rent_v3.db")
         self.txt_path.setText(db_name)
 
@@ -154,17 +159,26 @@ class DatabaseConfigDialog(QDialog):
         self.txt_db.setText(DB_MYSQL.get("database", "dinamo_rent"))
 
     def _toggle_engine_fields(self, engine):
-        is_mysql = (engine == "mysql")
-        is_sqlite = (engine == "sqlite")
+        is_mysql = engine == "mysql"
+        is_sqlite = engine == "sqlite"
 
         # Alternar campos SQLite
         self.lbl_path.setVisible(is_sqlite)
         self.txt_path.setVisible(is_sqlite)
 
         # Alternar campos MySQL
-        for widget in (self.lbl_host, self.txt_host, self.lbl_port, self.txt_port,
-                       self.lbl_user, self.txt_user, self.lbl_pass, self.txt_pass,
-                       self.lbl_db, self.txt_db):
+        for widget in (
+            self.lbl_host,
+            self.txt_host,
+            self.lbl_port,
+            self.txt_port,
+            self.lbl_user,
+            self.txt_user,
+            self.lbl_pass,
+            self.txt_pass,
+            self.lbl_db,
+            self.txt_db,
+        ):
             widget.setVisible(is_mysql)
 
         self._connection_ok = False
@@ -226,10 +240,11 @@ class DatabaseConfigDialog(QDialog):
         if not self._connection_ok:
             # Advertir al usuario si no ha probado la conexión
             ret = QMessageBox.question(
-                self, "Conexión no verificada",
+                self,
+                "Conexión no verificada",
                 "No ha verificado exitosamente la conexión. ¿Desea guardar de todos modos?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
+                QMessageBox.StandardButton.No,
             )
             if ret == QMessageBox.StandardButton.No:
                 return
@@ -260,14 +275,16 @@ class DatabaseConfigDialog(QDialog):
             core.database_sa.init_db()
 
             QMessageBox.information(
-                self, "Éxito",
+                self,
+                "Éxito",
                 f"Configuración de Base de Datos actualizada a {engine_type.upper()} exitosamente en caliente.",
-                QMessageBox.StandardButton.Ok
+                QMessageBox.StandardButton.Ok,
             )
             self.accept()
         except Exception as e:
             QMessageBox.critical(
-                self, "Error al Inicializar",
+                self,
+                "Error al Inicializar",
                 f"Se guardó la configuración pero falló la inicialización del motor:\n{str(e)}",
-                QMessageBox.StandardButton.Ok
+                QMessageBox.StandardButton.Ok,
             )

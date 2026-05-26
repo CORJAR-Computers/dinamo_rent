@@ -14,7 +14,8 @@ from pathlib import Path
 # Forzar UTF-8 para evitar UnicodeEncodeError en Windows
 try:
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 except Exception:
     pass
 
@@ -61,6 +62,7 @@ MODULOS_A_PERFILAR = [
 
 # ── Import individual con medicion ─────────────────────────────────────
 
+
 def medir_import(module_name: str) -> dict:
     """Importa el modulo desde un estado limpio y mide el tiempo."""
     # Sacar el modulo de sys.modules si ya esta cached
@@ -93,6 +95,7 @@ def medir_import(module_name: str) -> dict:
 
 
 # ── Main ───────────────────────────────────────────────────────────────
+
 
 def main():
     print("=" * 70)
@@ -140,7 +143,7 @@ def main():
 
     heavies = [r for r in resultados.values() if r["status"] == "ok" and r["time_ms"] > 30]
     if heavies:
-        print(f"\n  Modulos que tardan >30ms (candidatos a lazy import):")
+        print("\n  Modulos que tardan >30ms (candidatos a lazy import):")
         for r in sorted(heavies, key=lambda x: x["time_ms"], reverse=True):
             print(f"    - {r['module']:45s} {r['time_ms']:>8.2f} ms")
     else:

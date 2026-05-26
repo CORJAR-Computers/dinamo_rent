@@ -25,6 +25,7 @@ from core.security_utils import (
 # Fixtures
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @pytest.fixture(autouse=True)
 def reset_credential_manager():
     """Clear CredentialManager state before each test."""
@@ -69,8 +70,8 @@ def temp_env_file():
 # FileEncryptor._derive_key
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestDeriveKey:
 
+class TestDeriveKey:
     def test_retorna_bytes(self):
         """_derive_key returns a bytes object."""
         salt = os.urandom(16)
@@ -117,8 +118,8 @@ class TestDeriveKey:
 # FileEncryptor.encrypt_file
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestEncryptFile:
 
+class TestEncryptFile:
     def test_encripta_archivo_retorna_ruta(self, temp_file):
         """encrypt_file returns the output path."""
         output = FileEncryptor.encrypt_file(temp_file, "s3cr3t")
@@ -156,7 +157,7 @@ class TestEncryptFile:
         """Encrypted file starts with a 16-byte salt before the encrypted data."""
         output = FileEncryptor.encrypt_file(temp_file, "s3cr3t")
         try:
-            with open(output, 'rb') as f:
+            with open(output, "rb") as f:
                 salt = f.read(16)
                 payload = f.read()
             assert len(salt) == 16
@@ -166,11 +167,11 @@ class TestEncryptFile:
 
     def test_archivo_encriptado_diferente_al_original(self, temp_file):
         """Encrypted content is different from original content."""
-        with open(temp_file, 'rb') as f:
+        with open(temp_file, "rb") as f:
             original = f.read()
         output = FileEncryptor.encrypt_file(temp_file, "s3cr3t")
         try:
-            with open(output, 'rb') as f:
+            with open(output, "rb") as f:
                 encrypted = f.read()
             assert encrypted != original
         finally:
@@ -184,9 +185,9 @@ class TestEncryptFile:
         out1 = FileEncryptor.encrypt_file(temp_file, "s3cr3t", output1)
         out2 = FileEncryptor.encrypt_file(temp_file, "s3cr3t", output2)
         try:
-            with open(out1, 'rb') as f:
+            with open(out1, "rb") as f:
                 data1 = f.read()
-            with open(out2, 'rb') as f:
+            with open(out2, "rb") as f:
                 data2 = f.read()
             assert data1 != data2
         finally:
@@ -198,7 +199,7 @@ class TestEncryptFile:
         """Empty file is encrypted without error."""
         # Create an empty file
         empty_path = temp_file + ".empty"
-        with open(empty_path, 'w') as f:
+        with open(empty_path, "w") as _:
             pass
         try:
             output = FileEncryptor.encrypt_file(empty_path, "pass")
@@ -214,16 +215,16 @@ class TestEncryptFile:
 # FileEncryptor.decrypt_file
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestDecryptFile:
 
+class TestDecryptFile:
     def test_ciclo_completo_encriptar_desencriptar(self, temp_file):
         """Round-trip encrypt -> decrypt produces original content."""
         encrypted = FileEncryptor.encrypt_file(temp_file, "s3cr3t")
         decrypted = FileEncryptor.decrypt_file(encrypted, "s3cr3t")
         try:
-            with open(decrypted, 'rb') as f:
+            with open(decrypted, "rb") as f:
                 content = f.read()
-            with open(temp_file, 'rb') as f:
+            with open(temp_file, "rb") as f:
                 original = f.read()
             assert content == original
         finally:
@@ -266,7 +267,7 @@ class TestDecryptFile:
             output = FileEncryptor.decrypt_file(encrypted, "s3cr3t", custom)
             assert output == custom
             assert os.path.exists(custom)
-            with open(custom, 'rb') as f:
+            with open(custom, "rb") as f:
                 assert len(f.read()) > 0
         finally:
             os.remove(encrypted)
@@ -290,21 +291,21 @@ class TestDecryptFile:
     def test_multiples_passwords(self, temp_file):
         """Multiple encrypt/decrypt cycles with different passwords work."""
         # Read original content to restore between iterations
-        with open(temp_file, 'rb') as f:
+        with open(temp_file, "rb") as f:
             original_content = f.read()
 
         passwords = ["pass1", "P@ssw0rd!", "una_clave_muy_larga_12345", "!@#$%"]
         for i, pwd in enumerate(passwords):
             # Use unique temp file per iteration to avoid overwrite issues
             iter_path = temp_file + f".iter{i}"
-            with open(iter_path, 'wb') as f:
+            with open(iter_path, "wb") as f:
                 f.write(original_content)
             encrypted = None
             decrypted = None
             try:
                 encrypted = FileEncryptor.encrypt_file(iter_path, pwd)
                 decrypted = FileEncryptor.decrypt_file(encrypted, pwd)
-                with open(decrypted, 'rb') as f:
+                with open(decrypted, "rb") as f:
                     content = f.read()
                 assert content == original_content
             finally:
@@ -317,8 +318,8 @@ class TestDecryptFile:
 # SecureEnvManager.mask_sensitive_value
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestMaskSensitiveValue:
 
+class TestMaskSensitiveValue:
     def test_valor_no_sensible_retorna_igual(self):
         """Non-sensitive key returns value unchanged."""
         result = SecureEnvManager.mask_sensitive_value("DB_HOST", "localhost")
@@ -388,8 +389,8 @@ class TestMaskSensitiveValue:
 # SecureEnvManager.validate_env_security
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestValidateEnvSecurity:
 
+class TestValidateEnvSecurity:
     def test_archivo_inexistente_retorna_issue(self):
         """Non-existent .env returns a single issue about file not found."""
         issues = SecureEnvManager.validate_env_security("/ruta/no/existe/.env")
@@ -414,11 +415,7 @@ class TestValidateEnvSecurity:
 
     def test_archivo_sin_problemas(self):
         """A clean .env with strong passwords produces no issues."""
-        content = (
-            "DB_HOST=localhost\n"
-            "DB_PASSWORD=StrongP@ss1\n"
-            "API_KEY=abc123XYZ!secure\n"
-        )
+        content = "DB_HOST=localhost\nDB_PASSWORD=StrongP@ss1\nAPI_KEY=abc123XYZ!secure\n"
         with tempfile.NamedTemporaryFile(delete=False, suffix=".env", mode="w") as f:
             f.write(content)
             clean_path = f.name
@@ -451,11 +448,7 @@ class TestValidateEnvSecurity:
 
     def test_detecta_password_por_defecto(self):
         """Known weak passwords like 'admin' or 'root' are flagged."""
-        content = (
-            "ADMIN_PASSWORD=admin\n"
-            "ROOT_PASSWORD=root\n"
-            "DB_PASSWORD=123456\n"
-        )
+        content = "ADMIN_PASSWORD=admin\nROOT_PASSWORD=root\nDB_PASSWORD=123456\n"
         with tempfile.NamedTemporaryFile(delete=False, suffix=".env", mode="w") as f:
             f.write(content)
             weak_path = f.name
@@ -472,8 +465,8 @@ class TestValidateEnvSecurity:
 # SecureEnvManager.secure_delete_file
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestSecureDeleteFile:
 
+class TestSecureDeleteFile:
     def test_elimina_archivo_retorna_true(self):
         """secure_delete_file returns True and removes the file."""
         with tempfile.NamedTemporaryFile(delete=False) as f:
@@ -516,6 +509,7 @@ class TestSecureDeleteFile:
 
         def broken_remove(path):
             raise PermissionError("Access denied")
+
         monkeypatch.setattr("os.remove", broken_remove)
 
         with tempfile.NamedTemporaryFile(delete=False) as f:
@@ -537,8 +531,8 @@ class TestSecureDeleteFile:
 # CredentialManager.store
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestCredentialManagerStore:
 
+class TestCredentialManagerStore:
     def test_almacena_credenciales(self):
         """store() saves credentials without error."""
         CredentialManager.store("api_service", "user1", "pass123")
@@ -576,8 +570,8 @@ class TestCredentialManagerStore:
 # CredentialManager.get
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestCredentialManagerGet:
 
+class TestCredentialManagerGet:
     def test_obtiene_credenciales_desencriptadas(self):
         """get() returns decrypted credentials."""
         CredentialManager.store("api", "my_user", "my_pass_123")
@@ -625,8 +619,8 @@ class TestCredentialManagerGet:
 # CredentialManager.clear
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestCredentialManagerClear:
 
+class TestCredentialManagerClear:
     def test_clear_servicio_especifico(self):
         """clear(service) removes only that service."""
         CredentialManager.store("svc_a", "u1", "p1")
@@ -661,8 +655,8 @@ class TestCredentialManagerClear:
 # CredentialManager.list_services
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestCredentialManagerListServices:
 
+class TestCredentialManagerListServices:
     def test_lista_vacia_inicialmente(self):
         """list_services() returns empty list with no stored services."""
         assert CredentialManager.list_services() == []
@@ -697,6 +691,7 @@ class TestCredentialManagerListServices:
 # CredentialManager.get — decrypt failure and non-encrypted paths
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestCredentialManagerGetEdgeCases:
     """Edge cases in CredentialManager.get(): decrypt failure and raw cred paths."""
 
@@ -707,6 +702,7 @@ class TestCredentialManagerGetEdgeCases:
 
         # Corrupt the internal Fernet key so decrypt fails
         from cryptography.fernet import Fernet
+
         original_fernet = CredentialManager._fernet
         wrong_key = Fernet.generate_key()  # Generate a different key
         CredentialManager._fernet = Fernet(wrong_key)
@@ -722,23 +718,23 @@ class TestCredentialManagerGetEdgeCases:
         """When _encrypted is falsy, get() returns raw dict (line 240)."""
         # Directly inject a non-encrypted credential (simulating legacy format)
         CredentialManager._credentials["legacy_svc"] = {
-            'username': 'legacy_user',
-            'password': 'plain_text_pass',
-            '_encrypted': False,
+            "username": "legacy_user",
+            "password": "plain_text_pass",
+            "_encrypted": False,
         }
         creds = CredentialManager.get("legacy_svc")
         assert creds is not None
-        assert creds['username'] == 'legacy_user'
-        assert creds['password'] == 'plain_text_pass'
+        assert creds["username"] == "legacy_user"
+        assert creds["password"] == "plain_text_pass"
 
     def test_credencial_sin_flag_encriptado_retorna_directa(self):
         """When _encrypted key is missing, get() returns raw dict (falls through to return cred)."""
         CredentialManager._credentials["old_svc"] = {
-            'username': 'old_user',
-            'password': 'old_pass',
+            "username": "old_user",
+            "password": "old_pass",
             # No '_encrypted' key
         }
         creds = CredentialManager.get("old_svc")
         assert creds is not None
-        assert creds['username'] == 'old_user'
-        assert creds['password'] == 'old_pass'
+        assert creds["username"] == "old_user"
+        assert creds["password"] == "old_pass"

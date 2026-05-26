@@ -10,6 +10,7 @@ Usar excepciones tipadas en lugar de cadenas de error permite:
 
 class DinamoBaseError(Exception):
     """Clase base para todas las excepciones de la aplicación."""
+
     mensaje_usuario: str = "Ocurrió un error inesperado."
 
     def __init__(self, detalle: str = "", mensaje_usuario: str = ""):
@@ -23,6 +24,7 @@ class DinamoBaseError(Exception):
 
 
 # ─── Base de datos ────────────────────────────────────────────────────────────
+
 
 class DatabaseError(DinamoBaseError):
     mensaje_usuario = "Error al acceder a la base de datos."
@@ -38,8 +40,10 @@ class DuplicadoError(DatabaseError):
 
 # ─── Validación ───────────────────────────────────────────────────────────────
 
+
 class ValidacionError(DinamoBaseError):
     """Se lanza cuando los datos de entrada no cumplen las reglas de negocio."""
+
     mensaje_usuario = "Los datos ingresados no son válidos."
 
 
@@ -61,6 +65,7 @@ class PlacaInvalida(ValidacionError):
 
 class RangoInvalido(ValidacionError):
     """Cuando un valor numérico está fuera del rango permitido."""
+
     def __init__(self, campo: str, minimo, maximo):
         super().__init__(
             detalle=f"'{campo}' debe estar entre {minimo} y {maximo}.",
@@ -70,8 +75,10 @@ class RangoInvalido(ValidacionError):
 
 # ─── Negocio ──────────────────────────────────────────────────────────────────
 
+
 class NegocioError(DinamoBaseError):
     """Reglas de negocio violadas (no es un error técnico)."""
+
     mensaje_usuario = "La operación no puede realizarse."
 
 
@@ -93,6 +100,7 @@ class ClienteEnListaNegra(NegocioError):
 
 # ─── Seguridad ────────────────────────────────────────────────────────────────
 
+
 class SeguridadError(DinamoBaseError):
     mensaje_usuario = "Acceso denegado."
 
@@ -110,11 +118,15 @@ class PermisoInsuficiente(SeguridadError):
 
 
 class CuentaBloqueadaError(SeguridadError):
-    mensaje_usuario = "Tu cuenta ha sido bloqueada por múltiples intentos fallidos. Contacta al administrador."
+    mensaje_usuario = (
+        "Tu cuenta ha sido bloqueada por múltiples intentos fallidos. Contacta al administrador."
+    )
 
 
 class RateLimitExceededError(SeguridadError):
-    mensaje_usuario = "Demasiados intentos de inicio de sesión. Por favor espera antes de intentar nuevamente."
+    mensaje_usuario = (
+        "Demasiados intentos de inicio de sesión. Por favor espera antes de intentar nuevamente."
+    )
 
 
 class InputSanitizationError(SeguridadError):

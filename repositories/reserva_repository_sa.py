@@ -3,6 +3,7 @@ reserva_repository_sa.py — Repositorio de Reservas
 
 F1C: Extraído de repositories_sa.py. Sin cambios funcionales.
 """
+
 from typing import List, Dict
 
 
@@ -16,7 +17,6 @@ log = get_logger(__name__)
 
 
 class ReservaRepositorySA:
-
     @staticmethod
     def obtener_todas() -> List[Dict]:
         with get_session() as session:
@@ -61,7 +61,7 @@ class ReservaRepositorySA:
             if not reserva:
                 raise RegistroNoEncontrado(f"Reserva #{id_reserva} no encontrada.")
 
-            reserva.estado = 'Cancelada'
+            reserva.estado = "Cancelada"
             log.info("Reserva #%s cancelada", id_reserva)
 
     @staticmethod
@@ -73,8 +73,8 @@ class ReservaRepositorySA:
                 raise RegistroNoEncontrado(f"Reserva #{id_reserva} no encontrada.")
 
             return {
-                'nombre_cliente': reserva.nombre_cliente,
-                'nacionalidad': reserva.nacionalidad,
+                "nombre_cliente": reserva.nombre_cliente,
+                "nacionalidad": reserva.nacionalidad,
             }
 
     @staticmethod
@@ -90,26 +90,26 @@ class ReservaRepositorySA:
     @staticmethod
     def _to_dict(reserva: Reserva) -> Dict:
         return {
-            'id': reserva.id,
-            'id_cliente': reserva.id_cliente,
-            'nombre_cliente': reserva.nombre_cliente,
-            'nacionalidad': reserva.nacionalidad,
-            'categoria_vehiculo': reserva.categoria_vehiculo,
-            'placa_asignada': reserva.placa_asignada,
-            'fecha_recogida': reserva.fecha_recogida,
-            'hora_recogida': reserva.hora_recogida,
-            'ubicacion_recogida': reserva.ubicacion_recogida,
-            'fecha_retorno': reserva.fecha_retorno,
-            'hora_retorno': reserva.hora_retorno,
-            'ubicacion_retorno': reserva.ubicacion_retorno,
-            'dias_calculados': reserva.dias_calculados,
-            'horas_extras': reserva.horas_extras,
-            'valor_dia': float(reserva.valor_dia or 0),
-            'valor_hora_adic': float(reserva.valor_hora_adic or 0),
-            'abono': float(reserva.abono or 0),
-            'total': float(reserva.total or 0),
-            'observaciones': reserva.observaciones,
-            'estado': reserva.estado,
-            'created_at': reserva.created_at,
-            'updated_at': reserva.updated_at,
+            "id": reserva.id,
+            "id_cliente": reserva.id_cliente,
+            "nombre_cliente": reserva.nombre_cliente,
+            "nacionalidad": reserva.nacionalidad,
+            "categoria_vehiculo": reserva.categoria_vehiculo,
+            "placa_asignada": reserva.placa_asignada,
+            "fecha_recogida": reserva.fecha_recogida,
+            "hora_recogida": reserva.hora_recogida,
+            "ubicacion_recogida": reserva.ubicacion_recogida,
+            "fecha_retorno": reserva.fecha_retorno,
+            "hora_retorno": reserva.hora_retorno,
+            "ubicacion_retorno": reserva.ubicacion_retorno,
+            "dias_calculados": reserva.dias_calculados,
+            "horas_extras": reserva.horas_extras,
+            "valor_dia": float(reserva.valor_dia or 0),
+            "valor_hora_adic": float(reserva.valor_hora_adic or 0),
+            "abono": float(reserva.abono or 0),
+            "total": float(reserva.total or 0),
+            "observaciones": reserva.observaciones,
+            "estado": reserva.estado,
+            "created_at": reserva.created_at,
+            "updated_at": reserva.updated_at,
         }

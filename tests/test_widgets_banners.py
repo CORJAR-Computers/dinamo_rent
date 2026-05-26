@@ -13,10 +13,12 @@ from tests.helpers import BaseWidgetTestMixin
 
 # ── QApplication fixture (module-scoped, created once) ────────────────────────
 
+
 @pytest.fixture(scope="module")
 def qapp():
     """Create a QApplication instance for Qt widget testing."""
     from PySide6.QtWidgets import QApplication
+
     app = QApplication.instance()
     if app is None:
         app = QApplication([])
@@ -28,18 +30,18 @@ def qapp():
 # ═══════════════════════════════════════════════════════════════════════════════
 
 WIDGETS = [
-    pytest.param("views.alertas_view",       "AlertasWidget",       id="alertas"),
-    pytest.param("views.autos_view",         "AutosWidget",         id="autos"),
-    pytest.param("views.calendario_view",    "CalendarioWidget",    id="calendario"),
-    pytest.param("views.clientes_view",      "ClientesWidget",      id="clientes"),
-    pytest.param("views.comparendos_view",   "ComparendosWidget",   id="comparendos"),
-    pytest.param("views.dashboard_view",     "DashboardWidget",     id="dashboard"),
-    pytest.param("views.gastos_view",        "GastosWidget",        id="gastos"),
-    pytest.param("views.informes_view",      "InformesWidget",      id="informes"),
+    pytest.param("views.alertas_view", "AlertasWidget", id="alertas"),
+    pytest.param("views.autos_view", "AutosWidget", id="autos"),
+    pytest.param("views.calendario_view", "CalendarioWidget", id="calendario"),
+    pytest.param("views.clientes_view", "ClientesWidget", id="clientes"),
+    pytest.param("views.comparendos_view", "ComparendosWidget", id="comparendos"),
+    pytest.param("views.dashboard_view", "DashboardWidget", id="dashboard"),
+    pytest.param("views.gastos_view", "GastosWidget", id="gastos"),
+    pytest.param("views.informes_view", "InformesWidget", id="informes"),
     pytest.param("views.mantenimiento_view", "MantenimientoWidget", id="mantenimiento"),
-    pytest.param("views.rentas_view",        "RentasWidget",        id="rentas"),
-    pytest.param("views.reservas_view",      "ReservasWidget",      id="reservas"),
-    pytest.param("views.usuarios_view",      "UsuariosWidget",      id="usuarios"),
+    pytest.param("views.rentas_view", "RentasWidget", id="rentas"),
+    pytest.param("views.reservas_view", "ReservasWidget", id="reservas"),
+    pytest.param("views.usuarios_view", "UsuariosWidget", id="usuarios"),
 ]
 
 
@@ -57,6 +59,7 @@ class TestWidgetBanners(BaseWidgetTestMixin):
     def test_tiene_banner(self, qapp, module_path, class_name):
         """Widget se instancia y contiene un banner QWidget con gradiente."""
         import importlib
+
         mod = importlib.import_module(module_path)
         cls = getattr(mod, class_name)
 
@@ -74,6 +77,7 @@ class TestWidgetBanners(BaseWidgetTestMixin):
     def test_banner_visible(self, qapp, module_path, class_name):
         """El banner tiene contenido textual (título) visible."""
         import importlib
+
         mod = importlib.import_module(module_path)
         cls = getattr(mod, class_name)
 
@@ -91,20 +95,21 @@ class TestWidgetBanners(BaseWidgetTestMixin):
         todos_ok = True
 
         for module_path, class_name in (
-            ("views.alertas_view",       "AlertasWidget"),
-            ("views.autos_view",         "AutosWidget"),
-            ("views.calendario_view",    "CalendarioWidget"),
-            ("views.clientes_view",      "ClientesWidget"),
-            ("views.comparendos_view",   "ComparendosWidget"),
-            ("views.dashboard_view",     "DashboardWidget"),
-            ("views.gastos_view",        "GastosWidget"),
-            ("views.informes_view",      "InformesWidget"),
+            ("views.alertas_view", "AlertasWidget"),
+            ("views.autos_view", "AutosWidget"),
+            ("views.calendario_view", "CalendarioWidget"),
+            ("views.clientes_view", "ClientesWidget"),
+            ("views.comparendos_view", "ComparendosWidget"),
+            ("views.dashboard_view", "DashboardWidget"),
+            ("views.gastos_view", "GastosWidget"),
+            ("views.informes_view", "InformesWidget"),
             ("views.mantenimiento_view", "MantenimientoWidget"),
-            ("views.rentas_view",        "RentasWidget"),
-            ("views.reservas_view",      "ReservasWidget"),
-            ("views.usuarios_view",      "UsuariosWidget"),
+            ("views.rentas_view", "RentasWidget"),
+            ("views.reservas_view", "ReservasWidget"),
+            ("views.usuarios_view", "UsuariosWidget"),
         ):
             import importlib
+
             mod = importlib.import_module(module_path)
             cls = getattr(mod, class_name)
 

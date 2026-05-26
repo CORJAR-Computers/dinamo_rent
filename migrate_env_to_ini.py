@@ -7,6 +7,7 @@ Este script:
 2. Crea/configura config.ini con los valores encontrados
 3. Mantiene compatibilidad con el sistema anterior
 """
+
 import os
 import sys
 from pathlib import Path
@@ -43,17 +44,18 @@ def migrate_env_to_ini(env_path: str = None, ini_path: str = None):
 
     # Leer config.ini existente o crear nuevo
     import configparser
+
     config = configparser.ConfigParser(interpolation=None)
 
     if ini_path.exists():
         print(f"📖 Leyendo {ini_path} existente...")
-        config.read(ini_path, encoding='utf-8')
+        config.read(ini_path, encoding="utf-8")
     else:
         print(f"📝 Creando nuevo {ini_path}...")
         # Copiar desde config.ini.example si existe
         example_path = base_dir / "config.ini.example"
         if example_path.exists():
-            config.read(example_path, encoding='utf-8')
+            config.read(example_path, encoding="utf-8")
             print("✅ Usando config.ini.example como plantilla")
         else:
             print("⚠️ No se encontró config.ini.example, creando desde cero")
@@ -61,12 +63,12 @@ def migrate_env_to_ini(env_path: str = None, ini_path: str = None):
     # Migrar valores de .env a config.ini
     migrations = {
         # (.env variable, ini_section, ini_key)
-        'DINAMO_DB_ENGINE': ('database', 'engine'),
-        'DINAMO_DB_HOST': ('database', 'host'),
-        'DINAMO_DB_PORT': ('database', 'port'),
-        'DINAMO_DB_USER': ('database', 'user'),
-        'DINAMO_DB_PASSWORD': ('database', 'password'),
-        'DINAMO_DB_NAME': ('database', 'database'),
+        "DINAMO_DB_ENGINE": ("database", "engine"),
+        "DINAMO_DB_HOST": ("database", "host"),
+        "DINAMO_DB_PORT": ("database", "port"),
+        "DINAMO_DB_USER": ("database", "user"),
+        "DINAMO_DB_PASSWORD": ("database", "password"),
+        "DINAMO_DB_NAME": ("database", "database"),
     }
 
     migrated = []
@@ -80,7 +82,7 @@ def migrate_env_to_ini(env_path: str = None, ini_path: str = None):
 
     # Guardar config.ini
     print(f"\n💾 Guardando {ini_path}...")
-    with open(ini_path, 'w', encoding='utf-8') as f:
+    with open(ini_path, "w", encoding="utf-8") as f:
         config.write(f)
 
     print("\n🎉 Migración completada!")

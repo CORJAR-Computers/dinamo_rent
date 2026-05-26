@@ -2,23 +2,43 @@
 views/autos_view.py — Gestion de flota (vista)
 
 Solo maneja la UI. Toda la logica va a AutoService.
-Estilos via views.styles.py (funciona en cualquier tema de Windows).
+Estilos vía QSS class-based (temas Claro/Oscuro desde themes.py).
 """
+
 from datetime import datetime, date
 
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
-    QPushButton, QLabel, QLineEdit, QDialog, QComboBox, QDateEdit, QDoubleSpinBox, QGroupBox, QPlainTextEdit,
-    QGridLayout, QMenu, QTabWidget, QHeaderView, QWidget, QFrame,
+    QVBoxLayout,
+    QHBoxLayout,
+    QTableWidget,
+    QTableWidgetItem,
+    QPushButton,
+    QLabel,
+    QLineEdit,
+    QComboBox,
+    QDateEdit,
+    QDoubleSpinBox,
+    QPlainTextEdit,
+    QGridLayout,
+    QMenu,
+    QTabWidget,
+    QHeaderView,
+    QWidget,
+    QFrame,
 )
 from PySide6.QtCore import Qt, QDate, QTimer
 from PySide6.QtGui import QColor, QBrush
 
 from core.config import (
-    TIPOS_AUTO, TIPOS_TRANSMISION, TIPOS_COMBUSTIBLE,
-    ESTADOS_AUTO, TIPOS_ADQUISICION,
-    COLOR_ESTADO_DISPONIBLE, COLOR_ESTADO_RENTADO,
-    COLOR_ESTADO_MANTENIMIENTO, COLOR_ESTADO_INACTIVO,
+    TIPOS_AUTO,
+    TIPOS_TRANSMISION,
+    TIPOS_COMBUSTIBLE,
+    ESTADOS_AUTO,
+    TIPOS_ADQUISICION,
+    COLOR_ESTADO_DISPONIBLE,
+    COLOR_ESTADO_RENTADO,
+    COLOR_ESTADO_MANTENIMIENTO,
+    COLOR_ESTADO_INACTIVO,
 )
 from core.exceptions import DinamoBaseError
 from services.auto_service import AutoService
@@ -26,23 +46,6 @@ from views.components import ModernMessageBox
 from views.base_dialog import BaseDialog
 from views.base_widget import BaseWidget
 from views.widgets import UpperLineEdit
-from views.styles import (
-    btn_primary, btn_success, btn_danger, btn_default, btn_icon,
-    lbl_section, edit_search,
-    input_field, input_combo, input_spinbox, input_date, input_textedit,
-    table_widget, group_box,
-    tab_widget_pane_style, tab_bar_style, dialog_body_style,
-)
-
-# ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
-_NAV   = "#1a3558"
-_BLUE  = "#2563eb"
-_BG    = "#f1f5f9"
-_SURF  = "#ffffff"
-_BORD  = "#cbd5e1"
-_TEXT  = "#1e293b"
-_MUTED = "#64748b"
-_REQMARK = "#dc2626"
 
 # Ancho minimo para las columnas de labels en los formularios del dialogo
 _LABEL_MIN_WIDTH = 150
@@ -52,10 +55,7 @@ def _make_label(text: str, required: bool = False) -> QLabel:
     """Crea un QLabel con ancho minimo para evitar truncamiento."""
     if required:
         lbl = QLabel()
-        lbl.setText(
-            f'<span style="color:{_TEXT};">{text}</span>'
-            f' <span style="color:{_REQMARK}; font-weight:700;">*</span>'
-        )
+        lbl.setText(f"{text} *")
     else:
         lbl = QLabel(text)
     lbl.setMinimumWidth(_LABEL_MIN_WIDTH)
@@ -68,16 +68,7 @@ def _make_card(title: str, parent, icon: str = "") -> tuple[QFrame, QGridLayout]
     """
     card = QFrame(parent)
     card.setFrameShape(QFrame.Shape.StyledPanel)
-    card.setStyleSheet(f"""
-        QFrame {{
-            background-color: {_SURF};
-            border-top: 1px solid {_BORD};
-            border-right: 1px solid {_BORD};
-            border-bottom: 1px solid {_BORD};
-            border-left: 4px solid {_BLUE};
-            border-radius: 8px;
-        }}
-    """)
+    card.setProperty("class", "form-card")
 
     layout = QGridLayout(card)
     layout.setSpacing(10)
@@ -91,31 +82,17 @@ def _make_card(title: str, parent, icon: str = "") -> tuple[QFrame, QGridLayout]
         ico = QLabel(icon)
         ico.setFixedSize(22, 22)
         ico.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        ico.setStyleSheet(f"""
-            QLabel {{
-                background-color: #eff6ff;
-                border-radius: 4px;
-                font-size: 13px;
-                color: {_BLUE};
-            }}
-        """)
+        ico.setProperty("class", "card-icon")
         header_row.addWidget(ico)
 
     titulo = QLabel(title)
-    titulo.setStyleSheet(f"""
-        QLabel {{
-            color: {_NAV};
-            font-size: 10pt;
-            font-weight: 700;
-            letter-spacing: 0.4px;
-        }}
-    """)
+    titulo.setProperty("class", "section")
     header_row.addWidget(titulo)
     header_row.addStretch()
 
     sep = QFrame()
     sep.setFrameShape(QFrame.Shape.HLine)
-    sep.setStyleSheet(f"QFrame {{ background: {_BORD}; max-height: 1px; border: none; }}")
+    sep.setProperty("class", "divider")
 
     header_widget = QWidget()
     header_widget.setStyleSheet("QWidget { background: transparent; border: none; }")
@@ -147,22 +124,23 @@ class DialogoAuto(BaseDialog):
 
         # ── Banner de encabezado ──────────────────────────────────────────
         from views.layouts.form_helpers import build_dialog_header
+
         titulo = "Editar Vehiculo" if placa_editar else "Nuevo Vehiculo"
-        subtitulo = f"Modificando registro: {placa_editar}" if placa_editar else "Ingresa la informacion del vehiculo para agregarlo a la flota"
+        subtitulo = (
+            f"Modificando registro: {placa_editar}"
+            if placa_editar
+            else "Ingresa la informacion del vehiculo para agregarlo a la flota"
+        )
         root.addWidget(build_dialog_header("🚗", titulo, subtitulo))
 
         # ── Cuerpo principal ─────────────────────────────────────────────
         body = QWidget()
         body.setObjectName("dlg_body")
-        dialog_body_style(body)
         layout = QVBoxLayout(body)
         layout.setSpacing(12)
         layout.setContentsMargins(20, 16, 20, 14)
 
         self.tabs = QTabWidget()
-        self.tabs.setObjectName("main_tabs")
-        tab_widget_pane_style(self.tabs)
-        tab_bar_style(self.tabs.tabBar())
 
         self._construir_form()
 
@@ -171,24 +149,24 @@ class DialogoAuto(BaseDialog):
         # Separador
         sep = QFrame()
         sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet(f"QFrame {{ background: {_BORD}; max-height: 1px; border: none; }}")
+        sep.setProperty("class", "divider")
         layout.addWidget(sep)
 
         # ── Fila de botones ───────────────────────────────────────────────
         btn_row = QHBoxLayout()
         btn_row.setSpacing(10)
 
-        hint = QLabel(f'<span style="color:{_REQMARK}; font-weight:700;">*</span>'
-                      f'<span style="color:{_MUTED}; font-size:9pt;"> Campos obligatorios</span>')
+        hint = QLabel("* Campos obligatorios")
+        hint.setProperty("class", "subtitle")
         btn_row.addWidget(hint)
         btn_row.addStretch()
 
         btn_cancel = QPushButton("  Cancelar")
-        btn_danger(btn_cancel)
+        btn_cancel.setProperty("class", "danger")
         btn_cancel.clicked.connect(self.reject)
 
         btn_save = QPushButton("💾  Guardar Vehiculo")
-        btn_primary(btn_save, large=True)
+        btn_save.setProperty("class", "primary")
         btn_save.clicked.connect(self._guardar)
 
         btn_row.addWidget(btn_cancel)
@@ -217,20 +195,20 @@ class DialogoAuto(BaseDialog):
         self.txt_color = UpperLineEdit()
         self.cmb_tipo = QComboBox()
         self.cmb_tipo.addItems(TIPOS_AUTO)
-        input_field(self.txt_placa)
-        input_field(self.txt_marca)
-        input_field(self.txt_modelo)
-        input_field(self.txt_version)
-        input_field(self.txt_color)
-        input_combo(self.cmb_tipo)
         if self.placa_editar:
             self.txt_placa.setReadOnly(True)
-        g.addWidget(_make_label("Placa", required=True), 1, 0); g.addWidget(self.txt_placa, 1, 1)
-        g.addWidget(_make_label("Marca:"), 2, 0); g.addWidget(self.txt_marca, 2, 1)
-        g.addWidget(_make_label("Modelo:"), 1, 2); g.addWidget(self.txt_modelo, 1, 3)
-        g.addWidget(_make_label("Version:"), 2, 2); g.addWidget(self.txt_version, 2, 3)
-        g.addWidget(_make_label("Color:"), 3, 0); g.addWidget(self.txt_color, 3, 1)
-        g.addWidget(_make_label("Tipo:"), 3, 2); g.addWidget(self.cmb_tipo, 3, 3)
+        g.addWidget(_make_label("Placa", required=True), 1, 0)
+        g.addWidget(self.txt_placa, 1, 1)
+        g.addWidget(_make_label("Marca:"), 2, 0)
+        g.addWidget(self.txt_marca, 2, 1)
+        g.addWidget(_make_label("Modelo:"), 1, 2)
+        g.addWidget(self.txt_modelo, 1, 3)
+        g.addWidget(_make_label("Version:"), 2, 2)
+        g.addWidget(self.txt_version, 2, 3)
+        g.addWidget(_make_label("Color:"), 3, 0)
+        g.addWidget(self.txt_color, 3, 1)
+        g.addWidget(_make_label("Tipo:"), 3, 2)
+        g.addWidget(self.cmb_tipo, 3, 3)
         tab1_layout.addWidget(card_basica)
 
         # Card: Datos Tecnicos
@@ -246,18 +224,18 @@ class DialogoAuto(BaseDialog):
         self.sp_km.setRange(0, 1e7)
         self.sp_km.setDecimals(0)
         self.sp_km.setSingleStep(1000)
-        input_field(self.txt_cilindraje)
-        input_combo(self.cmb_transmision)
-        input_combo(self.cmb_combustible)
-        input_field(self.txt_motor)
-        input_field(self.txt_chasis)
-        input_spinbox(self.sp_km)
-        g2.addWidget(_make_label("Cilindraje:"), 1, 0); g2.addWidget(self.txt_cilindraje, 1, 1)
-        g2.addWidget(_make_label("Transmision:"), 1, 2); g2.addWidget(self.cmb_transmision, 1, 3)
-        g2.addWidget(_make_label("Combustible:"), 2, 0); g2.addWidget(self.cmb_combustible, 2, 1)
-        g2.addWidget(_make_label("Kilometraje:"), 2, 2); g2.addWidget(self.sp_km, 2, 3)
-        g2.addWidget(_make_label("No. Motor:"), 3, 0); g2.addWidget(self.txt_motor, 3, 1)
-        g2.addWidget(_make_label("No. Chasis:"), 3, 2); g2.addWidget(self.txt_chasis, 3, 3)
+        g2.addWidget(_make_label("Cilindraje:"), 1, 0)
+        g2.addWidget(self.txt_cilindraje, 1, 1)
+        g2.addWidget(_make_label("Transmision:"), 1, 2)
+        g2.addWidget(self.cmb_transmision, 1, 3)
+        g2.addWidget(_make_label("Combustible:"), 2, 0)
+        g2.addWidget(self.cmb_combustible, 2, 1)
+        g2.addWidget(_make_label("Kilometraje:"), 2, 2)
+        g2.addWidget(self.sp_km, 2, 3)
+        g2.addWidget(_make_label("No. Motor:"), 3, 0)
+        g2.addWidget(self.txt_motor, 3, 1)
+        g2.addWidget(_make_label("No. Chasis:"), 3, 2)
+        g2.addWidget(self.txt_chasis, 3, 3)
         tab1_layout.addWidget(card_tecnica)
         tab1_layout.addStretch()
 
@@ -282,51 +260,52 @@ class DialogoAuto(BaseDialog):
         self.d_ingreso = QDateEdit(QDate.currentDate())
         self.d_ingreso.setCalendarPopup(True)
         self.d_ingreso.setDisplayFormat("yyyy-MM-dd")
-        input_field(self.txt_propietario)
-        input_spinbox(self.sp_costo)
-        input_combo(self.cmb_estado)
-        input_combo(self.cmb_adq)
-        input_field(self.txt_ubicacion)
-        input_date(self.d_ingreso)
-        g3.addWidget(_make_label("Propietario:"), 1, 0); g3.addWidget(self.txt_propietario, 1, 1)
-        g3.addWidget(_make_label("Costo Fijo Mensual:"), 1, 2); g3.addWidget(self.sp_costo, 1, 3)
-        g3.addWidget(_make_label("Estado:"), 2, 0); g3.addWidget(self.cmb_estado, 2, 1)
-        g3.addWidget(_make_label("Tipo Adquisicion:"), 2, 2); g3.addWidget(self.cmb_adq, 2, 3)
-        g3.addWidget(_make_label("Ubicacion Actual:"), 3, 0); g3.addWidget(self.txt_ubicacion, 3, 1)
-        g3.addWidget(_make_label("Fecha Ingreso Flota:"), 3, 2); g3.addWidget(self.d_ingreso, 3, 3)
+        g3.addWidget(_make_label("Propietario:"), 1, 0)
+        g3.addWidget(self.txt_propietario, 1, 1)
+        g3.addWidget(_make_label("Costo Fijo Mensual:"), 1, 2)
+        g3.addWidget(self.sp_costo, 1, 3)
+        g3.addWidget(_make_label("Estado:"), 2, 0)
+        g3.addWidget(self.cmb_estado, 2, 1)
+        g3.addWidget(_make_label("Tipo Adquisicion:"), 2, 2)
+        g3.addWidget(self.cmb_adq, 2, 3)
+        g3.addWidget(_make_label("Ubicacion Actual:"), 3, 0)
+        g3.addWidget(self.txt_ubicacion, 3, 1)
+        g3.addWidget(_make_label("Fecha Ingreso Flota:"), 3, 2)
+        g3.addWidget(self.d_ingreso, 3, 3)
         tab2_layout.addWidget(card_admin)
 
         # Card: Vencimientos
         card_venc, g4 = _make_card("Vencimientos", self, "📅")
+
         def _date_widget():
             w = QDateEdit(QDate.currentDate().addYears(1))
             w.setCalendarPopup(True)
             w.setDisplayFormat("yyyy-MM-dd")
             return w
+
         self.d_soat = _date_widget()
         self.d_tecno = _date_widget()
         self.d_extintor = _date_widget()
         self.d_bateria = _date_widget()
-        input_date(self.d_soat)
-        input_date(self.d_tecno)
-        input_date(self.d_extintor)
-        input_date(self.d_bateria)
-        g4.addWidget(_make_label("SOAT:"), 1, 0); g4.addWidget(self.d_soat, 1, 1)
-        g4.addWidget(_make_label("Tecnicomecanica:"), 1, 2); g4.addWidget(self.d_tecno, 1, 3)
-        g4.addWidget(_make_label("Extintor:"), 2, 0); g4.addWidget(self.d_extintor, 2, 1)
-        g4.addWidget(_make_label("Garantia Bateria:"), 2, 2); g4.addWidget(self.d_bateria, 2, 3)
+        g4.addWidget(_make_label("SOAT:"), 1, 0)
+        g4.addWidget(self.d_soat, 1, 1)
+        g4.addWidget(_make_label("Tecnicomecanica:"), 1, 2)
+        g4.addWidget(self.d_tecno, 1, 3)
+        g4.addWidget(_make_label("Extintor:"), 2, 0)
+        g4.addWidget(self.d_extintor, 2, 1)
+        g4.addWidget(_make_label("Garantia Bateria:"), 2, 2)
+        g4.addWidget(self.d_bateria, 2, 3)
         tab2_layout.addWidget(card_venc)
 
         self.txt_obs = QPlainTextEdit()
         self.txt_obs.setMaximumHeight(60)
         self.txt_obs.setPlaceholderText("Observaciones opcionales...")
-        input_textedit(self.txt_obs)
 
         obs_row = QHBoxLayout()
         obs_row.setContentsMargins(0, 4, 0, 0)
         obs_row.setSpacing(12)
         lbl_obs = QLabel("Observaciones:")
-        lbl_section(lbl_obs)
+        lbl_obs.setProperty("class", "section")
         obs_row.addWidget(lbl_obs)
         obs_row.addWidget(self.txt_obs, stretch=1)
         tab2_layout.addLayout(obs_row)
@@ -363,8 +342,10 @@ class DialogoAuto(BaseDialog):
         self.cmb_adq.setCurrentText(d.get("tipo_adquisicion", "Propio"))
         self.txt_obs.setPlainText(d.get("observaciones", ""))
         for widget, key in [
-            (self.d_soat, "vencimiento_soat"), (self.d_tecno, "vencimiento_tecnico"),
-            (self.d_extintor, "vencimiento_extintor"), (self.d_bateria, "vencimiento_bateria"),
+            (self.d_soat, "vencimiento_soat"),
+            (self.d_tecno, "vencimiento_tecnico"),
+            (self.d_extintor, "vencimiento_extintor"),
+            (self.d_bateria, "vencimiento_bateria"),
             (self.d_ingreso, "fecha_ingreso"),
         ]:
             val = d.get(key)
@@ -433,7 +414,6 @@ class AutosWidget(BaseWidget):
 
     def __init__(self, session_id: str = None):
         super().__init__(session_id=session_id)
-        self.setStyleSheet(f"QWidget {{ background: {_BG}; }} QLabel {{ color: {_TEXT}; }}")
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -441,12 +421,17 @@ class AutosWidget(BaseWidget):
 
         # ── Banner superior ──────────────────────────────────────────
         from views.layouts.form_helpers import create_banner
-        banner = create_banner("🚗", "Gestion de Flota", "Administracion de vehiculos y flota vehicular", self.cargar_datos)
+
+        banner = create_banner(
+            "🚗",
+            "Gestion de Flota",
+            "Administracion de vehiculos y flota vehicular",
+            self.cargar_datos,
+        )
         main_layout.addWidget(banner)
 
         # ── Área de contenido ─────────────────────────────────────────
         content = QWidget()
-        content.setStyleSheet(f"QWidget {{ background: {_BG}; }}")
         c_lay = QVBoxLayout(content)
         c_lay.setContentsMargins(20, 16, 20, 16)
         c_lay.setSpacing(14)
@@ -454,35 +439,48 @@ class AutosWidget(BaseWidget):
 
         top = QHBoxLayout()
         self.txt_buscar = QLineEdit()
-        edit_search(self.txt_buscar)
+        self.txt_buscar.setProperty("class", "search")
         self.txt_buscar.setPlaceholderText("Buscar por placa, marca o modelo...")
         self.txt_buscar.setMinimumWidth(220)
         self.txt_buscar.textChanged.connect(self._filtrar)
         top.addWidget(self.txt_buscar)
 
         self.cmb_filtro = QComboBox()
-        self.cmb_filtro.addItems(["Todos los vehículos", "🔧 En Mantenimiento", "✅ Disponibles", "❌ Inactivos"])
+        self.cmb_filtro.addItems(
+            ["Todos los vehículos", "🔧 En Mantenimiento", "✅ Disponibles", "❌ Inactivos"]
+        )
         self.cmb_filtro.setCurrentIndex(0)
         self.cmb_filtro.setMinimumWidth(180)
-        input_combo(self.cmb_filtro)
         self.cmb_filtro.currentIndexChanged.connect(self._filtrar)
         top.addWidget(self.cmb_filtro)
 
         btn_act = QPushButton("Actualizar")
-        btn_default(btn_act)
+        btn_act.setProperty("class", "ghost")
         btn_act.clicked.connect(self.cargar_datos)
         top.addWidget(btn_act)
 
         btn_nuevo = QPushButton("+ Nuevo Vehiculo")
-        btn_success(btn_nuevo)
+        btn_nuevo.setProperty("class", "success")
         btn_nuevo.clicked.connect(self._nuevo)
         top.addWidget(btn_nuevo)
         c_lay.addLayout(top)
 
         self.tabla = QTableWidget()
         self.tabla.setAlternatingRowColors(True)
-        table_widget(self.tabla)
-        self.ajustar_tabla(self.tabla, ["Placa", "Marca / Modelo", "Color", "Estado", "KM", "Ubicacion", "Ingreso", "Vencimientos", ""])
+        self.ajustar_tabla(
+            self.tabla,
+            [
+                "Placa",
+                "Marca / Modelo",
+                "Color",
+                "Estado",
+                "KM",
+                "Ubicacion",
+                "Ingreso",
+                "Vencimientos",
+                "",
+            ],
+        )
 
         # --- Configurar columnas individualmente para que el boton Editar sea visible ---
         header = self.tabla.horizontalHeader()
@@ -533,11 +531,19 @@ class AutosWidget(BaseWidget):
             i = self.tabla.rowCount()
             self.tabla.insertRow(i)
             self.tabla.setItem(i, 0, QTableWidgetItem(r.get("placa", "")))
-            self.tabla.setItem(i, 1, QTableWidgetItem(f"{r.get('marca', '')} {r.get('modelo', '')}"))
+            self.tabla.setItem(
+                i, 1, QTableWidgetItem(f"{r.get('marca', '')} {r.get('modelo', '')}")
+            )
             self.tabla.setItem(i, 2, QTableWidgetItem(r.get("color", "")))
             from views.components.status_badge import StatusBadge
+
             estado = r.get("estado", "")
-            _ESTADO_BADGE_MAP = {"Disponible": "success", "Rentado": "info", "Mantenimiento": "warning", "Inactivo": "danger"}
+            _ESTADO_BADGE_MAP = {
+                "Disponible": "success",
+                "Rentado": "info",
+                "Mantenimiento": "warning",
+                "Inactivo": "danger",
+            }
             badge = StatusBadge(estado, _ESTADO_BADGE_MAP.get(estado, "info"))
             self.tabla.setCellWidget(i, 3, badge)
             self.tabla.setItem(i, 4, QTableWidgetItem(f"{r.get('kilometraje', 0):,.0f}"))
@@ -557,7 +563,11 @@ class AutosWidget(BaseWidget):
                 val = r.get(campo)
                 if val:
                     try:
-                        d = val if isinstance(val, date) else datetime.strptime(str(val)[:10], "%Y-%m-%d").date()
+                        d = (
+                            val
+                            if isinstance(val, date)
+                            else datetime.strptime(str(val)[:10], "%Y-%m-%d").date()
+                        )
                         dias = (d - today).days
                         venc_list.append((dias, label, d))
                     except (ValueError, TypeError):
@@ -578,6 +588,7 @@ class AutosWidget(BaseWidget):
                 if dias < 0:
                     venc_item.setForeground(QBrush(QColor("#ef4444")))
                     from PySide6.QtGui import QFont
+
                     fnt = QFont(venc_item.font())
                     fnt.setBold(True)
                     venc_item.setFont(fnt)
@@ -585,6 +596,7 @@ class AutosWidget(BaseWidget):
                 elif dias <= 15:
                     venc_item.setForeground(QBrush(QColor("#f97316")))
                     from PySide6.QtGui import QFont
+
                     fnt = QFont(venc_item.font())
                     fnt.setBold(True)
                     venc_item.setFont(fnt)
@@ -599,7 +611,7 @@ class AutosWidget(BaseWidget):
 
             # Boton Editar con estilo visible
             btn = QPushButton("Editar")
-            btn_icon(btn)
+            btn.setProperty("class", "icon")
             btn.setFixedSize(78, 32)
             btn.clicked.connect(lambda _, p=r.get("placa"): self._editar(p))
             self.tabla.setCellWidget(i, 8, btn)
@@ -609,7 +621,9 @@ class AutosWidget(BaseWidget):
 
     def _filtrar(self):
         txt = self.txt_buscar.text().lower()
-        filtro_estado = self.cmb_filtro.currentIndex()  # 0=Todos, 1=Mantenimiento, 2=Disponibles, 3=Inactivos
+        filtro_estado = (
+            self.cmb_filtro.currentIndex()
+        )  # 0=Todos, 1=Mantenimiento, 2=Disponibles, 3=Inactivos
 
         filtrados = self._lista
 
@@ -623,7 +637,15 @@ class AutosWidget(BaseWidget):
 
         # 2. Filtrar por texto
         if txt:
-            filtrados = [a for a in filtrados if txt in a.get("placa", "").lower() or txt in a.get("marca", "").lower() or txt in a.get("modelo", "").lower() or txt in a.get("color", "").lower() or txt in a.get("ubicacion", "").lower()]
+            filtrados = [
+                a
+                for a in filtrados
+                if txt in a.get("placa", "").lower()
+                or txt in a.get("marca", "").lower()
+                or txt in a.get("modelo", "").lower()
+                or txt in a.get("color", "").lower()
+                or txt in a.get("ubicacion", "").lower()
+            ]
 
         self._pintar_filas(filtrados)
 
@@ -649,7 +671,11 @@ class AutosWidget(BaseWidget):
         if acc == acc_edit:
             self._editar(placa)
         elif acc in (acc_disp, acc_mant, acc_inac):
-            nuevo_estado = {acc_disp: "Disponible", acc_mant: "Mantenimiento", acc_inac: "Inactivo"}[acc]
+            nuevo_estado = {
+                acc_disp: "Disponible",
+                acc_mant: "Mantenimiento",
+                acc_inac: "Inactivo",
+            }[acc]
             self._cambiar_estado(placa, nuevo_estado)
 
     def _cambiar_estado(self, placa: str, nuevo_estado: str):

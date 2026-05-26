@@ -13,7 +13,6 @@ audit = get_audit_logger()
 
 
 class GastoService:
-
     @staticmethod
     def listar_recientes() -> List[Dict]:
         return GastoRepositorySA.obtener_todos(200)
@@ -52,7 +51,11 @@ class GastoService:
             raise ValidacionError(f"Datos de gasto inválidos: {str(e)}")
 
         id_gasto = GastoRepositorySA.insertar(gasto_validado)
-        audit.info("Gasto de $%s registrado en categoría '%s' placa=%s",
-                   monto, datos["categoria"], placa_gasto or 'N/A')
+        audit.info(
+            "Gasto de $%s registrado en categoría '%s' placa=%s",
+            monto,
+            datos["categoria"],
+            placa_gasto or "N/A",
+        )
 
         return id_gasto

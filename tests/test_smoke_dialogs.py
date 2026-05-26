@@ -20,9 +20,7 @@ from PySide6.QtWidgets import QApplication, QDialog
 _DIALOGOS: list[tuple[str, type[QDialog], dict[str, Any]]] = []
 
 
-def _register(
-    name: str, dotted: str, kwargs: dict[str, Any] | None = None
-) -> None:
+def _register(name: str, dotted: str, kwargs: dict[str, Any] | None = None) -> None:
     """Registra un diálogo para testeo."""
 
     def _loader() -> type[QDialog]:
@@ -30,6 +28,7 @@ def _register(
         mod_name = ".".join(parts[:-1])
         cls_name = parts[-1]
         import importlib
+
         mod = importlib.import_module(mod_name)
         cls: type[QDialog] = getattr(mod, cls_name)
         return cls
@@ -104,20 +103,12 @@ def test_dialogo_se_instancia(
     dlg: QDialog | None = None
     try:
         dlg = cls(parent=None, **kwargs)
-        assert isinstance(dlg, QDialog), (
-            f"{nombre} no es una instancia de QDialog"
-        )
-        assert dlg.windowTitle(), (
-            f"{nombre} no tiene windowTitle"
-        )
+        assert isinstance(dlg, QDialog), f"{nombre} no es una instancia de QDialog"
+        assert dlg.windowTitle(), f"{nombre} no tiene windowTitle"
     except RuntimeError as e:
-        pytest.fail(
-            f"{nombre} lanzó RuntimeError durante construcción: {e}"
-        )
+        pytest.fail(f"{nombre} lanzó RuntimeError durante construcción: {e}")
     except Exception as e:
-        pytest.fail(
-            f"{nombre} lanzó {type(e).__name__}: {e}"
-        )
+        pytest.fail(f"{nombre} lanzó {type(e).__name__}: {e}")
     finally:
         if dlg is not None:
             # Procesar eventos pendientes (timers diferidos, etc.)

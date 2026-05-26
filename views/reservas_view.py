@@ -1,4 +1,5 @@
 from views.components import ModernMessageBox
+
 """
 views/reservas_view.py — Vista para la gestion de Reservas.
 
@@ -15,34 +16,43 @@ Mejoras UI/UX:
 from datetime import datetime, timedelta
 
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
-    QPushButton, QHeaderView, QLabel, QLineEdit, QDialog, QComboBox, QDateEdit, QTimeEdit, QGroupBox,
-    QDoubleSpinBox, QTextEdit, QMenu, QAbstractItemView, QGridLayout, QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QTableWidget,
+    QTableWidgetItem,
+    QPushButton,
+    QHeaderView,
+    QLabel,
+    QLineEdit,
+    QComboBox,
+    QDateEdit,
+    QTimeEdit,
+    QGroupBox,
+    QDoubleSpinBox,
+    QTextEdit,
+    QMenu,
+    QAbstractItemView,
+    QGridLayout,
+    QWidget,
 )
 from PySide6.QtCore import Qt, QDate, QTime, QTimer
-from PySide6.QtGui import QColor, QBrush, QFont
 
-from core.config import COLOR_EXITO, COLOR_PELIGRO, COLOR_ALERTA
 from services.auto_service import AutoService
 from services.cliente_service import ClienteService
 from services.reserva_service import ReservaService
 from core.exceptions import DinamoBaseError
 from views.base_widget import BaseWidget
-from views.styles import (
-    btn_danger, btn_default, btn_primary, btn_success, edit_search, lbl_section, status_active, status_inactive, status_warning,
-    input_field, input_combo, input_date, input_spinbox, input_time, input_textedit,
-    group_box, table_widget,
-)
+from views.components.status_badge import StatusBadge
 from views.widgets import UpperLineEdit
 from core import utils
 
 # ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
-_NAV   = "#1a3558"
-_BLUE  = "#2563eb"
-_BG    = "#f1f5f9"
-_SURF  = "#ffffff"
-_BORD  = "#cbd5e1"
-_TEXT  = "#1e293b"
+_NAV = "#1a3558"
+_BLUE = "#2563eb"
+_BG = "#f1f5f9"
+_SURF = "#ffffff"
+_BORD = "#cbd5e1"
+_TEXT = "#1e293b"
 _MUTED = "#64748b"
 
 
@@ -67,12 +77,17 @@ class DialogoSelectorCliente(BaseDialog):
         root.setContentsMargins(0, 0, 0, 0)
 
         from views.layouts.form_helpers import build_dialog_header
-        root.addWidget(build_dialog_header("👤", "Seleccionar Cliente", "Busque y seleccione un cliente del registro para asociarlo a la operación"))
 
-        from views.styles import dialog_body_style
+        root.addWidget(
+            build_dialog_header(
+                "👤",
+                "Seleccionar Cliente",
+                "Busque y seleccione un cliente del registro para asociarlo a la operación",
+            )
+        )
+
         body = QWidget()
         body.setObjectName("dlg_body")
-        dialog_body_style(body)
         body_lay = QVBoxLayout(body)
         body_lay.setSpacing(14)
         body_lay.setContentsMargins(20, 16, 20, 14)
@@ -80,12 +95,12 @@ class DialogoSelectorCliente(BaseDialog):
         # Barra de busqueda
         top = QHBoxLayout()
         self.txt = UpperLineEdit()
-        edit_search(self.txt)
+        self.txt.setProperty("class", "search")
         self.txt.setPlaceholderText("Buscar por nombre o documento...")
         self.txt.textChanged.connect(self._buscar)
 
         btn_new = QPushButton("+ Nuevo")
-        btn_success(btn_new)
+        btn_new.setProperty("class", "success")
         btn_new.clicked.connect(self._nuevo_cliente)
 
         top.addWidget(self.txt)
@@ -120,7 +135,7 @@ class DialogoSelectorCliente(BaseDialog):
             self.tbl.insertRow(i)
             self.tbl.setItem(i, 0, QTableWidgetItem(str(d.get("id", ""))))
             self.tbl.setItem(i, 1, QTableWidgetItem(d.get("no_doc", "")))
-            nom = d.get("nombre_completo") or f"{d.get('nombres','')} {d.get('apellidos','')}"
+            nom = d.get("nombre_completo") or f"{d.get('nombres', '')} {d.get('apellidos', '')}"
             self.tbl.setItem(i, 2, QTableWidgetItem(nom))
 
     def _seleccionar(self, r, c):
@@ -130,6 +145,7 @@ class DialogoSelectorCliente(BaseDialog):
 
     def _nuevo_cliente(self):
         from views.clientes_view import ClienteFormDialog
+
         dlg = ClienteFormDialog(self)
         if dlg.exec() and hasattr(dlg, "datos_cliente") and dlg.datos_cliente.get("id"):
             self.cliente_seleccionado = dlg.datos_cliente
@@ -139,6 +155,7 @@ class DialogoSelectorCliente(BaseDialog):
 # =============================================================================
 # DIALOGO NUEVA RESERVA
 # =============================================================================
+
 
 class NuevaReservaDialog(BaseDialog):
     """Dialogo para crear una nueva reserva."""
@@ -160,27 +177,30 @@ class NuevaReservaDialog(BaseDialog):
         root.setContentsMargins(0, 0, 0, 0)
 
         from views.layouts.form_helpers import build_dialog_header
-        root.addWidget(build_dialog_header("📅", "Crear Nueva Reserva", "Registro de reserva vehicular — cliente, vehículo y valores"))
 
-        from views.styles import dialog_body_style
+        root.addWidget(
+            build_dialog_header(
+                "📅",
+                "Crear Nueva Reserva",
+                "Registro de reserva vehicular — cliente, vehículo y valores",
+            )
+        )
+
         body = QWidget()
         body.setObjectName("dlg_body")
-        dialog_body_style(body)
         body_lay = QVBoxLayout(body)
         body_lay.setSpacing(14)
         body_lay.setContentsMargins(20, 16, 20, 14)
 
         # --- 1. Cliente ---
         gb_cli = QGroupBox("1. Cliente")
-        group_box(gb_cli)
         l_cli = QHBoxLayout()
         self.txt_cliente = QLineEdit()
         self.txt_cliente.setReadOnly(True)
         self.txt_cliente.setPlaceholderText("Seleccione un cliente...")
-        input_field(self.txt_cliente)
 
         btn_cli = QPushButton("Buscar Cliente")
-        btn_primary(btn_cli)
+        btn_cli.setProperty("class", "primary")
         btn_cli.clicked.connect(self._buscar_cliente)
         l_cli.addWidget(self.txt_cliente)
         l_cli.addWidget(btn_cli)
@@ -189,7 +209,7 @@ class NuevaReservaDialog(BaseDialog):
 
         # --- 2. Vehiculo ---
         gb_auto = QGroupBox("2. Asignacion de Vehiculo")
-        group_box(gb_auto)
+
         l_auto = QGridLayout()
 
         self.cmb_auto = QComboBox()
@@ -205,13 +225,6 @@ class NuevaReservaDialog(BaseDialog):
         self.d_fin.setCalendarPopup(True)
         self.t_fin = QTimeEdit(QTime(8, 0))
 
-        input_combo(self.cmb_auto)
-        input_date(self.d_inicio)
-        input_time(self.t_inicio)
-        input_spinbox(self.sp_dias)
-        input_date(self.d_fin)
-        input_time(self.t_fin)
-
         self.d_inicio.dateChanged.connect(self._calc_fechas)
         self.t_inicio.timeChanged.connect(self._calc_fechas)
         self.sp_dias.valueChanged.connect(self._calc_fechas)
@@ -219,7 +232,7 @@ class NuevaReservaDialog(BaseDialog):
         self.t_fin.timeChanged.connect(self._calc_dias)
 
         self.lbl_extras = QLabel("Extras: 0h")
-        status_warning(self.lbl_extras)
+        self.lbl_extras.setProperty("class", "extra-info")
 
         l_auto.setColumnStretch(1, 1)
         l_auto.setColumnStretch(4, 1)
@@ -242,7 +255,7 @@ class NuevaReservaDialog(BaseDialog):
 
         # --- 3. Valores ---
         gb_val = QGroupBox("3. Valores Financieros")
-        group_box(gb_val)
+
         l_val = QGridLayout()
 
         self.sp_valor_dia = QDoubleSpinBox()
@@ -260,15 +273,11 @@ class NuevaReservaDialog(BaseDialog):
         self.sp_abono.setPrefix("$ ")
         self.sp_abono.valueChanged.connect(self._calc_total)
 
-        input_spinbox(self.sp_valor_dia)
-        input_spinbox(self.sp_valor_hora)
-        input_spinbox(self.sp_abono)
-
         self.lbl_total = QLabel("$ 0")
-        status_active(self.lbl_total)
+        self.lbl_total.setProperty("class", "total-amount")
 
         self.lbl_saldo = QLabel("$ 0")
-        status_inactive(self.lbl_saldo)
+        self.lbl_saldo.setProperty("class", "status-danger")
 
         l_val.setColumnStretch(1, 1)
         l_val.setColumnStretch(3, 1)
@@ -288,32 +297,31 @@ class NuevaReservaDialog(BaseDialog):
 
         # Observaciones
         lbl_obs = QLabel("Observaciones:")
-        from views.styles import lbl_section
-        lbl_section(lbl_obs)
+        lbl_obs.setProperty("class", "section")
         body_lay.addWidget(lbl_obs)
         self.txt_obs = QTextEdit()
         self.txt_obs.setMaximumHeight(50)
-        input_textedit(self.txt_obs)
         body_lay.addWidget(self.txt_obs)
 
         body_lay.addStretch()
 
         # Separador
         from PySide6.QtWidgets import QFrame
+
         sep = QFrame()
         sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet("QFrame { background: #cbd5e1; max-height: 1px; border: none; }")
+        sep.setProperty("class", "divider")
         body_lay.addWidget(sep)
 
         # Botones
         h_btn = QHBoxLayout()
         h_btn.setSpacing(10)
         btn_cancel = QPushButton("Cancelar")
-        btn_danger(btn_cancel)
+        btn_cancel.setProperty("class", "danger")
         btn_cancel.clicked.connect(self.reject)
 
         btn_save = QPushButton("CREAR RESERVA")
-        btn_primary(btn_save)
+        btn_save.setProperty("class", "primary")
         btn_save.clicked.connect(self._guardar)
 
         h_btn.addStretch()
@@ -331,7 +339,7 @@ class NuevaReservaDialog(BaseDialog):
             self.cliente_id = s.cliente_seleccionado["id"]
             nom = (
                 s.cliente_seleccionado.get("nombre_completo")
-                or f"{s.cliente_seleccionado.get('nombres','')} {s.cliente_seleccionado.get('apellidos','')}"
+                or f"{s.cliente_seleccionado.get('nombres', '')} {s.cliente_seleccionado.get('apellidos', '')}"
             )
             self.txt_cliente.setText(nom)
 
@@ -340,9 +348,12 @@ class NuevaReservaDialog(BaseDialog):
 
         categorias = [
             "--- CATEGORIAS GENERICAS ---",
-            "Sedan Mecanico", "Sedan Automatico",
-            "Camioneta 5 Pasajeros", "Camioneta 7 Pasajeros",
-            "HatchBack Mecanico", "HatchBack Automatico",
+            "Sedan Mecanico",
+            "Sedan Automatico",
+            "Camioneta 5 Pasajeros",
+            "Camioneta 7 Pasajeros",
+            "HatchBack Mecanico",
+            "HatchBack Automatico",
             "--- VEHICULOS ESPECIFICOS DISPONIBLES ---",
         ]
 
@@ -367,9 +378,7 @@ class NuevaReservaDialog(BaseDialog):
         if self._updating:
             return
         self._updating = True
-        ini = datetime.combine(
-            self.d_inicio.date().toPython(), self.t_inicio.time().toPython()
-        )
+        ini = datetime.combine(self.d_inicio.date().toPython(), self.t_inicio.time().toPython())
         fin = ini + timedelta(days=self.sp_dias.value())
         self.d_fin.setDate(fin.date())
         self.t_fin.setTime(fin.time())
@@ -381,12 +390,8 @@ class NuevaReservaDialog(BaseDialog):
         if self._updating:
             return
         self._updating = True
-        ini = datetime.combine(
-            self.d_inicio.date().toPython(), self.t_inicio.time().toPython()
-        )
-        fin = datetime.combine(
-            self.d_fin.date().toPython(), self.t_fin.time().toPython()
-        )
+        ini = datetime.combine(self.d_inicio.date().toPython(), self.t_inicio.time().toPython())
+        fin = datetime.combine(self.d_fin.date().toPython(), self.t_fin.time().toPython())
 
         diff_h = (fin - ini).total_seconds() / 3600
         days = max(1, int(diff_h // 24))
@@ -406,12 +411,8 @@ class NuevaReservaDialog(BaseDialog):
         val_dia = self.sp_valor_dia.value()
         val_hora = self.sp_valor_hora.value()
 
-        ini = datetime.combine(
-            self.d_inicio.date().toPython(), self.t_inicio.time().toPython()
-        )
-        fin = datetime.combine(
-            self.d_fin.date().toPython(), self.t_fin.time().toPython()
-        )
+        ini = datetime.combine(self.d_inicio.date().toPython(), self.t_inicio.time().toPython())
+        fin = datetime.combine(self.d_fin.date().toPython(), self.t_fin.time().toPython())
         diff_h = (fin - ini).total_seconds() / 3600
         horas_extra = int(diff_h % 24) if (diff_h % 24) > 2 else 0
 
@@ -429,9 +430,7 @@ class NuevaReservaDialog(BaseDialog):
 
         seleccion = self.cmb_auto.currentData()
         if not seleccion:
-            ModernMessageBox.warning(
-                self, "Validacion", "Seleccione una opcion valida de vehiculo"
-            )
+            ModernMessageBox.warning(self, "Validacion", "Seleccione una opcion valida de vehiculo")
             return
 
         total, horas_extra = self._calc_total()
@@ -464,6 +463,7 @@ class NuevaReservaDialog(BaseDialog):
         try:
             ReservaService.crear(datos)
             from views.components.toast_notification import ToastNotification
+
             ToastNotification(self.window(), "Reserva creada correctamente", "success")
             self.accept()
         except DinamoBaseError as e:
@@ -474,23 +474,26 @@ class NuevaReservaDialog(BaseDialog):
 # WIDGET PRINCIPAL
 # =============================================================================
 
+
 class ReservasWidget(BaseWidget):
     """Panel de Gestion de Reservas."""
 
     def __init__(self, session_id: str = None):
         super().__init__(session_id=session_id)
-        self.setStyleSheet(f"QWidget {{ background: {_BG}; }} QLabel {{ color: {_TEXT}; }}")
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
         from views.layouts.form_helpers import create_banner
-        banner = create_banner("📅", "Gestion de Reservas", "Administracion de reservas vehiculares", self.cargar_datos)
+
+        banner = create_banner(
+            "📅", "Gestion de Reservas", "Administracion de reservas vehiculares", self.cargar_datos
+        )
         main_layout.addWidget(banner)
 
         content = QWidget()
-        content.setStyleSheet(f"QWidget {{ background: {_BG}; }}")
+
         c_lay = QVBoxLayout(content)
         c_lay.setContentsMargins(20, 16, 20, 16)
         c_lay.setSpacing(14)
@@ -501,19 +504,19 @@ class ReservasWidget(BaseWidget):
 
         # Busqueda
         self.txt_buscar = QLineEdit()
-        edit_search(self.txt_buscar)
+        self.txt_buscar.setProperty("class", "search")
         self.txt_buscar.setPlaceholderText("Buscar reserva...")
         self.txt_buscar.setMinimumWidth(250)
         self.txt_buscar.textChanged.connect(self._filtrar)
         top.addWidget(self.txt_buscar)
 
         btn_refresh = QPushButton("Actualizar")
-        btn_default(btn_refresh)
+        btn_refresh.setProperty("class", "ghost")
         btn_refresh.clicked.connect(self.cargar_datos)
         top.addWidget(btn_refresh)
 
         btn_nueva = QPushButton("+ Nueva Reserva")
-        btn_primary(btn_nueva)
+        btn_nueva.setProperty("class", "success")
         btn_nueva.clicked.connect(self._nueva_reserva)
         top.addWidget(btn_nueva)
 
@@ -521,10 +524,18 @@ class ReservasWidget(BaseWidget):
 
         # ── Tabla ──
         self.tbl = QTableWidget(0, 7)
-        table_widget(self.tbl)
-        self.tbl.setHorizontalHeaderLabels([
-            "ID", "Cliente", "Vehiculo/Cat.", "Inicio", "Fin", "Abono", "Estado",
-        ])
+
+        self.tbl.setHorizontalHeaderLabels(
+            [
+                "ID",
+                "Cliente",
+                "Vehiculo/Cat.",
+                "Inicio",
+                "Fin",
+                "Abono",
+                "Estado",
+            ]
+        )
         self.tbl.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.tbl.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.tbl.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -566,8 +577,11 @@ class ReservasWidget(BaseWidget):
             self.tbl.setItem(row, 5, QTableWidgetItem(f"$ {float(r.get('abono', 0)):,.0f}"))
 
             est = r.get("estado", "")
-            from views.components.status_badge import StatusBadge
-            _ESTADO_BADGE_MAP = {"Confirmada": "success", "Pendiente": "warning", "Cancelada": "danger"}
+            _ESTADO_BADGE_MAP = {
+                "Confirmada": "success",
+                "Pendiente": "warning",
+                "Cancelada": "danger",
+            }
             badge = StatusBadge(est, _ESTADO_BADGE_MAP.get(est, "info"))
             self.tbl.setCellWidget(row, 6, badge)
 
@@ -579,7 +593,8 @@ class ReservasWidget(BaseWidget):
             self._pintar_filas(self._lista)
             return
         filtrados = [
-            r for r in self._lista
+            r
+            for r in self._lista
             if txt in str(r.get("nombre_cliente", "")).lower()
             or txt in str(r.get("placa_asignada", "")).lower()
             or txt in str(r.get("categoria_vehiculo", "")).lower()
@@ -633,7 +648,10 @@ class ReservasWidget(BaseWidget):
             if doc.strip() == "":
                 doc = "No registrado"
 
-            vehiculo = d.get("placa_asignada") or f"Categoría: {d.get('categoria_vehiculo', 'No asignada')}"
+            vehiculo = (
+                d.get("placa_asignada")
+                or f"Categoría: {d.get('categoria_vehiculo', 'No asignada')}"
+            )
             vehiculo_tipo = d.get("categoria_vehiculo", "Vehículo")
 
             dias = d.get("dias_calculados", 1)

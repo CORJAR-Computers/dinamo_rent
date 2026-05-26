@@ -13,7 +13,8 @@ from decimal import Decimal
 import pytest
 
 from core.exceptions import (
-    NegocioError, ValidacionError, RegistroNoEncontrado,
+    NegocioError,
+    ValidacionError,
 )
 from services.auto_service import AutoService
 from services.cliente_service import ClienteService
@@ -27,6 +28,7 @@ from services.alerta_service import AlertaService
 # ═══════════════════════════════════════════════════════════════════════════════
 # Helpers (reuse same pattern from test_services_unit.py)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _crear_auto(placa: str, **kwargs):
     """Create a test auto with defaults."""
@@ -96,43 +98,50 @@ def _buscar_cliente_por_doc(no_doc: str):
 # PagoService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestPagoService:
 
+class TestPagoService:
     def test_registrar_pago(self):
         """registrar() creates a payment record."""
         _crear_auto("PAG001")
         renta_id = _crear_renta("PAG001", nombre_cliente="Pago Test")
-        pago_id = PagoService.registrar({
-            "id_renta": renta_id,
-            "monto": "50000",
-            "metodo_pago": "Efectivo",
-            "concepto": "Abono",
-        })
+        pago_id = PagoService.registrar(
+            {
+                "id_renta": renta_id,
+                "monto": "50000",
+                "metodo_pago": "Efectivo",
+                "concepto": "Abono",
+            }
+        )
         assert isinstance(pago_id, int)
         assert pago_id > 0
 
     def test_registrar_pago_actualiza_abono(self):
         """registrar() updates the rental's abono and saldo_pendiente atomically."""
         _crear_auto("PAG002")
-        renta_id = _crear_renta("PAG002", nombre_cliente="Abono Test",
-                                total=Decimal("300000"), abono=Decimal("0"))
+        renta_id = _crear_renta(
+            "PAG002", nombre_cliente="Abono Test", total=Decimal("300000"), abono=Decimal("0")
+        )
 
         # Register first payment of 100000
-        PagoService.registrar({
-            "id_renta": renta_id,
-            "monto": "100000",
-            "metodo_pago": "Transferencia",
-        })
+        PagoService.registrar(
+            {
+                "id_renta": renta_id,
+                "monto": "100000",
+                "metodo_pago": "Transferencia",
+            }
+        )
         renta = RentaService.obtener(renta_id)
         assert renta["abono"] == 100000.0
         assert renta["saldo_pendiente"] == 200000.0
 
         # Register second payment of 150000
-        PagoService.registrar({
-            "id_renta": renta_id,
-            "monto": "150000",
-            "metodo_pago": "Efectivo",
-        })
+        PagoService.registrar(
+            {
+                "id_renta": renta_id,
+                "monto": "150000",
+                "metodo_pago": "Efectivo",
+            }
+        )
         renta = RentaService.obtener(renta_id)
         assert renta["abono"] == 250000.0  # 100000 + 150000
         assert renta["saldo_pendiente"] == 50000.0  # 300000 - 250000
@@ -156,43 +165,49 @@ class TestPagoService:
         _crear_auto("PAG004")
         renta_id = _crear_renta("PAG004")
         with pytest.raises((ValidacionError, NegocioError)):
-            PagoService.registrar({
-                "id_renta": renta_id,
-                "metodo_pago": "Efectivo",
-                # No monto
-            })
+            PagoService.registrar(
+                {
+                    "id_renta": renta_id,
+                    "metodo_pago": "Efectivo",
+                    # No monto
+                }
+            )
 
     def test_registrar_pago_monto_cero(self):
         """registrar() raises error when monto <= 0."""
         _crear_auto("PAG005")
         renta_id = _crear_renta("PAG005")
         with pytest.raises(ValidacionError, match="mayor a cero"):
-            PagoService.registrar({
-                "id_renta": renta_id,
-                "monto": "0",
-                "metodo_pago": "Efectivo",
-            })
+            PagoService.registrar(
+                {
+                    "id_renta": renta_id,
+                    "monto": "0",
+                    "metodo_pago": "Efectivo",
+                }
+            )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # MantenimientoService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestMantenimientoService:
 
+class TestMantenimientoService:
     def test_registrar_cambio_aceite(self):
         """registrar() creates an oil change record and updates auto's proximo_aceite."""
         _crear_auto("MNT001", kilometraje=15000, proximo_aceite=15000)
 
-        MantenimientoService.registrar({
-            "placa": "MNT001",
-            "tipo": "Cambio Aceite",
-            "fecha": str(datetime.date.today()),
-            "costo": "250000",
-            "prox_km": 20000,
-            "km_actual": 15000,
-            "accion_estado": "mantener",
-        })
+        MantenimientoService.registrar(
+            {
+                "placa": "MNT001",
+                "tipo": "Cambio Aceite",
+                "fecha": str(datetime.date.today()),
+                "costo": "250000",
+                "prox_km": 20000,
+                "km_actual": 15000,
+                "accion_estado": "mantener",
+            }
+        )
 
         # Check maintenance record exists in history
         historial = MantenimientoService.listar_historial()
@@ -207,14 +222,16 @@ class TestMantenimientoService:
         """registrar() changes auto state when accion_estado='mantenimiento'."""
         _crear_auto("MNT002", kilometraje=20000)
 
-        MantenimientoService.registrar({
-            "placa": "MNT002",
-            "tipo": "Frenos",
-            "fecha": str(datetime.date.today()),
-            "costo": "120000",
-            "km_actual": 20000,
-            "accion_estado": "mantenimiento",
-        })
+        MantenimientoService.registrar(
+            {
+                "placa": "MNT002",
+                "tipo": "Frenos",
+                "fecha": str(datetime.date.today()),
+                "costo": "120000",
+                "km_actual": 20000,
+                "accion_estado": "mantenimiento",
+            }
+        )
 
         auto = AutoService.obtener("MNT002")
         assert auto["estado"] == "Mantenimiento"
@@ -223,14 +240,16 @@ class TestMantenimientoService:
         """registrar() sets auto back to Disponible when accion_estado='disponible'."""
         _crear_auto("MNT003", kilometraje=30000, estado="Mantenimiento")
 
-        MantenimientoService.registrar({
-            "placa": "MNT003",
-            "tipo": "Lavado General",
-            "fecha": str(datetime.date.today()),
-            "costo": "50000",
-            "km_actual": 30000,
-            "accion_estado": "disponible",
-        })
+        MantenimientoService.registrar(
+            {
+                "placa": "MNT003",
+                "tipo": "Lavado General",
+                "fecha": str(datetime.date.today()),
+                "costo": "50000",
+                "km_actual": 30000,
+                "accion_estado": "disponible",
+            }
+        )
 
         auto = AutoService.obtener("MNT003")
         assert auto["estado"] == "Disponible"
@@ -239,14 +258,16 @@ class TestMantenimientoService:
         """registrar() with 'Tecno-Mecánica' updates auto's vencimiento_tecnico."""
         _crear_auto("MNT004", kilometraje=40000)
 
-        MantenimientoService.registrar({
-            "placa": "MNT004",
-            "tipo": "Tecno-Mecánica",
-            "fecha": str(datetime.date.today()),
-            "costo": "350000",
-            "km_actual": 40000,
-            "accion_estado": "mantener",
-        })
+        MantenimientoService.registrar(
+            {
+                "placa": "MNT004",
+                "tipo": "Tecno-Mecánica",
+                "fecha": str(datetime.date.today()),
+                "costo": "350000",
+                "km_actual": 40000,
+                "accion_estado": "mantener",
+            }
+        )
 
         auto = AutoService.obtener("MNT004")
         # vencimiento_tecnico should be set to today + 365 days
@@ -256,13 +277,15 @@ class TestMantenimientoService:
     def test_listar_historial(self):
         """listar_historial() returns maintenance records."""
         _crear_auto("MNT005")
-        MantenimientoService.registrar({
-            "placa": "MNT005",
-            "tipo": "Llantas",
-            "fecha": str(datetime.date.today()),
-            "costo": "800000",
-            "km_actual": 10000,
-        })
+        MantenimientoService.registrar(
+            {
+                "placa": "MNT005",
+                "tipo": "Llantas",
+                "fecha": str(datetime.date.today()),
+                "costo": "800000",
+                "km_actual": 10000,
+            }
+        )
         historial = MantenimientoService.listar_historial()
         assert len(historial) >= 1
         assert any(m["placa"] == "MNT005" for m in historial)
@@ -281,38 +304,42 @@ class TestMantenimientoService:
         """registrar() raises error when tipo is not provided."""
         _crear_auto("MNT008")
         with pytest.raises(ValidacionError, match="tipo"):
-            MantenimientoService.registrar({
-                "placa": "MNT008",
-                "costo": "50000",
-                "km_actual": 10000,
-                # No tipo
-            })
+            MantenimientoService.registrar(
+                {
+                    "placa": "MNT008",
+                    "costo": "50000",
+                    "km_actual": 10000,
+                    # No tipo
+                }
+            )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ReservaService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestReservaService:
 
+class TestReservaService:
     def test_crear_reserva(self):
         """crear() creates a reservation and returns its ID."""
         _crear_cliente("7777777777", nombres="Reserva", apellidos="Test")
         cliente_id = _buscar_cliente_por_doc("7777777777")
 
         hoy = datetime.date.today()
-        reserva_id = ReservaService.crear({
-            "id_cliente": cliente_id,
-            "nombre_cliente": "Reserva Test",
-            "categoria_vehiculo": "Automóvil",
-            "fecha_recogida": hoy,
-            "hora_recogida": datetime.time(9, 0),
-            "fecha_retorno": hoy + datetime.timedelta(days=2),
-            "hora_retorno": datetime.time(9, 0),
-            "dias_calculados": 2,
-            "valor_dia": Decimal("120000"),
-            "total": Decimal("240000"),
-        })
+        reserva_id = ReservaService.crear(
+            {
+                "id_cliente": cliente_id,
+                "nombre_cliente": "Reserva Test",
+                "categoria_vehiculo": "Automóvil",
+                "fecha_recogida": hoy,
+                "hora_recogida": datetime.time(9, 0),
+                "fecha_retorno": hoy + datetime.timedelta(days=2),
+                "hora_retorno": datetime.time(9, 0),
+                "dias_calculados": 2,
+                "valor_dia": Decimal("120000"),
+                "total": Decimal("240000"),
+            }
+        )
         assert isinstance(reserva_id, int)
         assert reserva_id > 0
 
@@ -322,18 +349,20 @@ class TestReservaService:
         cliente_id = _buscar_cliente_por_doc("8888888888")
 
         hoy = datetime.date.today()
-        reserva_id = ReservaService.crear({
-            "id_cliente": cliente_id,
-            "nombre_cliente": "AutoCalc",
-            "categoria_vehiculo": "Van",
-            "fecha_recogida": hoy,
-            "hora_recogida": datetime.time(8, 0),
-            "fecha_retorno": hoy + datetime.timedelta(days=3),
-            "hora_retorno": datetime.time(8, 0),
-            "dias_calculados": 3,
-            "valor_dia": Decimal("150000"),
-            # No total — should auto-calculate to 3 * 150000 = 450000
-        })
+        reserva_id = ReservaService.crear(
+            {
+                "id_cliente": cliente_id,
+                "nombre_cliente": "AutoCalc",
+                "categoria_vehiculo": "Van",
+                "fecha_recogida": hoy,
+                "hora_recogida": datetime.time(8, 0),
+                "fecha_retorno": hoy + datetime.timedelta(days=3),
+                "hora_retorno": datetime.time(8, 0),
+                "dias_calculados": 3,
+                "valor_dia": Decimal("150000"),
+                # No total — should auto-calculate to 3 * 150000 = 450000
+            }
+        )
         reserva = ReservaService.obtener_para_pdf(reserva_id)
         assert reserva["total"] == 450000.0
 
@@ -343,16 +372,18 @@ class TestReservaService:
         cliente_id = _buscar_cliente_por_doc("9999999999")
 
         hoy = datetime.date.today()
-        ReservaService.crear({
-            "id_cliente": cliente_id,
-            "nombre_cliente": "List Reserva",
-            "categoria_vehiculo": "Automóvil",
-            "fecha_recogida": hoy,
-            "hora_recogida": datetime.time(10, 0),
-            "fecha_retorno": hoy + datetime.timedelta(days=1),
-            "hora_retorno": datetime.time(10, 0),
-            "total": Decimal("100000"),
-        })
+        ReservaService.crear(
+            {
+                "id_cliente": cliente_id,
+                "nombre_cliente": "List Reserva",
+                "categoria_vehiculo": "Automóvil",
+                "fecha_recogida": hoy,
+                "hora_recogida": datetime.time(10, 0),
+                "fecha_retorno": hoy + datetime.timedelta(days=1),
+                "hora_retorno": datetime.time(10, 0),
+                "total": Decimal("100000"),
+            }
+        )
         reservas = ReservaService.listar()
         assert len(reservas) >= 1
         assert any(r["nombre_cliente"] == "List Reserva" for r in reservas)
@@ -360,15 +391,17 @@ class TestReservaService:
     def test_crear_reserva_sin_cliente(self):
         """crear() raises error when no id_cliente is provided."""
         with pytest.raises(ValidacionError, match="cliente"):
-            ReservaService.crear({
-                "nombre_cliente": "No Client",
-                # No id_cliente
-                "categoria_vehiculo": "Automóvil",
-                "fecha_recogida": datetime.date.today(),
-                "hora_recogida": datetime.time(10, 0),
-                "fecha_retorno": datetime.date.today() + datetime.timedelta(days=1),
-                "hora_retorno": datetime.time(10, 0),
-            })
+            ReservaService.crear(
+                {
+                    "nombre_cliente": "No Client",
+                    # No id_cliente
+                    "categoria_vehiculo": "Automóvil",
+                    "fecha_recogida": datetime.date.today(),
+                    "hora_recogida": datetime.time(10, 0),
+                    "fecha_retorno": datetime.date.today() + datetime.timedelta(days=1),
+                    "hora_retorno": datetime.time(10, 0),
+                }
+            )
 
     def test_crear_reserva_sin_vehiculo(self):
         """crear() raises error when no categoria_vehiculo or placa_asignada."""
@@ -376,15 +409,17 @@ class TestReservaService:
         cliente_id = _buscar_cliente_por_doc("1010101010")
 
         with pytest.raises(ValidacionError, match="vehículo|vehiculo|categoría|categoria"):
-            ReservaService.crear({
-                "id_cliente": cliente_id,
-                "nombre_cliente": "No Vehicle",
-                # No categoria_vehiculo or placa_asignada
-                "fecha_recogida": datetime.date.today(),
-                "hora_recogida": datetime.time(10, 0),
-                "fecha_retorno": datetime.date.today() + datetime.timedelta(days=1),
-                "hora_retorno": datetime.time(10, 0),
-            })
+            ReservaService.crear(
+                {
+                    "id_cliente": cliente_id,
+                    "nombre_cliente": "No Vehicle",
+                    # No categoria_vehiculo or placa_asignada
+                    "fecha_recogida": datetime.date.today(),
+                    "hora_recogida": datetime.time(10, 0),
+                    "fecha_retorno": datetime.date.today() + datetime.timedelta(days=1),
+                    "hora_retorno": datetime.time(10, 0),
+                }
+            )
 
     def test_cancelar_reserva(self):
         """cancelar() changes reservation status to 'Cancelada'."""
@@ -392,16 +427,18 @@ class TestReservaService:
         cliente_id = _buscar_cliente_por_doc("1212121212")
 
         hoy = datetime.date.today()
-        reserva_id = ReservaService.crear({
-            "id_cliente": cliente_id,
-            "nombre_cliente": "Cancel Test",
-            "categoria_vehiculo": "Lujo",
-            "fecha_recogida": hoy,
-            "hora_recogida": datetime.time(10, 0),
-            "fecha_retorno": hoy + datetime.timedelta(days=1),
-            "hora_retorno": datetime.time(10, 0),
-            "total": Decimal("200000"),
-        })
+        reserva_id = ReservaService.crear(
+            {
+                "id_cliente": cliente_id,
+                "nombre_cliente": "Cancel Test",
+                "categoria_vehiculo": "Lujo",
+                "fecha_recogida": hoy,
+                "hora_recogida": datetime.time(10, 0),
+                "fecha_retorno": hoy + datetime.timedelta(days=1),
+                "hora_retorno": datetime.time(10, 0),
+                "total": Decimal("200000"),
+            }
+        )
 
         ReservaService.cancelar(reserva_id)
         reserva = ReservaService.obtener_para_pdf(reserva_id)
@@ -409,21 +446,25 @@ class TestReservaService:
 
     def test_obtener_contacto(self):
         """obtener_contacto() returns client name and nationality from reservation."""
-        _crear_cliente("1313131313", nombres="Contacto", apellidos="Test", nacionalidad="Colombiana")
+        _crear_cliente(
+            "1313131313", nombres="Contacto", apellidos="Test", nacionalidad="Colombiana"
+        )
         cliente_id = _buscar_cliente_por_doc("1313131313")
 
         hoy = datetime.date.today()
-        reserva_id = ReservaService.crear({
-            "id_cliente": cliente_id,
-            "nombre_cliente": "Contacto Test",
-            "nacionalidad": "Colombiana",
-            "categoria_vehiculo": "Automóvil",
-            "fecha_recogida": hoy,
-            "hora_recogida": datetime.time(10, 0),
-            "fecha_retorno": hoy + datetime.timedelta(days=1),
-            "hora_retorno": datetime.time(10, 0),
-            "total": Decimal("100000"),
-        })
+        reserva_id = ReservaService.crear(
+            {
+                "id_cliente": cliente_id,
+                "nombre_cliente": "Contacto Test",
+                "nacionalidad": "Colombiana",
+                "categoria_vehiculo": "Automóvil",
+                "fecha_recogida": hoy,
+                "hora_recogida": datetime.time(10, 0),
+                "fecha_retorno": hoy + datetime.timedelta(days=1),
+                "hora_retorno": datetime.time(10, 0),
+                "total": Decimal("100000"),
+            }
+        )
 
         contacto = ReservaService.obtener_contacto(reserva_id)
         assert contacto["nombre_cliente"] == "Contacto Test"
@@ -434,8 +475,8 @@ class TestReservaService:
 # AlertaService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestAlertaService:
 
+class TestAlertaService:
     def test_obtener_alertas_estructura(self):
         """obtener_todas_las_alertas() returns dict with expected keys."""
         alertas = AlertaService.obtener_todas_las_alertas()
@@ -453,9 +494,13 @@ class TestAlertaService:
         hoy = datetime.date.today()
         manana = hoy + datetime.timedelta(days=1)
 
-        _crear_renta("ALR001", nombre_cliente="Alerta Cliente",
-                     id_cliente=cliente_id,
-                     fecha_recogida=hoy, fecha_retorno=manana)
+        _crear_renta(
+            "ALR001",
+            nombre_cliente="Alerta Cliente",
+            id_cliente=cliente_id,
+            fecha_recogida=hoy,
+            fecha_retorno=manana,
+        )
 
         alertas = AlertaService.obtener_todas_las_alertas()
         client_alerts = [a for a in alertas["clientes"] if "ALR001" in a["titulo"]]

@@ -15,7 +15,6 @@ Run: pytest tests/test_config.py -v
 """
 
 import os
-import configparser
 from pathlib import Path
 
 import pytest
@@ -25,20 +24,22 @@ import pytest
 # Fixtures
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @pytest.fixture
 def fresh_config(monkeypatch):
     """Return a fresh _Config instance with ONLY default values (no real config.ini)."""
     from core import config as config_module
+
     # Point INI_PATH to non-existent path so only defaults are loaded
     monkeypatch.setattr(config_module, "INI_PATH", Path("/nonexistent_config_ini_for_tests"))
     from core.config import _Config
+
     return _Config()
 
 
 @pytest.fixture
 def temp_ini_path(tmp_path):
     """Create a temporary config.ini with known content and monkeypatch INI_PATH."""
-    from core import config as config_module
 
     content = (
         "[database]\n"
@@ -100,8 +101,8 @@ def temp_ini_path(tmp_path):
 # _Config initialization
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestInit:
 
+class TestInit:
     def test_defaults_sin_archivo(self, fresh_config):
         """_Config loads defaults even without a config.ini file."""
         assert fresh_config.get("database", "engine") == "mysql"
@@ -111,6 +112,7 @@ class TestInit:
         """_Config overrides defaults with values from INI file."""
         from core import config as config_module
         from core.config import _Config
+
         monkeypatch.setattr(config_module, "INI_PATH", Path(temp_ini_path))
         cfg = _Config()
         assert cfg.get("database", "engine") == "sqlite"
@@ -121,6 +123,7 @@ class TestInit:
         """INI with partial keys keeps defaults for missing keys."""
         from core import config as config_module
         from core.config import _Config
+
         monkeypatch.setattr(config_module, "INI_PATH", Path(temp_ini_path))
         cfg = _Config()
         # From file
@@ -130,8 +133,18 @@ class TestInit:
 
     def test_secciones_completas(self, fresh_config):
         """All default sections are present."""
-        sections = ["database", "security", "backup", "logging", "application",
-                     "ui", "business", "email", "whatsapp", "reports"]
+        sections = [
+            "database",
+            "security",
+            "backup",
+            "logging",
+            "application",
+            "ui",
+            "business",
+            "email",
+            "whatsapp",
+            "reports",
+        ]
         for section in sections:
             assert fresh_config._parser.has_section(section), f"Missing section: {section}"
 
@@ -140,8 +153,8 @@ class TestInit:
 # _Config.get
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGet:
 
+class TestGet:
     def test_valor_existente(self, fresh_config):
         """get() returns existing string value."""
         result = fresh_config.get("database", "engine")
@@ -183,8 +196,8 @@ class TestGet:
 # _Config.getint
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGetint:
 
+class TestGetint:
     def test_valor_existente(self, fresh_config):
         """getint() returns int from numeric string.
         PD: The default timeout value in _DEFAULTS is \"10\" as a string,
@@ -229,8 +242,8 @@ class TestGetint:
 # _Config.getfloat
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGetfloat:
 
+class TestGetfloat:
     def test_valor_entero_como_float(self, fresh_config):
         """getfloat() returns float from integer string."""
         fresh_config._parser.set("database", "timeout", "10")
@@ -264,12 +277,13 @@ class TestGetfloat:
 # _Config.getbool
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGetbool:
 
+class TestGetbool:
     @pytest.fixture
     def cfg_with_test_section(self):
         """Return _Config with a 'test' section added."""
         from core.config import _Config
+
         cfg = _Config()
         cfg._parser.add_section("test")
         return cfg
@@ -339,8 +353,8 @@ class TestGetbool:
 # _Config.getlist
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGetlist:
 
+class TestGetlist:
     def test_lista_comas(self, fresh_config):
         """getlist() splits by comma and strips whitespace."""
         fresh_config._parser.set("business", "test_list", "a, b, c")
@@ -389,8 +403,8 @@ class TestGetlist:
 # _Config.getset
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGetset:
 
+class TestGetset:
     def test_retorna_set(self, fresh_config):
         """getset() returns a set."""
         fresh_config._parser.set("business", "test_set", "a, b, c")
@@ -430,8 +444,8 @@ class TestGetset:
 # _Config.set
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestSet:
 
+class TestSet:
     def test_set_valor(self, fresh_config):
         """set() stores a value in the parser."""
         fresh_config.set("test_section", "my_key", "my_value")
@@ -464,12 +478,13 @@ class TestSet:
 # _Config.save
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestSave:
 
+class TestSave:
     def test_guarda_archivo_ini(self, temp_ini_path, monkeypatch):
         """save() writes config to INI file."""
         from core import config as config_module
         from core.config import _Config
+
         monkeypatch.setattr(config_module, "INI_PATH", Path(temp_ini_path))
         cfg = _Config()
         cfg.set("database", "engine", "postgresql")
@@ -484,6 +499,7 @@ class TestSave:
         """save() writes section headers correctly."""
         from core import config as config_module
         from core.config import _Config
+
         monkeypatch.setattr(config_module, "INI_PATH", Path(temp_ini_path))
         cfg = _Config()
         cfg.set("custom_section", "my_key", "123")
@@ -497,6 +513,7 @@ class TestSave:
         """save() creates the file if it doesn't exist."""
         from core import config as config_module
         from core.config import _Config
+
         new_path = tmp_path / "new_config.ini"
         monkeypatch.setattr(config_module, "INI_PATH", new_path)
         cfg = _Config()
@@ -508,6 +525,7 @@ class TestSave:
         """save() overwrites existing file with new content."""
         from core import config as config_module
         from core.config import _Config
+
         monkeypatch.setattr(config_module, "INI_PATH", Path(temp_ini_path))
         cfg = _Config()
         cfg.set("database", "engine", "mariadb")
@@ -523,18 +541,23 @@ class TestSave:
 # guardar_configuracion
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGuardarConfiguracion:
 
+class TestGuardarConfiguracion:
     def test_guardar_multiple_valores(self, temp_ini_path, monkeypatch):
         """guardar_configuracion() updates multiple values and saves."""
         from core import config as config_module
+
         monkeypatch.setattr(config_module, "INI_PATH", Path(temp_ini_path))
         from core.config import guardar_configuracion
+
         # Ensure _cfg writes to the temp path
-        guardar_configuracion("database", {
-            "engine": "sqlite",
-            "host": "new_host",
-        })
+        guardar_configuracion(
+            "database",
+            {
+                "engine": "sqlite",
+                "host": "new_host",
+            },
+        )
         saved_path = Path(temp_ini_path)
         content = saved_path.read_text(encoding="utf-8")
         assert "sqlite" in content
@@ -543,8 +566,10 @@ class TestGuardarConfiguracion:
     def test_guardar_no_afecta_otras_secciones(self, temp_ini_path, monkeypatch):
         """guardar_configuracion() only modifies the specified section."""
         from core import config as config_module
+
         monkeypatch.setattr(config_module, "INI_PATH", Path(temp_ini_path))
         from core.config import guardar_configuracion
+
         guardar_configuracion("database", {"engine": "sqlite"})
         saved_path = Path(temp_ini_path)
         content = saved_path.read_text(encoding="utf-8")
@@ -556,8 +581,10 @@ class TestGuardarConfiguracion:
     def test_retorna_none(self, temp_ini_path, monkeypatch):
         """guardar_configuracion() returns None."""
         from core import config as config_module
+
         monkeypatch.setattr(config_module, "INI_PATH", Path(temp_ini_path))
         from core.config import guardar_configuracion
+
         result = guardar_configuracion("database", {})
         assert result is None
 
@@ -566,13 +593,11 @@ class TestGuardarConfiguracion:
 # Environment variable overrides (module-level variables)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestEnvOverrides:
 
+class TestEnvOverrides:
     def test_db_engine_env_override(self, monkeypatch):
         """Environment variable DINAMO_DB_ENGINE overrides config value."""
         monkeypatch.setenv("DINAMO_DB_ENGINE", "postgresql")
-        from core.config import _Config
-        import os
         # Since module is already loaded, test the os.getenv pattern
         engine = os.getenv("DINAMO_DB_ENGINE", "mysql")
         assert engine == "postgresql"
@@ -580,28 +605,24 @@ class TestEnvOverrides:
     def test_db_host_env_override(self, monkeypatch):
         """Environment variable DINAMO_DB_HOST overrides config value."""
         monkeypatch.setenv("DINAMO_DB_HOST", "10.0.0.1")
-        import os
         host = os.getenv("DINAMO_DB_HOST", "localhost")
         assert host == "10.0.0.1"
 
     def test_db_password_env_override(self, monkeypatch):
         """Environment variable DINAMO_DB_PASSWORD overrides config value."""
         monkeypatch.setenv("DINAMO_DB_PASSWORD", "s3cr3t!")
-        import os
         pwd = os.getenv("DINAMO_DB_PASSWORD", "")
         assert pwd == "s3cr3t!"
 
     def test_db_name_env_override(self, monkeypatch):
         """Environment variable DINAMO_DB_NAME overrides config value."""
         monkeypatch.setenv("DINAMO_DB_NAME", "production_db")
-        import os
         name = os.getenv("DINAMO_DB_NAME", "dinamo_rent")
         assert name == "production_db"
 
     def test_sin_env_usa_fallback(self, monkeypatch, fresh_config):
         """Without env variable, the _Config default is used."""
         monkeypatch.delenv("DINAMO_DB_ENGINE", raising=False)
-        import os
         engine = os.getenv("DINAMO_DB_ENGINE", fresh_config.get("database", "engine", "mysql"))
         assert isinstance(engine, str)
         assert len(engine) > 0
@@ -609,7 +630,6 @@ class TestEnvOverrides:
     def test_db_port_env_override_int(self, monkeypatch, fresh_config):
         """Environment variable DINAMO_DB_PORT overrides and converts to int."""
         monkeypatch.setenv("DINAMO_DB_PORT", "5432")
-        import os
         port = int(os.getenv("DINAMO_DB_PORT", fresh_config.get("database", "port", "3306")))
         assert port == 5432
         assert isinstance(port, int)
@@ -617,7 +637,6 @@ class TestEnvOverrides:
     def test_db_user_env_override(self, monkeypatch):
         """Environment variable DINAMO_DB_USER overrides config value."""
         monkeypatch.setenv("DINAMO_DB_USER", "db_admin")
-        import os
         user = os.getenv("DINAMO_DB_USER", "root")
         assert user == "db_admin"
 
@@ -626,75 +645,88 @@ class TestEnvOverrides:
 # Module-level variables instantiation
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestModuleVariables:
 
+class TestModuleVariables:
     def test_db_engine_tipo(self):
         """DB_ENGINE is a string."""
         from core.config import DB_ENGINE
+
         assert isinstance(DB_ENGINE, str)
 
     def test_db_timeout_entero(self):
         """DB_TIMEOUT is an int."""
         from core.config import DB_TIMEOUT
+
         assert isinstance(DB_TIMEOUT, int)
 
     def test_db_pool_pre_ping_bool(self):
         """DB_POOL_PRE_PING is a bool."""
         from core.config import DB_POOL_PRE_PING
+
         assert isinstance(DB_POOL_PRE_PING, bool)
 
     def test_hash_iterations_entero(self):
         """HASH_ITERATIONS is an int."""
         from core.config import HASH_ITERATIONS
+
         assert isinstance(HASH_ITERATIONS, int)
 
     def test_session_timeout_entero(self):
         """SESSION_TIMEOUT is an int (seconds)."""
         from core.config import SESSION_TIMEOUT
+
         assert isinstance(SESSION_TIMEOUT, int)
         assert SESSION_TIMEOUT > 0
 
     def test_production_mode_bool(self):
         """PRODUCTION_MODE is a bool."""
         from core.config import PRODUCTION_MODE
+
         assert isinstance(PRODUCTION_MODE, bool)
 
     def test_currency_symbol_str(self):
         """CURRENCY_SYMBOL is a string."""
         from core.config import CURRENCY_SYMBOL
+
         assert isinstance(CURRENCY_SYMBOL, str)
 
     def test_roles_con_informes_set(self):
         """ROLES_CON_INFORMES is a set."""
         from core.config import ROLES_CON_INFORMES
+
         assert isinstance(ROLES_CON_INFORMES, set)
         assert len(ROLES_CON_INFORMES) >= 1
 
     def test_roles_con_usuarios_set(self):
         """ROLES_CON_USUARIOS is a set."""
         from core.config import ROLES_CON_USUARIOS
+
         assert isinstance(ROLES_CON_USUARIOS, set)
 
     def test_tipos_auto_lista(self):
         """TIPOS_AUTO is a list."""
         from core.config import TIPOS_AUTO
+
         assert isinstance(TIPOS_AUTO, list)
         assert len(TIPOS_AUTO) >= 5
 
     def test_tax_percentage_float(self):
         """TAX_PERCENTAGE is a float."""
         from core.config import TAX_PERCENTAGE
+
         assert isinstance(TAX_PERCENTAGE, float)
 
     def test_directorios_existen(self):
         """LOGS_DIR and BACKUP_DIR exist."""
         from core.config import LOGS_DIR, BACKUP_DIR
+
         assert LOGS_DIR.exists()
         assert BACKUP_DIR.exists()
 
     def test_bucket_db_mysql_es_dict(self):
         """DB_MYSQL is a dict with all expected keys."""
         from core.config import DB_MYSQL
+
         assert isinstance(DB_MYSQL, dict)
         expected = {"host", "port", "user", "password", "database"}
         assert expected.issubset(DB_MYSQL.keys())
