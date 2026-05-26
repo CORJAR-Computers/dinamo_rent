@@ -10,7 +10,6 @@ Each test generates unique data to avoid UNIQUE constraint violations.
 Run: pytest tests/test_repositories_restantes.py -v
 """
 
-import datetime
 from decimal import Decimal
 from datetime import date, time, timedelta
 
@@ -18,8 +17,11 @@ import pytest
 
 from core.models import Auto, Renta, Cliente
 from core.schemas import (
-    ComparendoCreate, GastoCreate, InspeccionCreate,
-    MantenimientoCreate, ReservaCreate,
+    ComparendoCreate,
+    GastoCreate,
+    InspeccionCreate,
+    MantenimientoCreate,
+    ReservaCreate,
 )
 from core.exceptions import RegistroNoEncontrado
 from repositories.comparendo_repository_sa import ComparendoRepositorySA
@@ -56,6 +58,7 @@ def _next_doc(prefix="RXDOC") -> str:
 # Fixtures
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @pytest.fixture
 def db_session():
     """Returns a clean session for transactional testing (rolls back after test)."""
@@ -70,6 +73,7 @@ def db_session():
 # ═══════════════════════════════════════════════════════════════════════════════
 # Helpers — raw DB inserts (bypass repos to create prerequisite data)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _raw_insert_auto(placa: str, **kwargs):
     """Helper: insert an Auto row directly via raw session."""
@@ -140,18 +144,22 @@ def _raw_insert_renta(placa: str, **kwargs) -> int:
 # ComparendoRepositorySA Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestComparendoRepositorySA:
 
+class TestComparendoRepositorySA:
     def test_insertar_y_obtener_todos(self):
         """insertar() creates comparendo; obtener_todos() returns it."""
         p = _next_placa("CMP")
         _raw_insert_auto(p)
         today = date.today()
 
-        cid = ComparendoRepositorySA.insertar(ComparendoCreate(
-            placa=p, fecha_infraccion=today, hora_infraccion=time(14, 0),
-            monto=Decimal("150000"),
-        ))
+        cid = ComparendoRepositorySA.insertar(
+            ComparendoCreate(
+                placa=p,
+                fecha_infraccion=today,
+                hora_infraccion=time(14, 0),
+                monto=Decimal("150000"),
+            )
+        )
         assert isinstance(cid, int) and cid > 0
 
         todos = ComparendoRepositorySA.obtener_todos()
@@ -176,11 +184,17 @@ class TestComparendoRepositorySA:
         rid = _raw_insert_renta(p)
         today = date.today()
 
-        cid = ComparendoRepositorySA.insertar(ComparendoCreate(
-            placa=p, fecha_infraccion=today, hora_infraccion=time(10, 0),
-            monto=Decimal("50000"), id_renta=rid, id_cliente=cid_cliente,
-            estado="Pagado",
-        ))
+        cid = ComparendoRepositorySA.insertar(
+            ComparendoCreate(
+                placa=p,
+                fecha_infraccion=today,
+                hora_infraccion=time(10, 0),
+                monto=Decimal("50000"),
+                id_renta=rid,
+                id_cliente=cid_cliente,
+                estado="Pagado",
+            )
+        )
 
         todos = ComparendoRepositorySA.obtener_todos()
         match = [c for c in todos if c["id"] == cid]
@@ -195,10 +209,14 @@ class TestComparendoRepositorySA:
         _raw_insert_auto(p)
         today = date.today()
 
-        cid = ComparendoRepositorySA.insertar(ComparendoCreate(
-            placa=p, fecha_infraccion=today, hora_infraccion=time(12, 0),
-            monto=Decimal("80000"),
-        ))
+        cid = ComparendoRepositorySA.insertar(
+            ComparendoCreate(
+                placa=p,
+                fecha_infraccion=today,
+                hora_infraccion=time(12, 0),
+                monto=Decimal("80000"),
+            )
+        )
         ComparendoRepositorySA.actualizar_estado(cid, "Pagado")
 
         todos = ComparendoRepositorySA.obtener_todos()
@@ -234,14 +252,22 @@ class TestComparendoRepositorySA:
         yesterday = today - timedelta(days=1)
 
         # Insert in reverse order: today, then yesterday
-        cid_today = ComparendoRepositorySA.insertar(ComparendoCreate(
-            placa=p, fecha_infraccion=today, hora_infraccion=time(10, 0),
-            monto=Decimal("100000"),
-        ))
-        cid_yesterday = ComparendoRepositorySA.insertar(ComparendoCreate(
-            placa=p, fecha_infraccion=yesterday, hora_infraccion=time(10, 0),
-            monto=Decimal("50000"),
-        ))
+        cid_today = ComparendoRepositorySA.insertar(
+            ComparendoCreate(
+                placa=p,
+                fecha_infraccion=today,
+                hora_infraccion=time(10, 0),
+                monto=Decimal("100000"),
+            )
+        )
+        cid_yesterday = ComparendoRepositorySA.insertar(
+            ComparendoCreate(
+                placa=p,
+                fecha_infraccion=yesterday,
+                hora_infraccion=time(10, 0),
+                monto=Decimal("50000"),
+            )
+        )
 
         todos = ComparendoRepositorySA.obtener_todos()
         # With desc order, today should appear before yesterday
@@ -261,16 +287,31 @@ class TestComparendoRepositorySA:
         _raw_insert_auto(p)
         today = date.today()
 
-        cid = ComparendoRepositorySA.insertar(ComparendoCreate(
-            placa=p, fecha_infraccion=today, hora_infraccion=time(10, 0),
-            monto=Decimal("75000"), observaciones="Test obs",
-        ))
+        cid = ComparendoRepositorySA.insertar(
+            ComparendoCreate(
+                placa=p,
+                fecha_infraccion=today,
+                hora_infraccion=time(10, 0),
+                monto=Decimal("75000"),
+                observaciones="Test obs",
+            )
+        )
         todos = ComparendoRepositorySA.obtener_todos()
         match = [c for c in todos if c["id"] == cid]
         assert len(match) == 1
-        expected = {"id", "placa", "fecha_infraccion", "hora_infraccion", "monto",
-                    "id_renta", "id_cliente", "estado", "observaciones",
-                    "created_at", "updated_at"}
+        expected = {
+            "id",
+            "placa",
+            "fecha_infraccion",
+            "hora_infraccion",
+            "monto",
+            "id_renta",
+            "id_cliente",
+            "estado",
+            "observaciones",
+            "created_at",
+            "updated_at",
+        }
         assert expected.issubset(match[0].keys())
 
 
@@ -278,15 +319,19 @@ class TestComparendoRepositorySA:
 # GastoRepositorySA Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGastoRepositorySA:
 
+class TestGastoRepositorySA:
     def test_insertar_y_obtener_todos(self):
         """insertar() creates a gasto; obtener_todos() returns it."""
         today = date.today()
-        gid = GastoRepositorySA.insertar(GastoCreate(
-            fecha=today, categoria="Lavado", descripcion="Lavado general",
-            monto=Decimal("25000"),
-        ))
+        gid = GastoRepositorySA.insertar(
+            GastoCreate(
+                fecha=today,
+                categoria="Lavado",
+                descripcion="Lavado general",
+                monto=Decimal("25000"),
+            )
+        )
         assert isinstance(gid, int) and gid > 0
 
         todos = GastoRepositorySA.obtener_todos()
@@ -300,10 +345,14 @@ class TestGastoRepositorySA:
         """obtener_todos(limite=5) returns at most 5 items."""
         today = date.today()
         for i in range(10):
-            GastoRepositorySA.insertar(GastoCreate(
-                fecha=today, categoria="Test", descripcion=f"Gasto {i}",
-                monto=Decimal("10000"),
-            ))
+            GastoRepositorySA.insertar(
+                GastoCreate(
+                    fecha=today,
+                    categoria="Test",
+                    descripcion=f"Gasto {i}",
+                    monto=Decimal("10000"),
+                )
+            )
         limitados = GastoRepositorySA.obtener_todos(limite=5)
         assert len(limitados) <= 5
 
@@ -314,15 +363,24 @@ class TestGastoRepositorySA:
         today = date.today()
 
         # Insert gasto with placa
-        gid = GastoRepositorySA.insertar(GastoCreate(
-            placa=p, fecha=today, categoria="Combustible",
-            descripcion="Tanque lleno", monto=Decimal("120000"),
-        ))
+        gid = GastoRepositorySA.insertar(
+            GastoCreate(
+                placa=p,
+                fecha=today,
+                categoria="Combustible",
+                descripcion="Tanque lleno",
+                monto=Decimal("120000"),
+            )
+        )
         # Insert gasto without placa
-        GastoRepositorySA.insertar(GastoCreate(
-            fecha=today, categoria="Lavado", descripcion="Lavado",
-            monto=Decimal("20000"),
-        ))
+        GastoRepositorySA.insertar(
+            GastoCreate(
+                fecha=today,
+                categoria="Lavado",
+                descripcion="Lavado",
+                monto=Decimal("20000"),
+            )
+        )
 
         por_placa = GastoRepositorySA.obtener_por_placa(p)
         assert len(por_placa) >= 1
@@ -336,10 +394,14 @@ class TestGastoRepositorySA:
     def test_insertar_sin_placa(self):
         """insertar() works without a placa (nullable)."""
         today = date.today()
-        gid = GastoRepositorySA.insertar(GastoCreate(
-            fecha=today, categoria="Papelería", descripcion="Resma de papel",
-            monto=Decimal("15000"),
-        ))
+        gid = GastoRepositorySA.insertar(
+            GastoCreate(
+                fecha=today,
+                categoria="Papelería",
+                descripcion="Resma de papel",
+                monto=Decimal("15000"),
+            )
+        )
         todos = GastoRepositorySA.obtener_todos()
         match = [g for g in todos if g["id"] == gid]
         assert match[0]["placa"] is None
@@ -350,20 +412,30 @@ class TestGastoRepositorySA:
         _raw_insert_auto(p)
         today = date.today()
 
-        gid = GastoRepositorySA.insertar(GastoCreate(
-            placa=p, fecha=today, categoria="Mantenimiento",
-            descripcion="Cambio de aceite", monto=Decimal("80000"),
-        ))
+        gid = GastoRepositorySA.insertar(
+            GastoCreate(
+                placa=p,
+                fecha=today,
+                categoria="Mantenimiento",
+                descripcion="Cambio de aceite",
+                monto=Decimal("80000"),
+            )
+        )
         por_placa = GastoRepositorySA.obtener_por_placa(p)
         assert gid in [g["id"] for g in por_placa]
 
     def test_insertar_con_usuario_personalizado(self):
         """insertar() accepts a custom usuario."""
         today = date.today()
-        gid = GastoRepositorySA.insertar(GastoCreate(
-            fecha=today, categoria="Otros", descripcion="Compra varias",
-            monto=Decimal("35000"), usuario="Admin",
-        ))
+        gid = GastoRepositorySA.insertar(
+            GastoCreate(
+                fecha=today,
+                categoria="Otros",
+                descripcion="Compra varias",
+                monto=Decimal("35000"),
+                usuario="Admin",
+            )
+        )
         todos = GastoRepositorySA.obtener_todos()
         match = [g for g in todos if g["id"] == gid]
         assert match[0]["usuario"] == "Admin"
@@ -371,14 +443,29 @@ class TestGastoRepositorySA:
     def test_to_dict_fields(self):
         """_to_dict() returns all expected gasto fields."""
         today = date.today()
-        gid = GastoRepositorySA.insertar(GastoCreate(
-            fecha=today, categoria="Lavado", descripcion="Lavado completo",
-            monto=Decimal("30000"), comprobante="FAC-001",
-        ))
+        gid = GastoRepositorySA.insertar(
+            GastoCreate(
+                fecha=today,
+                categoria="Lavado",
+                descripcion="Lavado completo",
+                monto=Decimal("30000"),
+                comprobante="FAC-001",
+            )
+        )
         todos = GastoRepositorySA.obtener_todos()
         match = [g for g in todos if g["id"] == gid]
-        expected = {"id", "placa", "fecha", "categoria", "descripcion",
-                    "monto", "comprobante", "usuario", "created_at", "updated_at"}
+        expected = {
+            "id",
+            "placa",
+            "fecha",
+            "categoria",
+            "descripcion",
+            "monto",
+            "comprobante",
+            "usuario",
+            "created_at",
+            "updated_at",
+        }
         assert expected.issubset(match[0].keys())
 
 
@@ -386,8 +473,8 @@ class TestGastoRepositorySA:
 # InspeccionRepositorySA Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestInspeccionRepositorySA:
 
+class TestInspeccionRepositorySA:
     def _create_renta(self, placa: str = None, **kwargs) -> int:
         """Helper: create a rental and return its ID."""
         p = placa or _next_placa("INSP")
@@ -397,10 +484,14 @@ class TestInspeccionRepositorySA:
     def test_insertar_y_obtener_por_renta(self):
         """insertar() creates an inspection; obtener_por_renta() returns it."""
         rid = self._create_renta()
-        iid = InspeccionRepositorySA.insertar(InspeccionCreate(
-            id_renta=rid, tipo="Salida", kilometraje=5000.0,
-            nivel_gasolina="Lleno",
-        ))
+        iid = InspeccionRepositorySA.insertar(
+            InspeccionCreate(
+                id_renta=rid,
+                tipo="Salida",
+                kilometraje=5000.0,
+                nivel_gasolina="Lleno",
+            )
+        )
         assert isinstance(iid, int) and iid > 0
 
         insps = InspeccionRepositorySA.obtener_por_renta(rid)
@@ -415,14 +506,21 @@ class TestInspeccionRepositorySA:
     def test_insertar_con_todos_los_campos(self):
         """insertar() works with all optional fields."""
         rid = self._create_renta()
-        iid = InspeccionRepositorySA.insertar(InspeccionCreate(
-            id_renta=rid, tipo="Entrada", kilometraje=5200.0,
-            nivel_gasolina="3/4", limpieza="Limpio",
-            tiene_repuesto=True, tiene_gato_cruceta=False,
-            tiene_kit_carretera=True, tiene_documentos=True,
-            danos_carroceria="Rayón en puerta izquierda",
-            observaciones="Inspección de entrada completa",
-        ))
+        iid = InspeccionRepositorySA.insertar(
+            InspeccionCreate(
+                id_renta=rid,
+                tipo="Entrada",
+                kilometraje=5200.0,
+                nivel_gasolina="3/4",
+                limpieza="Limpio",
+                tiene_repuesto=True,
+                tiene_gato_cruceta=False,
+                tiene_kit_carretera=True,
+                tiene_documentos=True,
+                danos_carroceria="Rayón en puerta izquierda",
+                observaciones="Inspección de entrada completa",
+            )
+        )
         insps = InspeccionRepositorySA.obtener_por_renta(rid)
         match = [i for i in insps if i["id"] == iid]
         assert len(match) == 1
@@ -435,14 +533,22 @@ class TestInspeccionRepositorySA:
     def test_insertar_varias_inspecciones(self):
         """obtener_por_renta() returns all inspections for a rental."""
         rid = self._create_renta()
-        iid1 = InspeccionRepositorySA.insertar(InspeccionCreate(
-            id_renta=rid, tipo="Salida", kilometraje=5000.0,
-            nivel_gasolina="Lleno",
-        ))
-        iid2 = InspeccionRepositorySA.insertar(InspeccionCreate(
-            id_renta=rid, tipo="Entrada", kilometraje=5300.0,
-            nivel_gasolina="1/2",
-        ))
+        iid1 = InspeccionRepositorySA.insertar(
+            InspeccionCreate(
+                id_renta=rid,
+                tipo="Salida",
+                kilometraje=5000.0,
+                nivel_gasolina="Lleno",
+            )
+        )
+        iid2 = InspeccionRepositorySA.insertar(
+            InspeccionCreate(
+                id_renta=rid,
+                tipo="Entrada",
+                kilometraje=5300.0,
+                nivel_gasolina="1/2",
+            )
+        )
         insps = InspeccionRepositorySA.obtener_por_renta(rid)
         ids = [i["id"] for i in insps]
         assert iid1 in ids
@@ -453,35 +559,59 @@ class TestInspeccionRepositorySA:
         """obtener_por_renta() does not return inspections from different rentals."""
         rid1 = self._create_renta()
         rid2 = self._create_renta()
-        iid = InspeccionRepositorySA.insertar(InspeccionCreate(
-            id_renta=rid1, tipo="Salida", kilometraje=5000.0,
-            nivel_gasolina="Lleno",
-        ))
+        iid = InspeccionRepositorySA.insertar(
+            InspeccionCreate(
+                id_renta=rid1,
+                tipo="Salida",
+                kilometraje=5000.0,
+                nivel_gasolina="Lleno",
+            )
+        )
         insps_rid2 = InspeccionRepositorySA.obtener_por_renta(rid2)
         assert iid not in [i["id"] for i in insps_rid2]
 
     def test_to_dict_fields(self):
         """_to_dict() returns all expected inspection fields."""
         rid = self._create_renta()
-        iid = InspeccionRepositorySA.insertar(InspeccionCreate(
-            id_renta=rid, tipo="Salida", kilometraje=5000.0,
-            nivel_gasolina="Lleno", observaciones="OK",
-        ))
+        iid = InspeccionRepositorySA.insertar(
+            InspeccionCreate(
+                id_renta=rid,
+                tipo="Salida",
+                kilometraje=5000.0,
+                nivel_gasolina="Lleno",
+                observaciones="OK",
+            )
+        )
         insps = InspeccionRepositorySA.obtener_por_renta(rid)
         match = [i for i in insps if i["id"] == iid]
-        expected = {"id", "id_renta", "tipo", "fecha", "kilometraje",
-                    "nivel_gasolina", "limpieza", "tiene_repuesto",
-                    "tiene_gato_cruceta", "tiene_kit_carretera",
-                    "tiene_documentos", "danos_carroceria", "observaciones"}
+        expected = {
+            "id",
+            "id_renta",
+            "tipo",
+            "fecha",
+            "kilometraje",
+            "nivel_gasolina",
+            "limpieza",
+            "tiene_repuesto",
+            "tiene_gato_cruceta",
+            "tiene_kit_carretera",
+            "tiene_documentos",
+            "danos_carroceria",
+            "observaciones",
+        }
         assert expected.issubset(match[0].keys())
 
     def test_insertar_verifica_id_retornado(self):
         """insertar() returns a valid positive ID."""
         rid = self._create_renta()
-        iid = InspeccionRepositorySA.insertar(InspeccionCreate(
-            id_renta=rid, tipo="Salida", kilometraje=5000.0,
-            nivel_gasolina="Lleno",
-        ))
+        iid = InspeccionRepositorySA.insertar(
+            InspeccionCreate(
+                id_renta=rid,
+                tipo="Salida",
+                kilometraje=5000.0,
+                nivel_gasolina="Lleno",
+            )
+        )
         insps = InspeccionRepositorySA.obtener_por_renta(rid)
         assert iid in [i["id"] for i in insps]
 
@@ -490,17 +620,20 @@ class TestInspeccionRepositorySA:
 # MantenimientoRepositorySA Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestMantenimientoRepositorySA:
 
+class TestMantenimientoRepositorySA:
     def test_insertar_y_obtener_historial(self):
         """insertar() creates a maintenance record; obtener_historial() returns it."""
         p = _next_placa("MTO")
         _raw_insert_auto(p)
 
-        mid = MantenimientoRepositorySA.insertar(MantenimientoCreate(
-            placa=p, pieza_varias_tipo="Cambio Aceite",
-            total_mantenimiento=Decimal("120000"),
-        ))
+        mid = MantenimientoRepositorySA.insertar(
+            MantenimientoCreate(
+                placa=p,
+                pieza_varias_tipo="Cambio Aceite",
+                total_mantenimiento=Decimal("120000"),
+            )
+        )
         assert isinstance(mid, int) and mid > 0
 
         historial = MantenimientoRepositorySA.obtener_historial()
@@ -512,10 +645,13 @@ class TestMantenimientoRepositorySA:
         p = _next_placa("MTO")
         _raw_insert_auto(p)
         for i in range(10):
-            MantenimientoRepositorySA.insertar(MantenimientoCreate(
-                placa=p, pieza_varias_tipo=f"Tipo {i}",
-                total_mantenimiento=Decimal("50000"),
-            ))
+            MantenimientoRepositorySA.insertar(
+                MantenimientoCreate(
+                    placa=p,
+                    pieza_varias_tipo=f"Tipo {i}",
+                    total_mantenimiento=Decimal("50000"),
+                )
+            )
         limitados = MantenimientoRepositorySA.obtener_historial(limite=3)
         assert len(limitados) <= 3
 
@@ -525,15 +661,18 @@ class TestMantenimientoRepositorySA:
         _raw_insert_auto(p)
         today = date.today()
 
-        mid = MantenimientoRepositorySA.insertar(MantenimientoCreate(
-            placa=p, pieza_varias_tipo="Frenos",
-            pieza_varias_fecha=today,
-            pieza_varias_desc="Cambio pastillas de freno delanteras",
-            pieza_varias_obs="Pastillas marca Bosch",
-            cost_varios=Decimal("80000"),
-            km_proximo_cambio_aceite=15000,
-            total_mantenimiento=Decimal("200000"),
-        ))
+        mid = MantenimientoRepositorySA.insertar(
+            MantenimientoCreate(
+                placa=p,
+                pieza_varias_tipo="Frenos",
+                pieza_varias_fecha=today,
+                pieza_varias_desc="Cambio pastillas de freno delanteras",
+                pieza_varias_obs="Pastillas marca Bosch",
+                cost_varios=Decimal("80000"),
+                km_proximo_cambio_aceite=15000,
+                total_mantenimiento=Decimal("200000"),
+            )
+        )
         historial = MantenimientoRepositorySA.obtener_historial()
         match = [m for m in historial if m["id"] == mid]
         assert len(match) == 1
@@ -571,10 +710,13 @@ class TestMantenimientoRepositorySA:
         p = _next_placa("MTO")
         _raw_insert_auto(p, kilometraje=8000.0, proximo_aceite=10000)
 
-        MantenimientoRepositorySA.actualizar_auto(p, {
-            "kilometraje": 8500.0,
-            "proximo_aceite": 15000,
-        })
+        MantenimientoRepositorySA.actualizar_auto(
+            p,
+            {
+                "kilometraje": 8500.0,
+                "proximo_aceite": 15000,
+            },
+        )
 
         # Verify via fresh session
         session = SessionLocal()
@@ -595,10 +737,14 @@ class TestMantenimientoRepositorySA:
         p = _next_placa("MTO")
         _raw_insert_auto(p)
 
-        mid = MantenimientoRepositorySA.insertar(MantenimientoCreate(
-            placa=p, pieza_varias_tipo="Revisión",
-            total_mantenimiento=Decimal("50000"),
-        ), session=db_session)
+        mid = MantenimientoRepositorySA.insertar(
+            MantenimientoCreate(
+                placa=p,
+                pieza_varias_tipo="Revisión",
+                total_mantenimiento=Decimal("50000"),
+            ),
+            session=db_session,
+        )
 
         MantenimientoRepositorySA.actualizar_auto(p, {"kilometraje": 9999.0}, session=db_session)
 
@@ -611,16 +757,28 @@ class TestMantenimientoRepositorySA:
         p = _next_placa("MTO")
         _raw_insert_auto(p)
 
-        mid = MantenimientoRepositorySA.insertar(MantenimientoCreate(
-            placa=p, pieza_varias_tipo="Llantas",
-            total_mantenimiento=Decimal("300000"),
-        ))
+        mid = MantenimientoRepositorySA.insertar(
+            MantenimientoCreate(
+                placa=p,
+                pieza_varias_tipo="Llantas",
+                total_mantenimiento=Decimal("300000"),
+            )
+        )
         historial = MantenimientoRepositorySA.obtener_historial()
         match = [m for m in historial if m["id"] == mid]
-        expected = {"id", "placa", "pieza_varias_tipo", "pieza_varias_fecha",
-                    "pieza_varias_desc", "pieza_varias_obs", "cost_varios",
-                    "km_proximo_cambio_aceite", "total_mantenimiento",
-                    "created_at", "updated_at"}
+        expected = {
+            "id",
+            "placa",
+            "pieza_varias_tipo",
+            "pieza_varias_fecha",
+            "pieza_varias_desc",
+            "pieza_varias_obs",
+            "cost_varios",
+            "km_proximo_cambio_aceite",
+            "total_mantenimiento",
+            "created_at",
+            "updated_at",
+        }
         assert expected.issubset(match[0].keys())
 
 
@@ -628,8 +786,8 @@ class TestMantenimientoRepositorySA:
 # ReservaRepositorySA Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestReservaRepositorySA:
 
+class TestReservaRepositorySA:
     def _make_create(self, placa: str = None, **kwargs) -> ReservaCreate:
         """Helper: build a ReservaCreate with defaults."""
         today = date.today()
@@ -665,10 +823,12 @@ class TestReservaRepositorySA:
 
     def test_obtener_por_id(self):
         """obtener_por_id() returns the correct reserva."""
-        rid = ReservaRepositorySA.insertar(self._make_create(
-            nombre_cliente="Obtener Test",
-            nacionalidad="Colombiana",
-        ))
+        rid = ReservaRepositorySA.insertar(
+            self._make_create(
+                nombre_cliente="Obtener Test",
+                nacionalidad="Colombiana",
+            )
+        )
         reserva = ReservaRepositorySA.obtener_por_id(rid)
         assert reserva["nombre_cliente"] == "Obtener Test"
         assert reserva["nacionalidad"] == "Colombiana"
@@ -702,10 +862,12 @@ class TestReservaRepositorySA:
 
     def test_obtener_contacto_cliente(self):
         """obtener_contacto_cliente() returns contact info."""
-        rid = ReservaRepositorySA.insertar(self._make_create(
-            nombre_cliente="Contacto Test",
-            nacionalidad="Mexicana",
-        ))
+        rid = ReservaRepositorySA.insertar(
+            self._make_create(
+                nombre_cliente="Contacto Test",
+                nacionalidad="Mexicana",
+            )
+        )
         contacto = ReservaRepositorySA.obtener_contacto_cliente(rid)
         assert contacto["nombre_cliente"] == "Contacto Test"
         assert contacto["nacionalidad"] == "Mexicana"
@@ -717,25 +879,44 @@ class TestReservaRepositorySA:
 
     def test_to_dict_fields(self):
         """_to_dict() returns all expected reserva fields."""
-        rid = ReservaRepositorySA.insertar(self._make_create(
-            nombre_cliente="Full Fields Test",
-            categoria_vehiculo="Automóvil",
-            ubicacion_recogida="Aeropuerto",
-            ubicacion_retorno="Oficina",
-            horas_extras=2,
-            valor_hora_adic=Decimal("20000"),
-            abono=Decimal("50000"),
-            observaciones="Test observaciones",
-        ))
+        rid = ReservaRepositorySA.insertar(
+            self._make_create(
+                nombre_cliente="Full Fields Test",
+                categoria_vehiculo="Automóvil",
+                ubicacion_recogida="Aeropuerto",
+                ubicacion_retorno="Oficina",
+                horas_extras=2,
+                valor_hora_adic=Decimal("20000"),
+                abono=Decimal("50000"),
+                observaciones="Test observaciones",
+            )
+        )
         todas = ReservaRepositorySA.obtener_todas()
         match = [r for r in todas if r["id"] == rid]
-        expected = {"id", "id_cliente", "nombre_cliente", "nacionalidad",
-                    "categoria_vehiculo", "placa_asignada",
-                    "fecha_recogida", "hora_recogida", "ubicacion_recogida",
-                    "fecha_retorno", "hora_retorno", "ubicacion_retorno",
-                    "dias_calculados", "horas_extras", "valor_dia",
-                    "valor_hora_adic", "abono", "total", "observaciones",
-                    "estado", "created_at", "updated_at"}
+        expected = {
+            "id",
+            "id_cliente",
+            "nombre_cliente",
+            "nacionalidad",
+            "categoria_vehiculo",
+            "placa_asignada",
+            "fecha_recogida",
+            "hora_recogida",
+            "ubicacion_recogida",
+            "fecha_retorno",
+            "hora_retorno",
+            "ubicacion_retorno",
+            "dias_calculados",
+            "horas_extras",
+            "valor_dia",
+            "valor_hora_adic",
+            "abono",
+            "total",
+            "observaciones",
+            "estado",
+            "created_at",
+            "updated_at",
+        }
         assert expected.issubset(match[0].keys())
 
 
@@ -743,8 +924,8 @@ class TestReservaRepositorySA:
 # AlertaRepositorySA Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestAlertaRepositorySA:
 
+class TestAlertaRepositorySA:
     def test_obtener_rentas_por_vencer_vacio(self):
         """obtener_rentas_por_vencer() returns a list (resilient to shared DB)."""
         alertas = AlertaRepositorySA.obtener_rentas_por_vencer()
@@ -774,8 +955,7 @@ class TestAlertaRepositorySA:
         cid = _raw_insert_cliente()
 
         # Create a Finalizado rental ending today (with cliente for inner join)
-        rid = _raw_insert_renta(p, fecha_retorno=date.today(), estado="Finalizado",
-                                id_cliente=cid)
+        rid = _raw_insert_renta(p, fecha_retorno=date.today(), estado="Finalizado", id_cliente=cid)
 
         alertas = AlertaRepositorySA.obtener_rentas_por_vencer()
         # This rental should NOT appear (estado is Finalizado, not Activo)
@@ -790,8 +970,7 @@ class TestAlertaRepositorySA:
         # Create a rental ending 10 days from now (outside the 3-day window)
         # With cliente for the inner join
         lejano = date.today() + timedelta(days=10)
-        rid = _raw_insert_renta(p, fecha_retorno=lejano, estado="Activo",
-                                id_cliente=cid)
+        rid = _raw_insert_renta(p, fecha_retorno=lejano, estado="Activo", id_cliente=cid)
 
         alertas = AlertaRepositorySA.obtener_rentas_por_vencer()
         assert all(a["id"] != rid for a in alertas)

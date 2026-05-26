@@ -51,14 +51,15 @@ from core.app_config import config
 
 
 class BackupService:
-
     @staticmethod
     def _get_backup_config() -> tuple[bool, str]:
         try:
-            encrypt = config.getboolean('backup', 'encryption_enabled', fallback=False)
-            encryption_password = config.get('backup', 'encryption_password', fallback=None)
+            encrypt = config.getboolean("backup", "encryption_enabled", fallback=False)
+            encryption_password = config.get("backup", "encryption_password", fallback=None)
             if encrypt and not encryption_password:
-                log.warning("La encriptación de backups está habilitada pero no se ha proporcionado una contraseña. El backup se creará SIN ENCRIPTAR.")
+                log.warning(
+                    "La encriptación de backups está habilitada pero no se ha proporcionado una contraseña. El backup se creará SIN ENCRIPTAR."
+                )
                 encrypt = False
             return encrypt, encryption_password
         except Exception as e:
@@ -78,13 +79,13 @@ class BackupService:
             "--single-transaction",
             "--routines",
             "--triggers",
-            cfg['database'],
+            cfg["database"],
         ]
-        with open(destino, 'w', encoding='utf-8') as f:
+        with open(destino, "w", encoding="utf-8") as f:
             result = subprocess.run(command, stdout=f, stderr=subprocess.PIPE, timeout=120)
 
         if result.returncode != 0:
-            error_msg = result.stderr.decode('utf-8', errors='ignore')
+            error_msg = result.stderr.decode("utf-8", errors="ignore")
             log.error("Error en mysqldump: %s", error_msg)
             if os.path.exists(destino):
                 os.remove(destino)
@@ -101,8 +102,11 @@ class BackupService:
     @staticmethod
     def _cleanup_old_backups():
         archivos = sorted(
-            [os.path.join(str(BACKUP_DIR), f) for f in os.listdir(str(BACKUP_DIR))
-             if f.endswith((".db", ".sql", ".enc"))],
+            [
+                os.path.join(str(BACKUP_DIR), f)
+                for f in os.listdir(str(BACKUP_DIR))
+                if f.endswith((".db", ".sql", ".enc"))
+            ],
             key=os.path.getmtime,
         )
         while len(archivos) > BACKUP_MAX_COPIES:
@@ -169,7 +173,7 @@ class BackupService:
         fernet = Fernet(key)
 
         # Leer archivo original
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             file_data = f.read()
 
         # Encriptar
@@ -177,7 +181,7 @@ class BackupService:
 
         # Guardar archivo encriptado con salt al inicio
         encrypted_path = file_path + ".enc"
-        with open(encrypted_path, 'wb') as f:
+        with open(encrypted_path, "wb") as f:
             f.write(salt)  # Primeros 16 bytes = salt
             f.write(encrypted_data)
 
@@ -196,7 +200,7 @@ class BackupService:
                 return False, "Se requiere una contraseña para desencriptar el backup."
 
             # Leer archivo encriptado
-            with open(encrypted_path, 'rb') as f:
+            with open(encrypted_path, "rb") as f:
                 salt = f.read(16)  # Primeros 16 bytes = salt
                 encrypted_data = f.read()
 
@@ -214,7 +218,7 @@ class BackupService:
             decrypted_data = fernet.decrypt(encrypted_data)
 
             # Guardar archivo desencriptado
-            with open(output_path, 'wb') as f:
+            with open(output_path, "wb") as f:
                 f.write(decrypted_data)
 
             log.info("Backup desencriptado: %s", output_path)

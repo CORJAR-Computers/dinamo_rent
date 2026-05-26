@@ -19,10 +19,6 @@ Strategy:
 Run: pytest tests/test_database_sa.py -v
 """
 
-import os
-import sys
-from pathlib import Path
-
 import pytest
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
@@ -35,13 +31,16 @@ from core.models import Base
 # Fake engine: simulates successful connections for migration success tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class _FakeResult:
     """Mock result from execute()."""
+
     pass
 
 
 class _FakeConnection:
     """Mock connection that records executed SQL statements."""
+
     def __init__(self):
         self.executed = []
 
@@ -64,6 +63,7 @@ class _FakeConnection:
 
 class _FakeEngine:
     """Mock engine that always returns a working FakeConnection."""
+
     def connect(self):
         return _FakeConnection()
 
@@ -71,6 +71,7 @@ class _FakeEngine:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Helper: create a minimal isolated in-memory engine + sessionmaker
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _make_memory_engine():
     """Create an in-memory SQLite engine with foreign keys enabled, matching
@@ -98,6 +99,7 @@ from sqlalchemy import event
 # Pure-function tests: _get_database_url
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestGetDatabaseUrl:
     """_get_database_url() constructs URLs from config values."""
 
@@ -106,6 +108,7 @@ class TestGetDatabaseUrl:
         monkeypatch.setattr("core.database_sa.DB_ENGINE", "sqlite")
         monkeypatch.setattr("core.database_sa.DB_PATH", "/tmp/test.db")
         from core.database_sa import _get_database_url
+
         url = _get_database_url()
         assert url.startswith("sqlite:///")
         assert "/tmp/test.db" in url
@@ -115,17 +118,25 @@ class TestGetDatabaseUrl:
         monkeypatch.setattr("core.database_sa.DB_ENGINE", "sqlite")
         monkeypatch.setattr("core.database_sa.DB_PATH", ":memory:")
         from core.database_sa import _get_database_url
+
         url = _get_database_url()
         assert url == "sqlite:///:memory:"
 
     def test_mysql_url_basic(self, monkeypatch):
         """MySQL without password produces proper URL."""
         monkeypatch.setattr("core.database_sa.DB_ENGINE", "mysql")
-        monkeypatch.setattr("core.database_sa.DB_MYSQL", {
-            "host": "db.example.com", "port": 3306, "user": "admin",
-            "password": "", "database": "dinamo_prod",
-        })
+        monkeypatch.setattr(
+            "core.database_sa.DB_MYSQL",
+            {
+                "host": "db.example.com",
+                "port": 3306,
+                "user": "admin",
+                "password": "",
+                "database": "dinamo_prod",
+            },
+        )
         from core.database_sa import _get_database_url
+
         url = _get_database_url()
         assert url.startswith("mysql+pymysql://admin@db.example.com:3306/dinamo_prod")
         assert "charset=utf8mb4" in url
@@ -133,11 +144,18 @@ class TestGetDatabaseUrl:
     def test_mysql_url_with_password(self, monkeypatch):
         """MySQL with password includes :password in URL."""
         monkeypatch.setattr("core.database_sa.DB_ENGINE", "mysql")
-        monkeypatch.setattr("core.database_sa.DB_MYSQL", {
-            "host": "localhost", "port": 3306, "user": "root",
-            "password": "s3cr3t!", "database": "test",
-        })
+        monkeypatch.setattr(
+            "core.database_sa.DB_MYSQL",
+            {
+                "host": "localhost",
+                "port": 3306,
+                "user": "root",
+                "password": "s3cr3t!",
+                "database": "test",
+            },
+        )
         from core.database_sa import _get_database_url
+
         url = _get_database_url()
         assert ":s3cr3t!@" in url
         assert url.startswith("mysql+pymysql://root:s3cr3t!@localhost:3306/test")
@@ -145,11 +163,18 @@ class TestGetDatabaseUrl:
     def test_mysql_custom_port(self, monkeypatch):
         """Non-default MySQL port appears in URL."""
         monkeypatch.setattr("core.database_sa.DB_ENGINE", "mysql")
-        monkeypatch.setattr("core.database_sa.DB_MYSQL", {
-            "host": "10.0.0.1", "port": 3307, "user": "app",
-            "password": "pass", "database": "app_db",
-        })
+        monkeypatch.setattr(
+            "core.database_sa.DB_MYSQL",
+            {
+                "host": "10.0.0.1",
+                "port": 3307,
+                "user": "app",
+                "password": "pass",
+                "database": "app_db",
+            },
+        )
         from core.database_sa import _get_database_url
+
         url = _get_database_url()
         assert ":3307/" in url
 
@@ -158,6 +183,7 @@ class TestGetDatabaseUrl:
         monkeypatch.setattr("core.database_sa.DB_ENGINE", "sqlite")
         monkeypatch.setattr("core.database_sa.DB_PATH", "/home/user/My App/db.sqlite")
         from core.database_sa import _get_database_url
+
         url = _get_database_url()
         assert "My App" in url
         assert url.startswith("sqlite:///")
@@ -167,6 +193,7 @@ class TestGetDatabaseUrl:
 # _create_engine_instance
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestCreateEngineInstance:
     """Engine creation with correct pool classes and config."""
 
@@ -175,6 +202,7 @@ class TestCreateEngineInstance:
         monkeypatch.setattr("core.database_sa.DB_ENGINE", "sqlite")
         monkeypatch.setattr("core.database_sa.DB_PATH", ":memory:")
         from core.database_sa import _create_engine_instance
+
         eng = _create_engine_instance()
         assert isinstance(eng.pool, StaticPool)
         # SQLite check_same_thread=False
@@ -183,11 +211,18 @@ class TestCreateEngineInstance:
     def test_mysql_uses_queue_pool(self, monkeypatch):
         """MySQL engine uses QueuePool with correct pool_size."""
         monkeypatch.setattr("core.database_sa.DB_ENGINE", "mysql")
-        monkeypatch.setattr("core.database_sa.DB_MYSQL", {
-            "host": "localhost", "port": 3306, "user": "root",
-            "password": "", "database": "test",
-        })
+        monkeypatch.setattr(
+            "core.database_sa.DB_MYSQL",
+            {
+                "host": "localhost",
+                "port": 3306,
+                "user": "root",
+                "password": "",
+                "database": "test",
+            },
+        )
         from core.database_sa import _create_engine_instance
+
         eng = _create_engine_instance()
         assert isinstance(eng.pool, QueuePool)
         assert eng.pool.size() == 10
@@ -197,6 +232,7 @@ class TestCreateEngineInstance:
         monkeypatch.setattr("core.database_sa.DB_ENGINE", "sqlite")
         monkeypatch.setattr("core.database_sa.DB_PATH", ":memory:")
         from core.database_sa import _create_engine_instance
+
         eng = _create_engine_instance()
         assert not eng.echo
 
@@ -204,6 +240,7 @@ class TestCreateEngineInstance:
 # ═══════════════════════════════════════════════════════════════════════════════
 # get_session context manager
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestGetSession:
     """get_session() context manager behavior."""
@@ -313,9 +350,7 @@ class TestGetSession:
         # Both should exist after commit
         new_session = patched_sessionlocal()
         try:
-            count = new_session.query(Auto).filter(
-                Auto.placa.in_(["TEST001", "TEST002"])
-            ).count()
+            count = new_session.query(Auto).filter(Auto.placa.in_(["TEST001", "TEST002"])).count()
             assert count == 2
         finally:
             new_session.close()
@@ -323,7 +358,6 @@ class TestGetSession:
     def test_session_se_ejecuta_sql(self, patched_sessionlocal):
         """Context manager yields a session that can execute SQL."""
         from core.database_sa import get_session
-        from sqlalchemy import text
 
         with get_session() as session:
             result = session.execute(text("SELECT 1 AS val"))
@@ -333,6 +367,7 @@ class TestGetSession:
 # ═══════════════════════════════════════════════════════════════════════════════
 # _apply_migrations
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestApplyMigrations:
     """_apply_migrations() idempotency and error handling."""
@@ -368,6 +403,7 @@ class TestApplyMigrations:
         monkeypatch.setattr("core.database_sa.get_engine", lambda: eng)
 
         from core.database_sa import _apply_migrations
+
         _apply_migrations()  # should not raise (tables don't exist → warnings)
 
     def test_migration_lists_no_vacias(self):
@@ -391,6 +427,7 @@ class TestApplyMigrations:
 # init_db
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestInitDb:
     """init_db() table creation and dropping."""
 
@@ -401,7 +438,10 @@ class TestInitDb:
         monkeypatch.setattr("core.database_sa.get_engine", lambda: eng)
         # Also patch SessionLocal since init_db is called before session usage
         test_sessionmaker = sessionmaker(
-            autocommit=False, autoflush=False, bind=eng, expire_on_commit=False,
+            autocommit=False,
+            autoflush=False,
+            bind=eng,
+            expire_on_commit=False,
         )
         monkeypatch.setattr("core.database_sa.SessionLocal", test_sessionmaker)
         return eng
@@ -475,6 +515,7 @@ class TestInitDb:
 # check_connection
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestCheckConnection:
     """check_connection() connectivity check."""
 
@@ -484,7 +525,10 @@ class TestCheckConnection:
         eng = _make_memory_engine()
         Base.metadata.create_all(bind=eng)
         test_sessionmaker = sessionmaker(
-            autocommit=False, autoflush=False, bind=eng, expire_on_commit=False,
+            autocommit=False,
+            autoflush=False,
+            bind=eng,
+            expire_on_commit=False,
         )
         monkeypatch.setattr("core.database_sa.get_engine", lambda: eng)
         monkeypatch.setattr("core.database_sa.SessionLocal", test_sessionmaker)
@@ -542,12 +586,14 @@ class TestCheckConnection:
 # Module-level exports
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestModuleExports:
     """Module-level engine and SessionLocal exist and work."""
 
     def test_engine_exists(self):
         """database_sa.get_engine() returns a valid SQLAlchemy engine."""
         from core.database_sa import get_engine
+
         eng = get_engine()
         assert eng is not None
         assert hasattr(eng, "connect")
@@ -555,6 +601,7 @@ class TestModuleExports:
     def test_sessionlocal_callable(self):
         """SessionLocal is a callable that returns a session."""
         from core.database_sa import SessionLocal
+
         session = SessionLocal()
         try:
             assert session is not None
@@ -565,27 +612,32 @@ class TestModuleExports:
     def test_get_session_available(self):
         """get_session is importable and callable."""
         from core.database_sa import get_session
+
         assert callable(get_session)
 
     def test_init_db_available(self):
         """init_db is importable and callable."""
         from core.database_sa import init_db
+
         assert callable(init_db)
 
     def test_check_connection_available(self):
         """check_connection is importable and callable."""
         from core.database_sa import check_connection
+
         assert callable(check_connection)
 
     def test_apply_migrations_available(self):
         """_apply_migrations is importable and callable."""
         from core.database_sa import _apply_migrations
+
         assert callable(_apply_migrations)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Successful migration path (coverage: lines 113-115, 128-130, 140)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestApplyMigrationsSuccess:
     """Test _apply_migrations() when migrations actually succeed.
@@ -602,7 +654,7 @@ class TestApplyMigrationsSuccess:
         fake_engine = _FakeEngine()
         monkeypatch.setattr("core.database_sa.get_engine", lambda: fake_engine)
 
-        from core.database_sa import _apply_migrations, _MIGRATIONS_F1A, _MIGRATIONS_INDEXES
+        from core.database_sa import _apply_migrations
 
         # Should not raise
         _apply_migrations()
@@ -613,6 +665,7 @@ class TestApplyMigrationsSuccess:
         monkeypatch.setattr("core.database_sa.get_engine", lambda: fake_engine)
 
         from core.database_sa import _apply_migrations, _MIGRATIONS_F1A, _MIGRATIONS_INDEXES
+
         expected_connections = len(_MIGRATIONS_F1A) + len(_MIGRATIONS_INDEXES)
 
         # Count calls before
@@ -635,6 +688,7 @@ class TestApplyMigrationsSuccess:
         monkeypatch.setattr("core.database_sa.get_engine", lambda: fake_engine)
 
         from core.database_sa import _apply_migrations
+
         _apply_migrations()  # First call
         _apply_migrations()  # Second call — should not raise
 
@@ -642,6 +696,7 @@ class TestApplyMigrationsSuccess:
 # ═══════════════════════════════════════════════════════════════════════════════
 # MySQL branch in check_connection (coverage: lines 161-163)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestCheckConnectionMySQL:
     """Test check_connection() when DB_ENGINE is mysql."""
@@ -664,6 +719,7 @@ class TestCheckConnectionMySQL:
         monkeypatch.setattr("core.database_sa.DB_ENGINE", "mysql")
 
         from core.database_sa import check_connection
+
         ok, message = check_connection()
 
         assert ok is True
@@ -688,6 +744,7 @@ class TestCheckConnectionMySQL:
         monkeypatch.setattr("core.database_sa.DB_ENGINE", "mysql")
 
         from core.database_sa import check_connection
+
         ok, message = check_connection()
 
         assert ok is True
@@ -709,9 +766,8 @@ class TestCheckConnectionMySQL:
         monkeypatch.setattr("core.database_sa.DB_ENGINE", "mysql")
 
         from core.database_sa import check_connection
+
         ok, message = check_connection()
 
         assert ok is False
         assert "Connection failed" in message or "Failed" in message
-
-

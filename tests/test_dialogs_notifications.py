@@ -25,31 +25,35 @@ if str(_PROJECT_ROOT) not in sys.path:
 # Cada entrada: (nombre_clase, nombre_modulo, [notas])
 DIALOG_CLASSES = [
     # Diálogos principales de formulario/operación
-    ("ClienteFormDialog",          "views.clientes_view"),
-    ("UsuarioFormDialog",          "views.usuarios_view"),
-    ("NuevoComparendoDialog",      "views.comparendos_view"),
-    ("CierreRentaDialog",          "views.cierre_renta_view"),
-    ("PagosDialog",                "views.pagos_view"),
-    ("NuevoMantenimientoDialog",   "views.mantenimiento_view"),
-    ("NuevaReservaDialog",         "views.reservas_view"),
-    ("NuevaRentaDialog",           "views.rentas_view"),
-    ("InspeccionDialog",           "views.rentas_view"),
-    ("ForceChangePasswordDialog",  "views.force_change_password_dialog"),
+    ("ClienteFormDialog", "views.clientes_view"),
+    ("UsuarioFormDialog", "views.usuarios_view"),
+    ("NuevoComparendoDialog", "views.comparendos_view"),
+    ("CierreRentaDialog", "views.cierre_renta_view"),
+    ("PagosDialog", "views.pagos_view"),
+    ("NuevoMantenimientoDialog", "views.mantenimiento_view"),
+    ("NuevaReservaDialog", "views.reservas_view"),
+    ("NuevaRentaDialog", "views.rentas_view"),
+    ("InspeccionDialog", "views.rentas_view"),
+    ("ForceChangePasswordDialog", "views.force_change_password_dialog"),
     # Diálogos auxiliares (misma vista)
-    ("DialogoExtenderRenta",       "views.rentas_view"),
-    ("DialogoCambioVehiculo",      "views.rentas_view"),
-    ("DialogoSelectorCliente",     "views.rentas_view"),
+    ("DialogoExtenderRenta", "views.rentas_view"),
+    ("DialogoCambioVehiculo", "views.rentas_view"),
+    ("DialogoSelectorCliente", "views.rentas_view"),
     # Asistente de configuración (caso especial)
-    ("SetupWizard",                "views.setup_wizard"),
+    ("SetupWizard", "views.setup_wizard"),
 ]
 
 # Diálogos que están EXENTOS de usar ModernMessageBox por su naturaleza.
 # Cada entrada: (class_name, module_name, motivo)
 _ALLOWLIST = {
-    ("DialogoSelectorCliente", "views.rentas_view"):
-        "Selector de búsqueda simple — no muestra notificaciones propias.",
-    ("SetupWizard", "views.setup_wizard"):
-        "Asistente de instalación única — usa QMessageBox directamente.",
+    (
+        "DialogoSelectorCliente",
+        "views.rentas_view",
+    ): "Selector de búsqueda simple — no muestra notificaciones propias.",
+    (
+        "SetupWizard",
+        "views.setup_wizard",
+    ): "Asistente de instalación única — usa QMessageBox directamente.",
 }
 
 
@@ -77,7 +81,7 @@ def _usa_modern_messagebox(module_name: str) -> bool:
         return False
 
     # Patrón 1: Import directo de ModernMessageBox
-    if re.search(r'from\s+views\.components\b.*\bimport\b.*\bModernMessageBox\b', source):
+    if re.search(r"from\s+views\.components\b.*\bimport\b.*\bModernMessageBox\b", source):
         return True
 
     # Patrón 2: Uso directo de ModernMessageBox.xxx()
@@ -104,7 +108,7 @@ def _usa_qmessagebox_directo(module_name: str) -> bool:
 
     # Patrón 1: QMessageBox.xxx() sin que sea parte del wrapper _msg_box
     # Ejemplo: QMessageBox.critical(...)
-    if re.search(r'QMessageBox\.(warning|critical|information|question)', source):
+    if re.search(r"QMessageBox\.(warning|critical|information|question)", source):
         return True
 
     # Patrón 2: Uso de QMessageBox importado y usado en notificaciones
@@ -119,8 +123,8 @@ def _usa_qmessagebox_directo(module_name: str) -> bool:
 #  Test 1: Cada diálogo usa ModernMessageBox (o está en allowlist)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-@pytest.mark.parametrize("class_name,module_name", DIALOG_CLASSES,
-                         ids=lambda x: f"{x[0]}")
+
+@pytest.mark.parametrize("class_name,module_name", DIALOG_CLASSES, ids=lambda x: f"{x[0]}")
 def test_dialogo_usa_modern_messagebox(class_name, module_name):
     """
     Todos los diálogos principales deben usar ModernMessageBox
@@ -146,8 +150,8 @@ def test_dialogo_usa_modern_messagebox(class_name, module_name):
 #  Test 2: Ningún diálogo usa QMessageBox directamente (sin ModernMessageBox)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-@pytest.mark.parametrize("class_name,module_name", DIALOG_CLASSES,
-                         ids=lambda x: f"{x[0]}")
+
+@pytest.mark.parametrize("class_name,module_name", DIALOG_CLASSES, ids=lambda x: f"{x[0]}")
 def test_no_usa_qmessagebox_directo(class_name, module_name):
     """
     Los diálogos no deben usar QMessageBox directamente para
@@ -174,6 +178,7 @@ def test_no_usa_qmessagebox_directo(class_name, module_name):
 #  Test 3: Reporte completo
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def test_reporte_notificaciones():
     """
     Genera un reporte completo del estado de notificaciones en todos los diálogos.
@@ -193,7 +198,8 @@ def test_reporte_notificaciones():
 
         # Verificar herencia QDialog
         from PySide6.QtWidgets import QDialog
-        es_dialog = issubclass(cls, QDialog)
+
+        _ = issubclass(cls, QDialog)
 
         usa_mmb = _usa_modern_messagebox(module_name)
         usa_qmb = _usa_qmessagebox_directo(module_name)
@@ -213,9 +219,7 @@ def test_reporte_notificaciones():
             detalles = "SIN ModernMessageBox"
             todos_ok = False
 
-        resultados.append(
-            f"  {estado} {class_name:30s}  →  {detalles:45s}  ({module_name})"
-        )
+        resultados.append(f"  {estado} {class_name:30s}  →  {detalles:45s}  ({module_name})")
 
     reporte = [
         "\n═══ Reporte de Notificaciones en Diálogos ═══",

@@ -15,10 +15,14 @@ from pathlib import Path
 import pytest
 
 from core.exceptions import (
-    NegocioError, ValidacionError, RegistroNoEncontrado,
-    CredencialesInvalidas, CuentaBloqueadaError, PermisoInsuficiente,
+    NegocioError,
+    ValidacionError,
+    RegistroNoEncontrado,
+    CredencialesInvalidas,
+    CuentaBloqueadaError,
+    PermisoInsuficiente,
 )
-from core.security import SecurityManager, SessionManager
+from core.security import SessionManager
 from core.schemas import UsuarioCreate
 from repositories.repositories_sa import UsuarioRepositorySA
 from services.usuario_service import UsuarioService
@@ -29,9 +33,8 @@ from services.backup_service import BackupService
 from services.auto_service import AutoService
 from services.cliente_service import ClienteService
 from services.renta_service import RentaService
-from repositories.repositories_sa import AutoRepositorySA, RentaRepositorySA
 from repositories.pago_repository_sa import PagoRepositorySA
-from core.schemas import AutoCreate, RentaCreate, PagoCreate
+from core.schemas import PagoCreate
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -134,18 +137,21 @@ def _crear_supervisor_session() -> str:
 # UsuarioService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestUsuarioService:
 
+class TestUsuarioService:
     def test_crear_y_listar_usuarios(self):
         """crear() creates a user, listar() returns it (with admin session)."""
         sid = _crear_admin_session()
         username = _next_username()
-        UsuarioService.crear({
-            "username": username,
-            "nombre": "Test User One",
-            "password_raw": "TestPass123!",
-            "rol": "Operador",
-        }, session_id=sid)
+        UsuarioService.crear(
+            {
+                "username": username,
+                "nombre": "Test User One",
+                "password_raw": "TestPass123!",
+                "rol": "Operador",
+            },
+            session_id=sid,
+        )
 
         usuarios = UsuarioService.listar(session_id=sid)
         assert any(u["username"] == username for u in usuarios)
@@ -155,18 +161,24 @@ class TestUsuarioService:
         sid = _crear_admin_session()
         username = _next_username()
 
-        UsuarioService.crear({
-            "username": username,
-            "nombre": "Original",
-            "password_raw": "TestPass123!",
-        }, session_id=sid)
+        UsuarioService.crear(
+            {
+                "username": username,
+                "nombre": "Original",
+                "password_raw": "TestPass123!",
+            },
+            session_id=sid,
+        )
 
         with pytest.raises(NegocioError, match="ya está en uso"):
-            UsuarioService.crear({
-                "username": username,
-                "nombre": "Duplicate",
-                "password_raw": "OtherPass456!",
-            }, session_id=sid)
+            UsuarioService.crear(
+                {
+                    "username": username,
+                    "nombre": "Duplicate",
+                    "password_raw": "OtherPass456!",
+                },
+                session_id=sid,
+            )
 
     def test_crear_usuario_password_debil(self):
         """crear() raises ValidacionError for weak password."""
@@ -174,11 +186,14 @@ class TestUsuarioService:
         username = _next_username()
 
         with pytest.raises(ValidacionError, match="Contraseña débil|contraseña no cumple"):
-            UsuarioService.crear({
-                "username": username,
-                "nombre": "Weak Password",
-                "password_raw": "123",  # Too short, no uppercase, no special char
-            }, session_id=sid)
+            UsuarioService.crear(
+                {
+                    "username": username,
+                    "nombre": "Weak Password",
+                    "password_raw": "123",  # Too short, no uppercase, no special char
+                },
+                session_id=sid,
+            )
 
     def test_crear_usuario_sin_password(self):
         """crear() raises ValidacionError when password is missing."""
@@ -186,30 +201,39 @@ class TestUsuarioService:
         username = _next_username()
 
         with pytest.raises(ValidacionError, match="contraseña es obligatoria"):
-            UsuarioService.crear({
-                "username": username,
-                "nombre": "No Password",
-                "password_raw": "",
-            }, session_id=sid)
+            UsuarioService.crear(
+                {
+                    "username": username,
+                    "nombre": "No Password",
+                    "password_raw": "",
+                },
+                session_id=sid,
+            )
 
     def test_actualizar_usuario(self):
         """actualizar() updates user fields."""
         sid = _crear_admin_session()
         username = _next_username()
 
-        UsuarioService.crear({
-            "username": username,
-            "nombre": "Original Name",
-            "password_raw": "TestPass123!",
-            "rol": "Operador",
-        }, session_id=sid)
+        UsuarioService.crear(
+            {
+                "username": username,
+                "nombre": "Original Name",
+                "password_raw": "TestPass123!",
+                "rol": "Operador",
+            },
+            session_id=sid,
+        )
 
-        UsuarioService.actualizar({
-            "username": username,
-            "nombre": "Updated Name",
-            "rol": "Supervisor",
-            "activo": "1",
-        }, session_id=sid)
+        UsuarioService.actualizar(
+            {
+                "username": username,
+                "nombre": "Updated Name",
+                "rol": "Supervisor",
+                "activo": "1",
+            },
+            session_id=sid,
+        )
 
         usuarios = UsuarioService.listar(session_id=sid)
         usuario = next(u for u in usuarios if u["username"] == username)
@@ -221,11 +245,14 @@ class TestUsuarioService:
         sid = _crear_admin_session()
         username = _next_username()
 
-        UsuarioService.crear({
-            "username": username,
-            "nombre": "To Delete",
-            "password_raw": "TestPass123!",
-        }, session_id=sid)
+        UsuarioService.crear(
+            {
+                "username": username,
+                "nombre": "To Delete",
+                "password_raw": "TestPass123!",
+            },
+            session_id=sid,
+        )
 
         UsuarioService.eliminar(username, session_id=sid)
 
@@ -251,12 +278,15 @@ class TestUsuarioService:
         username = _next_username()
 
         # Crear usuario (debe_cambiar_password defaults to 0)
-        UsuarioService.crear({
-            "username": username,
-            "nombre": "Forced User",
-            "password_raw": "StrongPass123!",
-            "rol": "Operador",
-        }, session_id=sid)
+        UsuarioService.crear(
+            {
+                "username": username,
+                "nombre": "Forced User",
+                "password_raw": "StrongPass123!",
+                "rol": "Operador",
+            },
+            session_id=sid,
+        )
 
         # Forzar cambio de contraseña
         UsuarioService.forzar_cambio_password(username, session_id=sid)
@@ -294,19 +324,26 @@ class TestUsuarioService:
 # AuthService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestAuthService:
 
-    def _crear_usuario_en_bd(self, username: str, password: str = "TestPass123!",
-                             rol: str = "Operador", nombre: str = "Test Auth User"):
+class TestAuthService:
+    def _crear_usuario_en_bd(
+        self,
+        username: str,
+        password: str = "TestPass123!",
+        rol: str = "Operador",
+        nombre: str = "Test Auth User",
+    ):
         """Create a user directly in the database for auth testing."""
-        UsuarioRepositorySA.insertar(UsuarioCreate(
-            username=username,
-            password_raw=password,
-            nombre=nombre,
-            rol=rol,
-            email="",
-            activo=True,
-        ))
+        UsuarioRepositorySA.insertar(
+            UsuarioCreate(
+                username=username,
+                password_raw=password,
+                nombre=nombre,
+                rol=rol,
+                email="",
+                activo=True,
+            )
+        )
 
     def test_login_exitoso(self):
         """login() returns session data on valid credentials."""
@@ -430,9 +467,7 @@ class TestAuthService:
         self._crear_usuario_en_bd(username, "RealPass123!")
 
         with pytest.raises(CredencialesInvalidas, match="contraseña actual no es correcta"):
-            AuthService.cambiar_password_obligatorio(
-                username, "WrongPass456!", "NewStr0ng!"
-            )
+            AuthService.cambiar_password_obligatorio(username, "WrongPass456!", "NewStr0ng!")
 
     def test_cambiar_password_obligatorio_igual_a_actual(self):
         """cambiar_password_obligatorio() raises ValidacionError when new password equals current."""
@@ -441,9 +476,7 @@ class TestAuthService:
         self._crear_usuario_en_bd(username, same_pwd)
 
         with pytest.raises(ValidacionError, match="diferente a la actual"):
-            AuthService.cambiar_password_obligatorio(
-                username, same_pwd, same_pwd
-            )
+            AuthService.cambiar_password_obligatorio(username, same_pwd, same_pwd)
 
     def test_cambiar_password_obligatorio_password_debil(self):
         """cambiar_password_obligatorio() raises ValidacionError for weak new password."""
@@ -452,7 +485,9 @@ class TestAuthService:
 
         with pytest.raises(ValidacionError, match="[Cc]ontraseña [Dd]ébil"):
             AuthService.cambiar_password_obligatorio(
-                username, "RealPass123!", "123"  # Too short, no uppercase, no special
+                username,
+                "RealPass123!",
+                "123",  # Too short, no uppercase, no special
             )
 
     def test_cambiar_password_obligatorio_campos_vacios(self):
@@ -463,23 +498,28 @@ class TestAuthService:
     def test_cambiar_password_obligatorio_usuario_inexistente(self):
         """cambiar_password_obligatorio() raises CredencialesInvalidas for non-existent user."""
         with pytest.raises(CredencialesInvalidas, match="no encontrado"):
-            AuthService.cambiar_password_obligatorio(
-                "ghost_user_xyz", "AnyPass123!", "NewStr0ng!"
-            )
+            AuthService.cambiar_password_obligatorio("ghost_user_xyz", "AnyPass123!", "NewStr0ng!")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DashboardService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestDashboardService:
 
+class TestDashboardService:
     def test_kpi_globales_estructura(self):
         """kpi_globales() returns dict with expected keys and correct types."""
         kpi = DashboardService.kpi_globales()
-        expected_keys = {"rentas_activas", "autos_disponibles", "autos_rentados",
-                         "autos_mantenimiento", "total_flota", "ocupacion_flota",
-                         "ingresos_mes", "pagos_pendientes"}
+        expected_keys = {
+            "rentas_activas",
+            "autos_disponibles",
+            "autos_rentados",
+            "autos_mantenimiento",
+            "total_flota",
+            "ocupacion_flota",
+            "ingresos_mes",
+            "pagos_pendientes",
+        }
         assert expected_keys.issubset(kpi.keys())
         assert isinstance(kpi["rentas_activas"], int)
         assert isinstance(kpi["autos_disponibles"], int)
@@ -541,8 +581,8 @@ class TestDashboardService:
 # InformeService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestInformeService:
 
+class TestInformeService:
     def test_balance_mensual_sin_datos(self):
         """balance_mensual_real() returns empty list when no data."""
         sid = _crear_supervisor_session()
@@ -581,18 +621,19 @@ class TestInformeService:
         )
 
         # Register a payment to generate ingresos in balance
-        from repositories.pago_repository_sa import PagoRepositorySA
-        PagoRepositorySA.insertar(PagoCreate(
-            id_renta=renta_id,
-            monto=Decimal("50000"),
-            metodo_pago="Efectivo",
-            concepto="Abono inicial",
-        ))
+        PagoRepositorySA.insertar(
+            PagoCreate(
+                id_renta=renta_id,
+                monto=Decimal("50000"),
+                metodo_pago="Efectivo",
+                concepto="Abono inicial",
+            )
+        )
 
         balance = InformeService.balance_mensual_real(session_id=sid_sup)
         # Should find our data in one of the months
         mes_actual = hoy.strftime("%Y-%m")
-        found = any(b.get("mes") == mes_actual for b in balance)
+        _found = any(b.get("mes") == mes_actual for b in balance)
         # Even if empty, it should return a list
         assert isinstance(balance, list)
 
@@ -601,8 +642,8 @@ class TestInformeService:
 # BackupService Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestBackupService:
 
+class TestBackupService:
     def test_decrypt_file_roundtrip(self):
         """decrypt_file() can decrypt what was encrypted by _encrypt_file()."""
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -665,6 +706,7 @@ class TestBackupService:
             # Import and set up a proper SQLite file
             from sqlalchemy import create_engine
             from core.models import Base as AllModels
+
             engine = create_engine(f"sqlite:///{db_path}")
             AllModels.metadata.create_all(bind=engine)
             engine.dispose()
@@ -702,6 +744,7 @@ class TestBackupService:
         """crear() returns (False, message) when database file doesn't exist."""
         with tempfile.TemporaryDirectory() as tmpdir:
             import core.config as cfg
+
             original_db_path = cfg.DB_PATH
             original_backup_dir = cfg.BACKUP_DIR
 

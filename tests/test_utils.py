@@ -16,23 +16,19 @@ Run: pytest tests/test_utils.py -v
 
 import os
 import sys
-import base64
 from pathlib import Path
-from io import BytesIO
 from unittest.mock import MagicMock
 
 import pytest
 
-import importlib
 
 from PIL import Image as PILImage
-
-import core.utils
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Helper: create a valid 1×1 PNG for ReportLab Image()
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _create_valid_png(path: str):
     """Create a minimal valid 1x1 pixel PNG at the given path."""
@@ -44,14 +40,19 @@ def _create_valid_png(path: str):
 # Helper: make a proper QUrl mock that stores the URL string
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class _FakeQUrl:
     """QUrl mock that stores the URL and supports str()."""
+
     def __init__(self, url: str = ""):
         self._url = url
+
     def __str__(self):
         return self._url
+
     def __repr__(self):
         return self._url
+
     @staticmethod
     def fromLocalFile(path: str):
         return _FakeQUrl(f"file:///{path}")
@@ -62,10 +63,10 @@ def _install_pyside6_mocks(monkeypatch):
     fake_services = MagicMock()
     fake_services.openUrl.return_value = True
 
-    monkeypatch.setitem(sys.modules, "PySide6.QtCore",
-                        type("qtcore", (), {"QUrl": _FakeQUrl})())
-    monkeypatch.setitem(sys.modules, "PySide6.QtGui",
-                        type("qtgui", (), {"QDesktopServices": fake_services})())
+    monkeypatch.setitem(sys.modules, "PySide6.QtCore", type("qtcore", (), {"QUrl": _FakeQUrl})())
+    monkeypatch.setitem(
+        sys.modules, "PySide6.QtGui", type("qtgui", (), {"QDesktopServices": fake_services})()
+    )
     # Force reimport so core.utils picks up the mocked modules
     for mod_name in list(sys.modules.keys()):
         if "core.utils" in mod_name:
@@ -77,47 +78,55 @@ def _install_pyside6_mocks(monkeypatch):
 # limpiar_nombre_archivo
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestLimpiarNombreArchivo:
 
+class TestLimpiarNombreArchivo:
     def test_none_retorna_cliente(self):
         """None returns 'Cliente'."""
         from core.utils import limpiar_nombre_archivo
+
         assert limpiar_nombre_archivo(None) == "Cliente"
 
     def test_vacio_retorna_cliente(self):
         """Empty string returns 'Cliente'."""
         from core.utils import limpiar_nombre_archivo
+
         assert limpiar_nombre_archivo("") == "Cliente"
 
     def test_solo_espacios_retorna_vacio(self):
         """Whitespace-only is stripped to empty string (not 'Cliente')."""
         from core.utils import limpiar_nombre_archivo
+
         result = limpiar_nombre_archivo("   ")
         assert result == ""
 
     def test_texto_normal_remplaza_espacios(self):
         """Spaces are replaced with underscores."""
         from core.utils import limpiar_nombre_archivo
+
         assert limpiar_nombre_archivo("Juan Perez") == "Juan_Perez"
 
     def test_caracteres_no_alfanumericos_removidos(self):
         """Special characters are stripped out."""
         from core.utils import limpiar_nombre_archivo
+
         assert limpiar_nombre_archivo("María!@#$%") == "Mara"
 
     def test_numeros_permitidos(self):
         """Digits are preserved."""
         from core.utils import limpiar_nombre_archivo
+
         assert limpiar_nombre_archivo("Cliente123") == "Cliente123"
 
     def test_guiones_y_puntos_removidos(self):
         """Hyphens and dots are removed."""
         from core.utils import limpiar_nombre_archivo
+
         assert limpiar_nombre_archivo("cliente-1.0") == "cliente10"
 
     def test_multiples_espacios_internos(self):
         """Multiple spaces become multiple underscores."""
         from core.utils import limpiar_nombre_archivo
+
         result = limpiar_nombre_archivo("Juan  Carlos")
         assert "Juan" in result
         assert "Carlos" in result
@@ -126,6 +135,7 @@ class TestLimpiarNombreArchivo:
     def test_numero_como_string(self):
         """Numeric string works."""
         from core.utils import limpiar_nombre_archivo
+
         assert limpiar_nombre_archivo("123") == "123"
 
 
@@ -133,61 +143,72 @@ class TestLimpiarNombreArchivo:
 # limpiar_moneda
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestLimpiarMoneda:
 
+class TestLimpiarMoneda:
     def test_none_retorna_cero(self):
         """None returns 0.0."""
         from core.utils import limpiar_moneda
+
         assert limpiar_moneda(None) == 0.0
 
     def test_vacio_retorna_cero(self):
         """Empty string returns 0.0."""
         from core.utils import limpiar_moneda
+
         assert limpiar_moneda("") == 0.0
 
     def test_numero_entero(self):
         """Integer value returns float."""
         from core.utils import limpiar_moneda
+
         assert limpiar_moneda(50000) == 50000.0
 
     def test_numero_flotante(self):
         """Float value returns same float."""
         from core.utils import limpiar_moneda
+
         assert limpiar_moneda(99.99) == 99.99
 
     def test_string_con_signo_peso(self):
         """String with $ symbol is parsed."""
         from core.utils import limpiar_moneda
+
         assert limpiar_moneda("$ 150,000") == 150000.0
 
     def test_string_con_coma_miles(self):
         """String with comma as thousands separator is parsed."""
         from core.utils import limpiar_moneda
+
         assert limpiar_moneda("1,200,500") == 1200500.0
 
     def test_string_con_espacios(self):
         """String with spaces is trimmed and parsed."""
         from core.utils import limpiar_moneda
+
         assert limpiar_moneda("  $ 99,999  ") == 99999.0
 
     def test_string_decimal(self):
         """String with decimal point remains."""
         from core.utils import limpiar_moneda
+
         assert limpiar_moneda("1234.56") == 1234.56
 
     def test_string_invalido_retorna_cero(self):
         """Invalid string returns 0.0."""
         from core.utils import limpiar_moneda
+
         assert limpiar_moneda("no_es_un_numero") == 0.0
 
     def test_cero_string(self):
         """String '0' returns 0.0."""
         from core.utils import limpiar_moneda
+
         assert limpiar_moneda("0") == 0.0
 
     def test_valor_negativo(self):
         """Negative value is parsed."""
         from core.utils import limpiar_moneda
+
         assert limpiar_moneda("-500") == -500.0
 
 
@@ -195,11 +216,12 @@ class TestLimpiarMoneda:
 # fmt_moneda
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestFmtMoneda:
 
+class TestFmtMoneda:
     def test_formato_basico(self):
         """Basic formatting with $ and dots."""
         from core.utils import fmt_moneda
+
         result = fmt_moneda(150000)
         assert result.startswith("$")
         assert "." in result  # thousand separator (comma → dot)
@@ -207,23 +229,27 @@ class TestFmtMoneda:
     def test_cero(self):
         """Zero formats correctly."""
         from core.utils import fmt_moneda
+
         assert fmt_moneda(0) == "$ 0"
 
     def test_valor_string(self):
         """String '$ 99,999' → 99999 → format with dot separator '$ 99.999'."""
         from core.utils import fmt_moneda
+
         result = fmt_moneda("$ 99,999")
         assert result == "$ 99.999"
 
     def test_valor_flotante(self):
         """Float value is formatted."""
         from core.utils import fmt_moneda
+
         result = fmt_moneda(1234.56)
         assert result == "$ 1.235"
 
     def test_decimales_truncados(self):
         """Decimal places are rounded to integer by :,.0f format."""
         from core.utils import fmt_moneda
+
         result = fmt_moneda(99.99)
         assert "$ 100" in result  # 99.99 rounds to 100
 
@@ -232,8 +258,8 @@ class TestFmtMoneda:
 # obtener_rutas_archivos
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestObtenerRutasArchivos:
 
+class TestObtenerRutasArchivos:
     def test_retorna_tres_rutas(self, tmp_path, monkeypatch):
         """Returns tuple of 3 paths: reservas, contratos, ordenes."""
         fake_home = str(tmp_path / "home")
@@ -245,6 +271,7 @@ class TestObtenerRutasArchivos:
         os.makedirs(os.path.join(docs, "Archivos Dinamo_rent", "Ordenes Renta"))
 
         from core.utils import obtener_rutas_archivos
+
         reservas, contratos, ordenes = obtener_rutas_archivos()
         assert "Reservas" in reservas
         assert "Contratos" in contratos
@@ -260,6 +287,7 @@ class TestObtenerRutasArchivos:
         os.makedirs(os.path.join(docs_es, "Archivos Dinamo_rent", "Contratos"))
 
         from core.utils import obtener_rutas_archivos
+
         reservas, contratos, ordenes = obtener_rutas_archivos()
         assert "Documentos" in reservas
 
@@ -272,6 +300,7 @@ class TestObtenerRutasArchivos:
         os.makedirs(os.path.join(fake_home, "Archivos Dinamo_rent", "Contratos"))
 
         from core.utils import obtener_rutas_archivos
+
         reservas, contratos, ordenes = obtener_rutas_archivos()
         assert fake_home in reservas
 
@@ -286,6 +315,7 @@ class TestObtenerRutasArchivos:
         os.makedirs(os.path.join(archivos, "Ordenes Renta"))
 
         from core.utils import obtener_rutas_archivos
+
         r1, r2, r3 = obtener_rutas_archivos()
         r1b, r2b, r3b = obtener_rutas_archivos()
         assert r1 == r1b
@@ -294,13 +324,16 @@ class TestObtenerRutasArchivos:
 
     def test_makedirs_falla_logea_warning(self, tmp_path, monkeypatch):
         """When os.makedirs fails, warning is logged and function still returns paths."""
+
         def fake_makedirs(path, exist_ok=False):
             raise PermissionError("Access denied")
+
         monkeypatch.setattr(os, "makedirs", fake_makedirs)
         fake_home = str(tmp_path / "home")
         monkeypatch.setattr(os.path, "expanduser", lambda x: fake_home)
 
         from core.utils import obtener_rutas_archivos
+
         # Should not raise — makedirs failure is caught and logged
         reservas, contratos, ordenes = obtener_rutas_archivos()
         assert reservas is not None
@@ -312,14 +345,14 @@ class TestObtenerRutasArchivos:
 # obtener_ruta_logo
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestObtenerRutaLogo:
 
+class TestObtenerRutaLogo:
     def test_sin_logo_retorna_none(self, tmp_path, monkeypatch):
         """Returns None when no logo file exists."""
         # Point base_dir at tmp_path (no assets folder)
-        monkeypatch.setattr("core.utils.os.path.dirname",
-                            lambda p: str(tmp_path))
+        monkeypatch.setattr("core.utils.os.path.dirname", lambda p: str(tmp_path))
         from core.utils import obtener_ruta_logo
+
         assert obtener_ruta_logo() is None
 
     def test_con_logo_retorna_ruta(self, tmp_path, monkeypatch):
@@ -328,10 +361,10 @@ class TestObtenerRutaLogo:
         logo_dir.mkdir()
         logo_file = logo_dir / "Logo_Dinamo.png"
         logo_file.write_text("fake_png_content")
-        monkeypatch.setattr("core.utils.os.path.dirname",
-                            lambda p: str(tmp_path))
+        monkeypatch.setattr("core.utils.os.path.dirname", lambda p: str(tmp_path))
 
         from core.utils import obtener_ruta_logo
+
         result = obtener_ruta_logo()
         assert result is not None
         assert "Logo_Dinamo" in result or str(logo_file) in result
@@ -342,10 +375,10 @@ class TestObtenerRutaLogo:
         logo_dir.mkdir()
         logo_file = logo_dir / "LogoDinamo.png"
         logo_file.write_text("fake_png")
-        monkeypatch.setattr("core.utils.os.path.dirname",
-                            lambda p: str(tmp_path))
+        monkeypatch.setattr("core.utils.os.path.dirname", lambda p: str(tmp_path))
 
         from core.utils import obtener_ruta_logo
+
         result = obtener_ruta_logo()
         assert result is not None
         assert "LogoDinamo" in result
@@ -355,12 +388,13 @@ class TestObtenerRutaLogo:
 # obtener_logo_base64
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestObtenerLogoBase64:
 
+class TestObtenerLogoBase64:
     def test_sin_logo_retorna_vacio(self, monkeypatch):
         """Returns empty string when no logo exists."""
         monkeypatch.setattr("core.utils.obtener_ruta_logo", lambda: None)
         from core.utils import obtener_logo_base64
+
         assert obtener_logo_base64() == ""
 
     def test_con_logo_retorna_data_uri(self, tmp_path, monkeypatch):
@@ -370,6 +404,7 @@ class TestObtenerLogoBase64:
         monkeypatch.setattr("core.utils.obtener_ruta_logo", lambda: str(logo_file))
 
         from core.utils import obtener_logo_base64
+
         result = obtener_logo_base64()
         assert result.startswith("data:image/png;base64,")
 
@@ -380,14 +415,15 @@ class TestObtenerLogoBase64:
         monkeypatch.setattr("core.utils.obtener_ruta_logo", lambda: str(logo_file))
 
         from core.utils import obtener_logo_base64
+
         result = obtener_logo_base64()
         assert result.startswith("data:image/jpeg;base64,")
 
     def test_error_lectura_retorna_vacio(self, monkeypatch):
         """Exception during file read returns empty string."""
-        monkeypatch.setattr("core.utils.obtener_ruta_logo",
-                            lambda: "/nonexistent/logo.png")
+        monkeypatch.setattr("core.utils.obtener_ruta_logo", lambda: "/nonexistent/logo.png")
         from core.utils import obtener_logo_base64
+
         assert obtener_logo_base64() == ""
 
 
@@ -395,12 +431,13 @@ class TestObtenerLogoBase64:
 # cargar_plantilla_jinja
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestCargarPlantillaJinja:
 
+class TestCargarPlantillaJinja:
     def test_plantilla_no_existe_retorna_none(self, monkeypatch):
         """Returns None when template file doesn't exist."""
         monkeypatch.setattr(os.path, "exists", lambda p: False)
         from core.utils import cargar_plantilla_jinja
+
         result = cargar_plantilla_jinja("contrato")
         assert result is None
 
@@ -408,12 +445,13 @@ class TestCargarPlantillaJinja:
         """Loads 'contrato' template from templates dir."""
         templates_dir = tmp_path / "templates"
         templates_dir.mkdir()
-        (templates_dir / "contrato_jinja_template.html")\
-            .write_text("<html>{{ nombre_cliente }}</html>", encoding="utf-8")
-        monkeypatch.setattr("core.utils.os.path.dirname",
-                            lambda p: str(tmp_path))
+        (templates_dir / "contrato_jinja_template.html").write_text(
+            "<html>{{ nombre_cliente }}</html>", encoding="utf-8"
+        )
+        monkeypatch.setattr("core.utils.os.path.dirname", lambda p: str(tmp_path))
 
         from core.utils import cargar_plantilla_jinja
+
         result = cargar_plantilla_jinja("contrato")
         assert result is not None
         assert "nombre_cliente" in result
@@ -422,12 +460,13 @@ class TestCargarPlantillaJinja:
         """Loads 'renta' template."""
         templates_dir = tmp_path / "templates"
         templates_dir.mkdir()
-        (templates_dir / "orden_renta_jinja.html")\
-            .write_text("<html>RENTA: {{ placa }}</html>", encoding="utf-8")
-        monkeypatch.setattr("core.utils.os.path.dirname",
-                            lambda p: str(tmp_path))
+        (templates_dir / "orden_renta_jinja.html").write_text(
+            "<html>RENTA: {{ placa }}</html>", encoding="utf-8"
+        )
+        monkeypatch.setattr("core.utils.os.path.dirname", lambda p: str(tmp_path))
 
         from core.utils import cargar_plantilla_jinja
+
         result = cargar_plantilla_jinja("renta")
         assert result is not None
         assert "RENTA" in result
@@ -436,12 +475,13 @@ class TestCargarPlantillaJinja:
         """Loads 'reserva' template."""
         templates_dir = tmp_path / "templates"
         templates_dir.mkdir()
-        (templates_dir / "orden_reserva_jinja.html")\
-            .write_text("<html>RESERVA: {{ id_reserva }}</html>", encoding="utf-8")
-        monkeypatch.setattr("core.utils.os.path.dirname",
-                            lambda p: str(tmp_path))
+        (templates_dir / "orden_reserva_jinja.html").write_text(
+            "<html>RESERVA: {{ id_reserva }}</html>", encoding="utf-8"
+        )
+        monkeypatch.setattr("core.utils.os.path.dirname", lambda p: str(tmp_path))
 
         from core.utils import cargar_plantilla_jinja
+
         result = cargar_plantilla_jinja("reserva")
         assert result is not None
         assert "RESERVA" in result
@@ -450,12 +490,13 @@ class TestCargarPlantillaJinja:
         """Unknown tipo defaults to 'contrato' template."""
         templates_dir = tmp_path / "templates"
         templates_dir.mkdir()
-        (templates_dir / "contrato_jinja_template.html")\
-            .write_text("<html>Default contract</html>", encoding="utf-8")
-        monkeypatch.setattr("core.utils.os.path.dirname",
-                            lambda p: str(tmp_path))
+        (templates_dir / "contrato_jinja_template.html").write_text(
+            "<html>Default contract</html>", encoding="utf-8"
+        )
+        monkeypatch.setattr("core.utils.os.path.dirname", lambda p: str(tmp_path))
 
         from core.utils import cargar_plantilla_jinja
+
         result = cargar_plantilla_jinja("unknown_type")
         assert result is not None
         assert "Default contract" in result
@@ -465,11 +506,12 @@ class TestCargarPlantillaJinja:
 # abrir_archivo (PySide6-dependent)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestAbrirArchivo:
 
+class TestAbrirArchivo:
     def test_archivo_inexistente_retorna_false(self):
         """Returns False when file doesn't exist."""
         from core.utils import abrir_archivo
+
         assert abrir_archivo("/nonexistent/test.pdf") is False
 
     def test_archivo_existente_retorna_true(self, tmp_path, monkeypatch):
@@ -479,6 +521,7 @@ class TestAbrirArchivo:
         fake_services = _install_pyside6_mocks(monkeypatch)
 
         from core.utils import abrir_archivo
+
         result = abrir_archivo(str(test_file))
         assert result is True
         fake_services.openUrl.assert_called_once()
@@ -491,6 +534,7 @@ class TestAbrirArchivo:
         fake_services.openUrl.side_effect = Exception("Access denied")
 
         from core.utils import abrir_archivo
+
         result = abrir_archivo(str(test_file))
         assert result is False
 
@@ -499,16 +543,18 @@ class TestAbrirArchivo:
 # abrir_whatsapp
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestAbrirWhatsapp:
 
+class TestAbrirWhatsapp:
     def test_celular_vacio_retorna_false(self):
         """Empty celular returns False."""
         from core.utils import abrir_whatsapp
+
         assert abrir_whatsapp("") is False
 
     def test_celular_none_retorna_false(self):
         """None celular returns False."""
         from core.utils import abrir_whatsapp
+
         assert abrir_whatsapp(None) is False
 
     def test_numero_10_digitos_agrega_57(self, monkeypatch):
@@ -516,10 +562,13 @@ class TestAbrirWhatsapp:
         fake_services = _install_pyside6_mocks(monkeypatch)
 
         from core.utils import abrir_whatsapp
+
         actual_urls = []
+
         def track_url(url):
             actual_urls.append(str(url))
             return True
+
         fake_services.openUrl.side_effect = track_url
 
         result = abrir_whatsapp("3001234567")
@@ -532,10 +581,13 @@ class TestAbrirWhatsapp:
         fake_services = _install_pyside6_mocks(monkeypatch)
 
         from core.utils import abrir_whatsapp
+
         actual_urls = []
+
         def track_url(url):
             actual_urls.append(str(url))
             return True
+
         fake_services.openUrl.side_effect = track_url
 
         result = abrir_whatsapp("(300) 123-4567")
@@ -547,10 +599,13 @@ class TestAbrirWhatsapp:
         fake_services = _install_pyside6_mocks(monkeypatch)
 
         from core.utils import abrir_whatsapp
+
         actual_urls = []
+
         def track_url(url):
             actual_urls.append(str(url))
             return True
+
         fake_services.openUrl.side_effect = track_url
 
         result = abrir_whatsapp("3001234567", "Hola! ¿Cómo estás?")
@@ -564,6 +619,7 @@ class TestAbrirWhatsapp:
         fake_services.openUrl.side_effect = Exception("Connection error")
 
         from core.utils import abrir_whatsapp
+
         assert abrir_whatsapp("3001234567") is False
 
 
@@ -571,16 +627,18 @@ class TestAbrirWhatsapp:
 # abrir_email
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestAbrirEmail:
 
+class TestAbrirEmail:
     def test_email_vacio_retorna_false(self):
         """Empty email returns False."""
         from core.utils import abrir_email
+
         assert abrir_email("") is False
 
     def test_email_none_retorna_false(self):
         """None email returns False."""
         from core.utils import abrir_email
+
         assert abrir_email(None) is False
 
     def test_mailto_url_generada(self, monkeypatch):
@@ -588,10 +646,13 @@ class TestAbrirEmail:
         fake_services = _install_pyside6_mocks(monkeypatch)
 
         from core.utils import abrir_email
+
         actual_urls = []
+
         def track_url(url):
             actual_urls.append(str(url))
             return True
+
         fake_services.openUrl.side_effect = track_url
 
         result = abrir_email("test@example.com")
@@ -603,10 +664,13 @@ class TestAbrirEmail:
         fake_services = _install_pyside6_mocks(monkeypatch)
 
         from core.utils import abrir_email
+
         actual_urls = []
+
         def track_url(url):
             actual_urls.append(str(url))
             return True
+
         fake_services.openUrl.side_effect = track_url
 
         result = abrir_email("user@domain.com", "Asunto Importante", "Cuerpo del mensaje")
@@ -620,6 +684,7 @@ class TestAbrirEmail:
         fake_services.openUrl.side_effect = Exception("Mail error")
 
         from core.utils import abrir_email
+
         assert abrir_email("test@test.com") is False
 
 
@@ -627,11 +692,12 @@ class TestAbrirEmail:
 # enviar_a_impresora
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestEnviarAImpresora:
 
+class TestEnviarAImpresora:
     def test_archivo_inexistente_no_falla(self):
         """Non-existent file does nothing and doesn't raise."""
         from core.utils import enviar_a_impresora
+
         enviar_a_impresora("/nonexistent/file.pdf")
 
     def test_win32_llama_os_startfile(self, tmp_path, monkeypatch):
@@ -639,12 +705,15 @@ class TestEnviarAImpresora:
         test_file = tmp_path / "test.pdf"
         test_file.write_text("fake pdf")
         startfile_called = []
+
         def fake_startfile(path, verb=None):
             startfile_called.append((path, verb))
+
         monkeypatch.setattr(os, "startfile", fake_startfile)
         monkeypatch.setattr(sys, "platform", "win32")
 
         from core.utils import enviar_a_impresora
+
         enviar_a_impresora(str(test_file))
         assert len(startfile_called) == 1
         assert startfile_called[0][1] == "print"
@@ -654,12 +723,15 @@ class TestEnviarAImpresora:
         test_file = tmp_path / "test.pdf"
         test_file.write_text("fake pdf")
         abrir_called = []
+
         def fake_abrir(ruta):
             abrir_called.append(ruta)
+
         monkeypatch.setattr("core.utils.abrir_archivo", fake_abrir)
         monkeypatch.setattr(sys, "platform", "linux")
 
         from core.utils import enviar_a_impresora
+
         enviar_a_impresora(str(test_file))
         assert len(abrir_called) == 1
 
@@ -667,16 +739,21 @@ class TestEnviarAImpresora:
         """If os.startfile fails, abrir_archivo is called as fallback."""
         test_file = tmp_path / "test.pdf"
         test_file.write_text("fake pdf")
+
         def fake_startfile(path, verb=None):
             raise OSError("Print failed")
+
         monkeypatch.setattr(os, "startfile", fake_startfile)
         monkeypatch.setattr(sys, "platform", "win32")
         abrir_called = []
+
         def fake_abrir(ruta):
             abrir_called.append(ruta)
+
         monkeypatch.setattr("core.utils.abrir_archivo", fake_abrir)
 
         from core.utils import enviar_a_impresora
+
         enviar_a_impresora(str(test_file))
         assert len(abrir_called) == 1
 
@@ -685,8 +762,8 @@ class TestEnviarAImpresora:
 # generar_orden_alquiler_pdf (ReportLab fallback)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGenerarOrdenAlquilerPdf:
 
+class TestGenerarOrdenAlquilerPdf:
     @pytest.fixture
     def fake_dirs(self, tmp_path, monkeypatch):
         """Redirect output dirs to temp."""
@@ -696,8 +773,10 @@ class TestGenerarOrdenAlquilerPdf:
         reservas.mkdir()
         contratos.mkdir()
         ordenes.mkdir()
-        monkeypatch.setattr("core.utils.obtener_rutas_archivos",
-                            lambda: (str(reservas), str(contratos), str(ordenes)))
+        monkeypatch.setattr(
+            "core.utils.obtener_rutas_archivos",
+            lambda: (str(reservas), str(contratos), str(ordenes)),
+        )
 
     @pytest.fixture
     def valid_logo(self, tmp_path, monkeypatch):
@@ -731,6 +810,7 @@ class TestGenerarOrdenAlquilerPdf:
     def test_genera_pdf_valido(self, fake_dirs, valid_logo, sample_data):
         """PDF file is created on disk."""
         from core.utils import generar_orden_alquiler_pdf
+
         result = generar_orden_alquiler_pdf(sample_data)
         assert result is not None
         assert os.path.exists(result)
@@ -739,12 +819,14 @@ class TestGenerarOrdenAlquilerPdf:
     def test_pdf_tiene_tamano_mayor_a_cero(self, fake_dirs, valid_logo, sample_data):
         """Generated PDF has content."""
         from core.utils import generar_orden_alquiler_pdf
+
         result = generar_orden_alquiler_pdf(sample_data)
         assert os.path.getsize(result) > 0
 
     def test_return_status_true_devuelve_tuple(self, fake_dirs, valid_logo, sample_data):
         """With return_status=True, returns (True, message, path)."""
         from core.utils import generar_orden_alquiler_pdf
+
         result = generar_orden_alquiler_pdf(sample_data, return_status=True)
         assert isinstance(result, tuple)
         assert len(result) == 3
@@ -756,19 +838,24 @@ class TestGenerarOrdenAlquilerPdf:
     def test_sin_vehiculo_no_falla(self, fake_dirs, valid_logo):
         """Minimal data still generates PDF."""
         from core.utils import generar_orden_alquiler_pdf
-        result = generar_orden_alquiler_pdf({"id_renta": 1, "nombre_cliente": "Test", "total": 100000})
+
+        result = generar_orden_alquiler_pdf(
+            {"id_renta": 1, "nombre_cliente": "Test", "total": 100000}
+        )
         assert result is not None
         assert os.path.exists(result)
 
     def test_sin_total_no_falla(self, fake_dirs, valid_logo):
         """Missing total defaults to 0 without crashing."""
         from core.utils import generar_orden_alquiler_pdf
+
         result = generar_orden_alquiler_pdf({"id_renta": 1, "nombre_cliente": "Test"})
         assert result is not None
 
     def test_sin_logo_no_falla(self, fake_dirs, sample_data):
         """PDF works even without logo file (uses Paragraph fallback)."""
         from core.utils import generar_orden_alquiler_pdf
+
         result = generar_orden_alquiler_pdf(sample_data)
         assert result is not None
         assert os.path.exists(result)
@@ -776,11 +863,17 @@ class TestGenerarOrdenAlquilerPdf:
     def test_con_extras_muestra_costos(self, fake_dirs, valid_logo):
         """Extras (lavado, silla, cables) appear in the PDF."""
         from core.utils import generar_orden_alquiler_pdf
+
         data = {
-            "id_renta": 10, "nombre_cliente": "Test Extras",
-            "dias": 2, "valor_dia": 100000, "total": 250000,
-            "horas_extras": 3, "valor_hora_extra": 10000,
-            "costo_lavado": 20000, "costo_silla": 15000,
+            "id_renta": 10,
+            "nombre_cliente": "Test Extras",
+            "dias": 2,
+            "valor_dia": 100000,
+            "total": 250000,
+            "horas_extras": 3,
+            "valor_hora_extra": 10000,
+            "costo_lavado": 20000,
+            "costo_silla": 15000,
         }
         result = generar_orden_alquiler_pdf(data)
         assert result is not None
@@ -789,17 +882,22 @@ class TestGenerarOrdenAlquilerPdf:
     def test_crear_pdf_orden_basica_es_alias(self):
         """crear_pdf_orden_basica is an alias for generar_orden_alquiler_pdf."""
         from core.utils import crear_pdf_orden_basica, generar_orden_alquiler_pdf
+
         assert crear_pdf_orden_basica is generar_orden_alquiler_pdf
 
     def test_excepcion_en_pdf_retorna_none(self, fake_dirs, monkeypatch):
         """When PDF building raises, outer except returns None."""
         from reportlab.platypus import SimpleDocTemplate
-        original_build = SimpleDocTemplate.build
+
+        _original_build = SimpleDocTemplate.build
+
         def failing_build(*args, **kwargs):
             raise RuntimeError("PDF build error")
+
         monkeypatch.setattr(SimpleDocTemplate, "build", failing_build)
 
         from core.utils import generar_orden_alquiler_pdf
+
         data = {"id_renta": 1, "nombre_cliente": "Fail Test", "total": 0}
         result = generar_orden_alquiler_pdf(data)
         assert result is None
@@ -809,8 +907,8 @@ class TestGenerarOrdenAlquilerPdf:
 # generar_contrato_temp (WeasyPrint → ReportLab fallback)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGenerarContratoTemp:
 
+class TestGenerarContratoTemp:
     @pytest.fixture
     def fake_dirs(self, tmp_path, monkeypatch):
         reservas = tmp_path / "Ordenes_Reservas"
@@ -819,15 +917,23 @@ class TestGenerarContratoTemp:
         reservas.mkdir()
         contratos.mkdir()
         ordenes.mkdir()
-        monkeypatch.setattr("core.utils.obtener_rutas_archivos",
-                            lambda: (str(reservas), str(contratos), str(ordenes)))
+        monkeypatch.setattr(
+            "core.utils.obtener_rutas_archivos",
+            lambda: (str(reservas), str(contratos), str(ordenes)),
+        )
         return {"contratos": str(contratos)}
 
     def test_falla_a_reportlab_cuando_no_weasyprint(self, fake_dirs, monkeypatch):
         """When WeasyPrint is unavailable, falls back to ReportLab."""
         monkeypatch.setattr("core.utils.TIENE_WEASYPRINT", False)
         from core.utils import generar_contrato_temp
-        data = {"id_renta": 1, "nombre_cliente": "Test Contract", "total": 500000, "valor_hora_extra": 0}
+
+        data = {
+            "id_renta": 1,
+            "nombre_cliente": "Test Contract",
+            "total": 500000,
+            "valor_hora_extra": 0,
+        }
         result = generar_contrato_temp(data)
         assert result is not None
         assert isinstance(result, tuple)
@@ -840,7 +946,13 @@ class TestGenerarContratoTemp:
         """Fallback to ReportLab saves in ordenes folder when WeasyPrint is off."""
         monkeypatch.setattr("core.utils.TIENE_WEASYPRINT", False)
         from core.utils import generar_contrato_temp
-        data = {"id_renta": 5, "nombre_cliente": "Maria Gomez", "total": 750000, "valor_hora_extra": 0}
+
+        data = {
+            "id_renta": 5,
+            "nombre_cliente": "Maria Gomez",
+            "total": 750000,
+            "valor_hora_extra": 0,
+        }
         result = generar_contrato_temp(data)
         assert isinstance(result, tuple)
         assert len(result) == 3
@@ -851,6 +963,7 @@ class TestGenerarContratoTemp:
         """Works with minimal required data."""
         monkeypatch.setattr("core.utils.TIENE_WEASYPRINT", False)
         from core.utils import generar_contrato_temp
+
         result = generar_contrato_temp({"id_renta": 99})
         assert result is not None
         assert isinstance(result, tuple)
@@ -859,6 +972,7 @@ class TestGenerarContratoTemp:
     def test_con_weasyprint_mock_genera_pdf(self, tmp_path, monkeypatch):
         """When WeasyPrint is available (mocked), generates PDF via HTML.write_pdf."""
         from unittest.mock import MagicMock
+
         # Mock the HTML class and its write_pdf method
         mock_html_instance = MagicMock()
         mock_html_class = MagicMock(return_value=mock_html_instance)
@@ -870,19 +984,29 @@ class TestGenerarContratoTemp:
         reservas.mkdir()
         ordenes = tmp_path / "Ordenes_Renta"
         ordenes.mkdir()
-        monkeypatch.setattr("core.utils.obtener_rutas_archivos",
-                            lambda: (str(reservas), str(contratos), str(ordenes)))
+        monkeypatch.setattr(
+            "core.utils.obtener_rutas_archivos",
+            lambda: (str(reservas), str(contratos), str(ordenes)),
+        )
         # Mock logo so it doesn't try to read real files
         monkeypatch.setattr("core.utils.obtener_logo_base64", lambda: "")
         # Return a valid Jinja2 template string
-        monkeypatch.setattr("core.utils.cargar_plantilla_jinja",
-                            lambda tipo="contrato": "<html>{{ nombre_cliente }}</html>")
+        monkeypatch.setattr(
+            "core.utils.cargar_plantilla_jinja",
+            lambda tipo="contrato": "<html>{{ nombre_cliente }}</html>",
+        )
         # Enable WeasyPrint and inject the mocked HTML class
         monkeypatch.setattr("core.utils.TIENE_WEASYPRINT", True)
         monkeypatch.setattr("core.utils.HTML", mock_html_class, raising=False)
 
         from core.utils import generar_contrato_temp
-        data = {"id_renta": 10, "nombre_cliente": "WeasyPrint Test", "total": 300000, "valor_hora_extra": 0}
+
+        data = {
+            "id_renta": 10,
+            "nombre_cliente": "WeasyPrint Test",
+            "total": 300000,
+            "valor_hora_extra": 0,
+        }
         result = generar_contrato_temp(data)
 
         # Should return the WeasyPrint path (tuple with success message)
@@ -901,6 +1025,7 @@ class TestGenerarContratoTemp:
     def test_con_weasyprint_falla_logea_error(self, tmp_path, monkeypatch):
         """When WeasyPrint raises an exception, falls back to ReportLab."""
         from unittest.mock import MagicMock
+
         # HTML class raises when constructed
         mock_html_class = MagicMock(side_effect=RuntimeError("WeasyPrint render failed"))
 
@@ -910,16 +1035,26 @@ class TestGenerarContratoTemp:
         reservas.mkdir()
         ordenes = tmp_path / "Ordenes_Renta"
         ordenes.mkdir()
-        monkeypatch.setattr("core.utils.obtener_rutas_archivos",
-                            lambda: (str(reservas), str(contratos), str(ordenes)))
+        monkeypatch.setattr(
+            "core.utils.obtener_rutas_archivos",
+            lambda: (str(reservas), str(contratos), str(ordenes)),
+        )
         monkeypatch.setattr("core.utils.obtener_logo_base64", lambda: "")
-        monkeypatch.setattr("core.utils.cargar_plantilla_jinja",
-                            lambda tipo="contrato": "<html>{{ nombre_cliente }}</html>")
+        monkeypatch.setattr(
+            "core.utils.cargar_plantilla_jinja",
+            lambda tipo="contrato": "<html>{{ nombre_cliente }}</html>",
+        )
         monkeypatch.setattr("core.utils.TIENE_WEASYPRINT", True)
         monkeypatch.setattr("core.utils.HTML", mock_html_class, raising=False)
 
         from core.utils import generar_contrato_temp
-        data = {"id_renta": 11, "nombre_cliente": "Fail Test", "total": 100000, "valor_hora_extra": 0}
+
+        data = {
+            "id_renta": 11,
+            "nombre_cliente": "Fail Test",
+            "total": 100000,
+            "valor_hora_extra": 0,
+        }
         result = generar_contrato_temp(data)
         # Falls back to ReportLab which should succeed
         assert result is not None
@@ -932,8 +1067,8 @@ class TestGenerarContratoTemp:
 # generar_pdf_reserva (ReportLab-based)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGenerarPdfReserva:
 
+class TestGenerarPdfReserva:
     @pytest.fixture
     def fake_dirs(self, tmp_path, monkeypatch):
         reservas = tmp_path / "Ordenes_Reservas"
@@ -942,8 +1077,10 @@ class TestGenerarPdfReserva:
         reservas.mkdir()
         contratos.mkdir()
         ordenes.mkdir()
-        monkeypatch.setattr("core.utils.obtener_rutas_archivos",
-                            lambda: (str(reservas), str(contratos), str(ordenes)))
+        monkeypatch.setattr(
+            "core.utils.obtener_rutas_archivos",
+            lambda: (str(reservas), str(contratos), str(ordenes)),
+        )
         return {"reservas": str(reservas)}
 
     @pytest.fixture
@@ -955,17 +1092,25 @@ class TestGenerarPdfReserva:
     @pytest.fixture
     def sample_reserva(self):
         return {
-            "id_reserva": 77, "cliente_nombre": "Ana Torres",
-            "cliente_doc": "CC 98765432", "cliente_celular": "3109876543",
+            "id_reserva": 77,
+            "cliente_nombre": "Ana Torres",
+            "cliente_doc": "CC 98765432",
+            "cliente_celular": "3109876543",
             "vehiculo": "Mazda CX-5",
-            "f_inicio": "2024-12-10", "h_inicio": "09:00",
-            "f_fin": "2024-12-15", "h_fin": "09:00",
-            "dias": 5, "valor_dia": 200000, "total": 1200000, "abono": 300000,
+            "f_inicio": "2024-12-10",
+            "h_inicio": "09:00",
+            "f_fin": "2024-12-15",
+            "h_fin": "09:00",
+            "dias": 5,
+            "valor_dia": 200000,
+            "total": 1200000,
+            "abono": 300000,
         }
 
     def test_genera_pdf_valido(self, fake_dirs, valid_logo, sample_reserva):
         """PDF file is created on disk."""
         from core.utils import generar_pdf_reserva
+
         result = generar_pdf_reserva(sample_reserva)
         assert result is not None
         assert isinstance(result, tuple)
@@ -975,14 +1120,22 @@ class TestGenerarPdfReserva:
     def test_pdf_en_carpeta_reservas(self, fake_dirs, valid_logo, sample_reserva):
         """PDF is saved in reservas folder."""
         from core.utils import generar_pdf_reserva
+
         result = generar_pdf_reserva(sample_reserva)
         assert result[1].startswith(fake_dirs["reservas"])
 
     def test_con_abono_cero(self, fake_dirs, valid_logo):
         """Works when abono is 0."""
         from core.utils import generar_pdf_reserva
-        data = {"id_reserva": 1, "cliente_nombre": "Test",
-                "dias": 2, "valor_dia": 100000, "total": 200000, "abono": 0}
+
+        data = {
+            "id_reserva": 1,
+            "cliente_nombre": "Test",
+            "dias": 2,
+            "valor_dia": 100000,
+            "total": 200000,
+            "abono": 0,
+        }
         result = generar_pdf_reserva(data)
         assert result[0] is True
         assert os.path.exists(result[1])
@@ -990,8 +1143,14 @@ class TestGenerarPdfReserva:
     def test_sin_abono(self, fake_dirs, valid_logo):
         """Works when abono is not provided."""
         from core.utils import generar_pdf_reserva
-        data = {"id_reserva": 2, "cliente_nombre": "Test No Abono",
-                "dias": 1, "valor_dia": 100000, "total": 100000}
+
+        data = {
+            "id_reserva": 2,
+            "cliente_nombre": "Test No Abono",
+            "dias": 1,
+            "valor_dia": 100000,
+            "total": 100000,
+        }
         result = generar_pdf_reserva(data)
         assert result[0] is True
         assert os.path.exists(result[1])
@@ -1000,6 +1159,7 @@ class TestGenerarPdfReserva:
         """Without ReportLab, returns error message tuple."""
         monkeypatch.setattr("core.utils.TIENE_REPORTLAB", False)
         from core.utils import generar_pdf_reserva
+
         result = generar_pdf_reserva({"id_reserva": 1})
         assert result[0] is False
         assert "ReportLab" in result[1]
@@ -1007,11 +1167,14 @@ class TestGenerarPdfReserva:
     def test_excepcion_en_reserva_retorna_error(self, fake_dirs, monkeypatch):
         """When PDF building raises, outer except returns (False, error_message)."""
         from reportlab.platypus import SimpleDocTemplate
+
         def failing_build(*args, **kwargs):
             raise RuntimeError("Reserva build error")
+
         monkeypatch.setattr(SimpleDocTemplate, "build", failing_build)
 
         from core.utils import generar_pdf_reserva
+
         data = {"id_reserva": 1, "cliente_nombre": "Test Fail", "total": 0}
         result = generar_pdf_reserva(data)
         assert result[0] is False
@@ -1023,8 +1186,8 @@ class TestGenerarPdfReserva:
 # generar_orden_renta_jinja (WeasyPrint → ReportLab fallback)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGenerarOrdenRentaJinja:
 
+class TestGenerarOrdenRentaJinja:
     @pytest.fixture
     def fake_dirs(self, tmp_path, monkeypatch):
         reservas = tmp_path / "Ordenes_Reservas"
@@ -1033,19 +1196,30 @@ class TestGenerarOrdenRentaJinja:
         reservas.mkdir()
         contratos.mkdir()
         ordenes.mkdir()
-        monkeypatch.setattr("core.utils.obtener_rutas_archivos",
-                            lambda: (str(reservas), str(contratos), str(ordenes)))
+        monkeypatch.setattr(
+            "core.utils.obtener_rutas_archivos",
+            lambda: (str(reservas), str(contratos), str(ordenes)),
+        )
 
     def test_falla_a_reportlab_sin_weasyprint(self, fake_dirs, monkeypatch):
         """Without WeasyPrint, falls back to ReportLab and returns path."""
         monkeypatch.setattr("core.utils.TIENE_WEASYPRINT", False)
         from core.utils import generar_orden_renta_jinja
+
         data = {
-            "id_renta": 20, "nombre_cliente": "Cliente Jinja", "placa": "XYZ789",
-            "auto_marca": "Honda", "auto_modelo": "Civic", "km_salida": 20000,
-            "fecha_recogida": "2024-12-01", "hora_recogida": "10:00",
-            "fecha_retorno": "2024-12-03", "hora_retorno": "10:00",
-            "dias": 2, "valor_dia": 120000, "total": 240000,
+            "id_renta": 20,
+            "nombre_cliente": "Cliente Jinja",
+            "placa": "XYZ789",
+            "auto_marca": "Honda",
+            "auto_modelo": "Civic",
+            "km_salida": 20000,
+            "fecha_recogida": "2024-12-01",
+            "hora_recogida": "10:00",
+            "fecha_retorno": "2024-12-03",
+            "hora_retorno": "10:00",
+            "dias": 2,
+            "valor_dia": 120000,
+            "total": 240000,
         }
         result = generar_orden_renta_jinja(data)
         assert result is not None
@@ -1066,18 +1240,29 @@ class TestGenerarOrdenRentaJinja:
         reservas.mkdir()
         contratos = tmp_path / "Contratos"
         contratos.mkdir()
-        monkeypatch.setattr("core.utils.obtener_rutas_archivos",
-                            lambda: (str(reservas), str(contratos), str(ordenes)))
+        monkeypatch.setattr(
+            "core.utils.obtener_rutas_archivos",
+            lambda: (str(reservas), str(contratos), str(ordenes)),
+        )
         monkeypatch.setattr("core.utils.obtener_logo_base64", lambda: "")
-        monkeypatch.setattr("core.utils.cargar_plantilla_jinja",
-                            lambda tipo="renta": "<html>Renta {{ id_renta }}: {{ placa }}</html>")
+        monkeypatch.setattr(
+            "core.utils.cargar_plantilla_jinja",
+            lambda tipo="renta": "<html>Renta {{ id_renta }}: {{ placa }}</html>",
+        )
         monkeypatch.setattr("core.utils.TIENE_WEASYPRINT", True)
         monkeypatch.setattr("core.utils.HTML", mock_html_class, raising=False)
 
         from core.utils import generar_orden_renta_jinja
+
         data = {
-            "id_renta": 50, "nombre_cliente": "Weasy Renta", "placa": "WP123",
-            "auto_marca": "Test", "auto_modelo": "Mock", "dias": 3, "valor_dia": 100000, "total": 300000,
+            "id_renta": 50,
+            "nombre_cliente": "Weasy Renta",
+            "placa": "WP123",
+            "auto_marca": "Test",
+            "auto_modelo": "Mock",
+            "dias": 3,
+            "valor_dia": 100000,
+            "total": 300000,
         }
         result = generar_orden_renta_jinja(data)
 
@@ -1099,18 +1284,29 @@ class TestGenerarOrdenRentaJinja:
         reservas.mkdir()
         contratos = tmp_path / "Contratos"
         contratos.mkdir()
-        monkeypatch.setattr("core.utils.obtener_rutas_archivos",
-                            lambda: (str(reservas), str(contratos), str(ordenes)))
+        monkeypatch.setattr(
+            "core.utils.obtener_rutas_archivos",
+            lambda: (str(reservas), str(contratos), str(ordenes)),
+        )
         monkeypatch.setattr("core.utils.obtener_logo_base64", lambda: "")
-        monkeypatch.setattr("core.utils.cargar_plantilla_jinja",
-                            lambda tipo="renta": "<html>Renta {{ placa }}</html>")
+        monkeypatch.setattr(
+            "core.utils.cargar_plantilla_jinja",
+            lambda tipo="renta": "<html>Renta {{ placa }}</html>",
+        )
         monkeypatch.setattr("core.utils.TIENE_WEASYPRINT", True)
         monkeypatch.setattr("core.utils.HTML", mock_html_class, raising=False)
 
         from core.utils import generar_orden_renta_jinja
+
         data = {
-            "id_renta": 51, "nombre_cliente": "Fail Renta", "placa": "FP456",
-            "auto_marca": "Test", "auto_modelo": "Mock", "dias": 1, "valor_dia": 50000, "total": 50000,
+            "id_renta": 51,
+            "nombre_cliente": "Fail Renta",
+            "placa": "FP456",
+            "auto_marca": "Test",
+            "auto_modelo": "Mock",
+            "dias": 1,
+            "valor_dia": 50000,
+            "total": 50000,
         }
         result = generar_orden_renta_jinja(data)
         # Falls back to ReportLab
@@ -1123,6 +1319,7 @@ class TestGenerarOrdenRentaJinja:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Module-level bootstrap code paths
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestModuleLevelBootstrap:
     """
@@ -1147,6 +1344,7 @@ class TestModuleLevelBootstrap:
         if "core.utils" in sys.modules:
             del sys.modules["core.utils"]
         import core.utils  # noqa: F811
+
         return core.utils
 
     @staticmethod
@@ -1156,30 +1354,33 @@ class TestModuleLevelBootstrap:
 
         class _FakeQUrl:
             _url = ""
+
             def __init__(self, url=""):
                 self._url = url
+
             @staticmethod
             def fromLocalFile(path):
                 return _FakeQUrl(f"file:///{path}")
 
         monkeypatch.setitem(
-            sys.modules, "PySide6.QtCore",
-            type("qtcore", (), {"QUrl": _FakeQUrl})()
+            sys.modules, "PySide6.QtCore", type("qtcore", (), {"QUrl": _FakeQUrl})()
         )
         monkeypatch.setitem(
-            sys.modules, "PySide6.QtGui",
-            type("qtgui", (), {"QDesktopServices": MagicMock()})()
+            sys.modules, "PySide6.QtGui", type("qtgui", (), {"QDesktopServices": MagicMock()})()
         )
 
     @staticmethod
     def _ensure_no_import(monkeypatch, blocked_module: str):
         """Make import of a specific module raise ImportError."""
         import builtins
+
         original_import = builtins.__import__
+
         def mock_import(name, *args, **kwargs):
             if name == blocked_module or name.startswith(blocked_module + "."):
                 raise ImportError(f"No module named '{name}'")
             return original_import(name, *args, **kwargs)
+
         monkeypatch.setattr(builtins, "__import__", mock_import)
 
     # ── Tests ──────────────────────────────────────────────────────────────
@@ -1205,6 +1406,7 @@ class TestModuleLevelBootstrap:
         """When weasyprint is mocked in sys.modules, TIENE_WEASYPRINT = True (line 49).
         (WeasyPrint is not installed in this env, so a mock is needed to cover this branch.)"""
         from unittest.mock import MagicMock
+
         # Place a mock weasyprint module so the from-import succeeds
         mock_weasyprint = type("weasyprint", (), {"HTML": MagicMock()})()
         monkeypatch.setitem(sys.modules, "weasyprint", mock_weasyprint)
@@ -1220,15 +1422,22 @@ class TestModuleLevelBootstrap:
         gtk_dir.mkdir(exist_ok=True)
         try:
             _old_exists = os.path.exists
+
             def _always_find_gtk(path):
                 p = str(path).replace("\\", "/")
                 if "gtk3_bin" in p:
                     return True
                 return _old_exists(path)
+
             monkeypatch.setattr(os.path, "exists", _always_find_gtk)
 
             # Make add_dll_directory raise an exception
-            monkeypatch.setattr(os, "add_dll_directory", lambda x: (_ for _ in ()).throw(Exception("DLL error")), raising=False)
+            monkeypatch.setattr(
+                os,
+                "add_dll_directory",
+                lambda x: (_ for _ in ()).throw(Exception("DLL error")),
+                raising=False,
+            )
 
             # Block weasyprint import to prevent its internal os.add_dll_directory call
             # from being affected by the monkeypatch (weasyprint/text/ffi.py also calls it)
@@ -1237,7 +1446,7 @@ class TestModuleLevelBootstrap:
 
             original_path = os.environ.get("PATH", "")
             try:
-                mod = self._fresh_import()
+                _mod = self._fresh_import()
                 # PATH should still be updated even if add_dll_directory failed
                 assert "gtk3_bin" in os.environ.get("PATH", "")
             finally:
@@ -1260,20 +1469,20 @@ class TestModuleLevelBootstrap:
         mod = self._fresh_import()
         assert mod.TIENE_REPORTLAB is False
 
-    def test_pyside6_reportlab_disponibles(self, monkeypatch):
-        """PySide6 available + ReportLab installed → TIENE_REPORTLAB is True (lines 62-63)."""
+    def test_pyside6_reportlab_weasyprint_disponibles(self, monkeypatch):
+        """PySide6 available + ReportLab installed + WeasyPrint installed → both flags True (lines 49, 62-63)."""
         self._ensure_pyside6_mocks(monkeypatch)
         mod = self._fresh_import()
         assert mod.TIENE_REPORTLAB is True
-        assert mod.TIENE_WEASYPRINT is False
+        assert mod.TIENE_WEASYPRINT is True
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # generar_reserva_jinja (WeasyPrint → ReportLab fallback)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGenerarReservaJinja:
 
+class TestGenerarReservaJinja:
     @pytest.fixture
     def fake_dirs(self, tmp_path, monkeypatch):
         reservas = tmp_path / "Ordenes_Reservas"
@@ -1282,22 +1491,33 @@ class TestGenerarReservaJinja:
         reservas.mkdir()
         contratos.mkdir()
         ordenes.mkdir()
-        monkeypatch.setattr("core.utils.obtener_rutas_archivos",
-                            lambda: (str(reservas), str(contratos), str(ordenes)))
+        monkeypatch.setattr(
+            "core.utils.obtener_rutas_archivos",
+            lambda: (str(reservas), str(contratos), str(ordenes)),
+        )
         return {"reservas": str(reservas)}
 
     def test_falla_a_reportlab_sin_weasyprint(self, fake_dirs, monkeypatch):
         """Without WeasyPrint, falls back to ReportLab."""
         monkeypatch.setattr("core.utils.TIENE_WEASYPRINT", False)
         from core.utils import generar_reserva_jinja
+
         data = {
-            "id_reserva": 30, "cliente_nombre": "Reserva Test",
-            "cliente_doc": "CC 123", "cliente_celular": "3000000000",
+            "id_reserva": 30,
+            "cliente_nombre": "Reserva Test",
+            "cliente_doc": "CC 123",
+            "cliente_celular": "3000000000",
             "vehiculo": "Nissan Versa",
-            "f_inicio": "2024-12-20", "h_inicio": "08:00",
-            "f_fin": "2024-12-22", "h_fin": "08:00",
-            "dias": 2, "valor_dia": 130000, "seguro": 20000,
-            "adicionales": 10000, "total": 290000, "abono": 50000,
+            "f_inicio": "2024-12-20",
+            "h_inicio": "08:00",
+            "f_fin": "2024-12-22",
+            "h_fin": "08:00",
+            "dias": 2,
+            "valor_dia": 130000,
+            "seguro": 20000,
+            "adicionales": 10000,
+            "total": 290000,
+            "abono": 50000,
         }
         result = generar_reserva_jinja(data)
         assert result is not None
@@ -1319,22 +1539,36 @@ class TestGenerarReservaJinja:
         contratos.mkdir()
         ordenes = tmp_path / "Ordenes_Renta"
         ordenes.mkdir()
-        monkeypatch.setattr("core.utils.obtener_rutas_archivos",
-                            lambda: (str(reservas), str(contratos), str(ordenes)))
+        monkeypatch.setattr(
+            "core.utils.obtener_rutas_archivos",
+            lambda: (str(reservas), str(contratos), str(ordenes)),
+        )
         monkeypatch.setattr("core.utils.obtener_logo_base64", lambda: "")
-        monkeypatch.setattr("core.utils.cargar_plantilla_jinja",
-                            lambda tipo="reserva": "<html>Reserva {{ id_reserva }}</html>")
+        monkeypatch.setattr(
+            "core.utils.cargar_plantilla_jinja",
+            lambda tipo="reserva": "<html>Reserva {{ id_reserva }}</html>",
+        )
         monkeypatch.setattr("core.utils.TIENE_WEASYPRINT", True)
         monkeypatch.setattr("core.utils.HTML", mock_html_class, raising=False)
 
         from core.utils import generar_reserva_jinja
+
         data = {
-            "id_reserva": 60, "cliente_nombre": "Weasy Reserva",
-            "cliente_doc": "CC 1", "cliente_celular": "3000000000",
-            "vehiculo": "Mock Car", "dias": 2, "valor_dia": 100000,
-            "f_inicio": "2024-12-01", "h_inicio": "10:00",
-            "f_fin": "2024-12-03", "h_fin": "10:00",
-            "total": 250000, "abono": 50000, "seguro": 20000, "adicionales": 10000,
+            "id_reserva": 60,
+            "cliente_nombre": "Weasy Reserva",
+            "cliente_doc": "CC 1",
+            "cliente_celular": "3000000000",
+            "vehiculo": "Mock Car",
+            "dias": 2,
+            "valor_dia": 100000,
+            "f_inicio": "2024-12-01",
+            "h_inicio": "10:00",
+            "f_fin": "2024-12-03",
+            "h_fin": "10:00",
+            "total": 250000,
+            "abono": 50000,
+            "seguro": 20000,
+            "adicionales": 10000,
         }
         result = generar_reserva_jinja(data)
 
@@ -1357,22 +1591,34 @@ class TestGenerarReservaJinja:
         contratos.mkdir()
         ordenes = tmp_path / "Ordenes_Renta"
         ordenes.mkdir()
-        monkeypatch.setattr("core.utils.obtener_rutas_archivos",
-                            lambda: (str(reservas), str(contratos), str(ordenes)))
+        monkeypatch.setattr(
+            "core.utils.obtener_rutas_archivos",
+            lambda: (str(reservas), str(contratos), str(ordenes)),
+        )
         monkeypatch.setattr("core.utils.obtener_logo_base64", lambda: "")
-        monkeypatch.setattr("core.utils.cargar_plantilla_jinja",
-                            lambda tipo="reserva": "<html>Reserva {{ id_reserva }}</html>")
+        monkeypatch.setattr(
+            "core.utils.cargar_plantilla_jinja",
+            lambda tipo="reserva": "<html>Reserva {{ id_reserva }}</html>",
+        )
         monkeypatch.setattr("core.utils.TIENE_WEASYPRINT", True)
         monkeypatch.setattr("core.utils.HTML", mock_html_class, raising=False)
 
         from core.utils import generar_reserva_jinja
+
         data = {
-            "id_reserva": 61, "cliente_nombre": "Fail Reserva",
-            "cliente_doc": "CC 2", "cliente_celular": "3000000001",
-            "vehiculo": "Test Car", "dias": 1, "valor_dia": 80000,
-            "f_inicio": "2024-12-10", "h_inicio": "09:00",
-            "f_fin": "2024-12-11", "h_fin": "09:00",
-            "total": 80000, "abono": 0,
+            "id_reserva": 61,
+            "cliente_nombre": "Fail Reserva",
+            "cliente_doc": "CC 2",
+            "cliente_celular": "3000000001",
+            "vehiculo": "Test Car",
+            "dias": 1,
+            "valor_dia": 80000,
+            "f_inicio": "2024-12-10",
+            "h_inicio": "09:00",
+            "f_fin": "2024-12-11",
+            "h_fin": "09:00",
+            "total": 80000,
+            "abono": 0,
         }
         result = generar_reserva_jinja(data)
         # Falls back to ReportLab

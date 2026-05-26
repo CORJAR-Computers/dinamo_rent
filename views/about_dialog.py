@@ -1,18 +1,29 @@
 """
 views/about_dialog.py — Dialogo Acerca de / Informacion del Sistema
 """
+
 import os
 
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QPushButton, QDialog, QApplication,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QFrame,
+    QPushButton,
+    QDialog,
+    QApplication,
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
 
 from core.config import (
-    APP_NAME, APP_VERSION, APP_AUTHOR, DB_ENGINE,
-    DB_MYSQL, PRODUCTION_MODE, ASSETS_DIR,
+    APP_NAME,
+    APP_VERSION,
+    APP_AUTHOR,
+    DB_ENGINE,
+    DB_MYSQL,
+    PRODUCTION_MODE,
+    ASSETS_DIR,
 )
 from core.logger import get_logger
 
@@ -61,6 +72,19 @@ class AboutDialog(QDialog):
 
         self._setup_ui()
 
+        # ── Log diagnóstico ────────────────────────────────────────────────
+        from views.themes.theme_manager import get_current_theme_name
+
+        qss_len = len(QApplication.instance().styleSheet() or "")
+        theme = get_current_theme_name()
+        log.info(
+            "AboutDialog · %s v%s · Tema: %s · %s caracteres QSS",
+            APP_NAME,
+            APP_VERSION,
+            theme,
+            f"{qss_len:,}",
+        )
+
     def _centrar(self, parent):
         """Centra el dialogo sobre el widget padre."""
         try:
@@ -82,14 +106,7 @@ class AboutDialog(QDialog):
         main_layout.setSpacing(0)
 
         card = QFrame()
-        card.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
-                    stop:0 #ffffff, stop:1 #f8faff);
-                border-radius: 16px;
-                border: 1px solid #e0e0e0;
-            }
-        """)
+        card.setProperty("class", "card")
         card_lay = QVBoxLayout(card)
         card_lay.setContentsMargins(32, 36, 32, 28)
         card_lay.setSpacing(12)
@@ -104,28 +121,20 @@ class AboutDialog(QDialog):
         # Nombre de la app
         lbl_app = QLabel(APP_NAME)
         lbl_app.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_app.setStyleSheet(
-            "font-size: 24px; font-weight: 800; color: #1a3558;"
-            " letter-spacing: 0.5px;"
-        )
+        lbl_app.setProperty("class", "title")
         card_lay.addWidget(lbl_app)
 
         # Descripcion
         lbl_desc = QLabel(_DESCRIPTION)
         lbl_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_desc.setWordWrap(True)
-        lbl_desc.setStyleSheet(
-            "font-size: 11px; color: #64748b; line-height: 1.5;"
-        )
+        lbl_desc.setStyleSheet("font-size: 11px; color: #64748b; line-height: 1.5;")
         card_lay.addWidget(lbl_desc)
 
         # Separador
         sep1 = QFrame()
         sep1.setFrameShape(QFrame.Shape.HLine)
-        sep1.setStyleSheet(
-            "QFrame { background: #e2e8f0; max-height: 1px; border: none;"
-            " margin: 4px 0; }"
-        )
+        sep1.setProperty("class", "divider")
         card_lay.addWidget(sep1)
 
         # Grid informativo
@@ -140,14 +149,10 @@ class AboutDialog(QDialog):
             row = QHBoxLayout()
             row.setSpacing(8)
             lbl_k = QLabel(label)
-            lbl_k.setStyleSheet(
-                "font-size: 11px; font-weight: 700; color: #475569;"
-                " min-width: 100px;"
-            )
+            lbl_k.setStyleSheet("font-size: 11px; font-weight: 700; min-width: 100px;")
+            lbl_k.setProperty("class", "hint")
             lbl_v = QLabel(value)
-            lbl_v.setStyleSheet(
-                "font-size: 11px; color: #1e293b; font-weight: 500;"
-            )
+            lbl_v.setStyleSheet("font-size: 11px; color: #1e293b; font-weight: 500;")
             lbl_v.setWordWrap(True)
             row.addWidget(lbl_k)
             row.addWidget(lbl_v, stretch=1)
@@ -156,10 +161,7 @@ class AboutDialog(QDialog):
         # Separador
         sep2 = QFrame()
         sep2.setFrameShape(QFrame.Shape.HLine)
-        sep2.setStyleSheet(
-            "QFrame { background: #e2e8f0; max-height: 1px; border: none;"
-            " margin: 4px 0; }"
-        )
+        sep2.setProperty("class", "divider")
         card_lay.addWidget(sep2)
 
         # Build info
@@ -179,25 +181,7 @@ class AboutDialog(QDialog):
         btn_ok = QPushButton("Aceptar")
         btn_ok.setFixedHeight(38)
         btn_ok.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_ok.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
-                    stop:0 #1a3558, stop:1 #0d3c7a);
-                color: white;
-                font-weight: 700;
-                font-size: 12px;
-                border: none;
-                border-radius: 8px;
-                padding: 8px 0;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
-                    stop:0 #0d3c7a, stop:1 #092a54);
-            }
-            QPushButton:pressed {
-                background: #061f3d;
-            }
-        """)
+        btn_ok.setProperty("class", "primary")
         btn_ok.clicked.connect(self.accept)
         card_lay.addWidget(btn_ok)
 
@@ -219,7 +203,8 @@ class AboutDialog(QDialog):
         try:
             if path:
                 pix = QPixmap(path).scaled(
-                    80, 80,
+                    80,
+                    80,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation,
                 )

@@ -18,8 +18,7 @@ from decimal import Decimal
 from datetime import date, datetime
 
 import pytest
-from sqlalchemy import inspect, text, Integer, String, Float, DECIMAL, Date, SmallInteger, Text, Time
-from sqlalchemy.orm import Session
+from sqlalchemy import inspect, Integer, String
 
 from core.models import Base
 
@@ -28,17 +27,27 @@ from core.models import Base
 # Fixtures
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @pytest.fixture(scope="module")
 def model_inspector():
     """Create an isolated in-memory engine with all tables, return inspector."""
     from sqlalchemy import create_engine
+
     engine = create_engine("sqlite://")
     Base.metadata.create_all(bind=engine)
     return inspect(engine)
 
 
-def _assert_column(inspector, table, name, type_class, nullable=None,
-                   primary_key=False, unique=False, server_default=None):
+def _assert_column(
+    inspector,
+    table,
+    name,
+    type_class,
+    nullable=None,
+    primary_key=False,
+    unique=False,
+    server_default=None,
+):
     """Helper: assert a column exists with the expected properties."""
     columns = {c["name"]: c for c in inspector.get_columns(table)}
     assert name in columns, f"Column '{name}' not found in table '{table}'"
@@ -76,21 +85,32 @@ def _assert_index(inspector, table, column_names):
 # Base
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestBase:
     """DeclarativeBase is properly configured."""
 
     def test_base_es_declarative(self):
         """Base inherits from DeclarativeBase."""
         from sqlalchemy.orm import DeclarativeBase
+
         assert issubclass(Base, DeclarativeBase)
 
     def test_metadata_tiene_tablas(self, model_inspector):
         """Base.metadata contains all expected table names."""
         tables = set(model_inspector.get_table_names())
         expected = {
-            "usuarios", "autos", "clientes", "rentas", "reservas",
-            "mantenimiento_vehiculos", "configuracion", "auditoria",
-            "inspecciones", "comparendos", "pagos", "gastos",
+            "usuarios",
+            "autos",
+            "clientes",
+            "rentas",
+            "reservas",
+            "mantenimiento_vehiculos",
+            "configuracion",
+            "auditoria",
+            "inspecciones",
+            "comparendos",
+            "pagos",
+            "gastos",
         }
         missing = expected - tables
         assert not missing, f"Tables not found: {missing}"
@@ -100,17 +120,20 @@ class TestBase:
 # Usuario
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestUsuarioModel:
     """Usuario model — users."""
 
     def test_table_name(self):
         """Usuario maps to 'usuarios'."""
         from core.models import Usuario
+
         assert Usuario.__tablename__ == "usuarios"
 
     def test_crear_con_campos_requeridos(self, db_session):
         """Usuario can be created with minimum required fields."""
         from core.models import Usuario
+
         user = Usuario(username="test_user", password="s3cr3t")
         db_session.add(user)
         db_session.flush()
@@ -120,6 +143,7 @@ class TestUsuarioModel:
     def test_crear_con_todos_los_campos(self, db_session):
         """Usuario can be created with all fields."""
         from core.models import Usuario
+
         user = Usuario(
             username="full_user",
             password="hashed_pwd",
@@ -138,6 +162,7 @@ class TestUsuarioModel:
     def test_defaults(self, db_session):
         """Usuario server_default values are set on persist."""
         from core.models import Usuario
+
         user = Usuario(username="defaults_user", password="x")
         db_session.add(user)
         db_session.flush()
@@ -150,6 +175,7 @@ class TestUsuarioModel:
     def test_username_unique(self, db_session):
         """Username must be unique."""
         from core.models import Usuario
+
         db_session.add(Usuario(username="unique_user", password="a"))
         db_session.flush()
         with pytest.raises(Exception):
@@ -159,27 +185,23 @@ class TestUsuarioModel:
     def test_repr(self):
         """__repr__ returns expected format."""
         from core.models import Usuario
+
         u = Usuario(username="admin", rol="Administrador")
         assert repr(u) == "<Usuario admin (Administrador)>"
 
     def test_columnas_usuario(self, model_inspector):
         """Usuario columns match model definition."""
         from core.models import Usuario
-        _assert_column(model_inspector, "usuarios", "id", Integer,
-                       primary_key=True)
-        _assert_column(model_inspector, "usuarios", "username", String,
-                       nullable=False)
+
+        _assert_column(model_inspector, "usuarios", "id", Integer, primary_key=True)
+        _assert_column(model_inspector, "usuarios", "username", String, nullable=False)
         # SQLite doesn't expose unique=True as a separate constraint
         # when combined with index=True; check via metadata instead
         assert Usuario.__table__.columns["username"].unique, "username should be unique"
-        _assert_column(model_inspector, "usuarios", "password", String,
-                       nullable=False)
-        _assert_column(model_inspector, "usuarios", "nombre", String,
-                       nullable=True)
-        _assert_column(model_inspector, "usuarios", "rol", String,
-                       nullable=True)
-        _assert_column(model_inspector, "usuarios", "email", String,
-                       nullable=True)
+        _assert_column(model_inspector, "usuarios", "password", String, nullable=False)
+        _assert_column(model_inspector, "usuarios", "nombre", String, nullable=True)
+        _assert_column(model_inspector, "usuarios", "rol", String, nullable=True)
+        _assert_column(model_inspector, "usuarios", "email", String, nullable=True)
 
     def test_username_indexed(self, model_inspector):
         """username column has an index."""
@@ -190,17 +212,20 @@ class TestUsuarioModel:
 # Auto
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestAutoModel:
     """Auto model — vehicles."""
 
     def test_table_name(self):
         """Auto maps to 'autos'."""
         from core.models import Auto
+
         assert Auto.__tablename__ == "autos"
 
     def test_crear_con_placa(self, db_session):
         """Auto requires placa as primary key."""
         from core.models import Auto
+
         auto = Auto(placa="ABC123")
         db_session.add(auto)
         db_session.flush()
@@ -209,6 +234,7 @@ class TestAutoModel:
     def test_crear_con_todos_los_campos(self, db_session):
         """Auto can be created with all fields."""
         from core.models import Auto
+
         auto = Auto(
             placa="XYZ999",
             marca="Toyota",
@@ -238,6 +264,7 @@ class TestAutoModel:
     def test_defaults_auto(self, db_session):
         """Auto server_default values are set on persist."""
         from core.models import Auto
+
         auto = Auto(placa="DEF456")
         db_session.add(auto)
         db_session.flush()
@@ -247,6 +274,7 @@ class TestAutoModel:
     def test_repr(self):
         """Auto __repr__ returns expected format."""
         from core.models import Auto
+
         a = Auto(placa="ABC123", marca="Mazda", modelo="3")
         assert repr(a) == "<Auto ABC123 - Mazda 3>"
 
@@ -257,6 +285,7 @@ class TestAutoModel:
     def test_relaciones_auto(self, db_session):
         """Auto has relationships: rentas, mantenimientos, comparendos, reservas, gastos."""
         from core.models import Auto
+
         a = Auto(placa="REL01")
         db_session.add(a)
         db_session.flush()
@@ -271,17 +300,20 @@ class TestAutoModel:
 # Cliente
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestClienteModel:
     """Cliente model — clients."""
 
     def test_table_name(self):
         """Cliente maps to 'clientes'."""
         from core.models import Cliente
+
         assert Cliente.__tablename__ == "clientes"
 
     def test_crear_minimo(self, db_session):
         """Cliente can be created with minimum required fields."""
         from core.models import Cliente
+
         c = Cliente(nombre_completo="Carlos López")
         db_session.add(c)
         db_session.flush()
@@ -290,6 +322,7 @@ class TestClienteModel:
     def test_crear_completo(self, db_session):
         """Cliente can be created with all fields."""
         from core.models import Cliente
+
         c = Cliente(
             tipo_doc="Cédula",
             no_doc="12345678",
@@ -316,6 +349,7 @@ class TestClienteModel:
     def test_defaults_cliente(self, db_session):
         """Cliente server_default values are set on persist."""
         from core.models import Cliente
+
         c = Cliente(nombre_completo="Test Defaults")
         db_session.add(c)
         db_session.flush()
@@ -324,18 +358,21 @@ class TestClienteModel:
     def test_repr(self):
         """Cliente __repr__ returns expected format."""
         from core.models import Cliente
+
         c = Cliente(nombre_completo="Ana María", no_doc="98765432")
         assert repr(c) == "<Cliente Ana María (98765432)>"
 
     def test_no_doc_unique(self):
         """no_doc column has a unique constraint (via metadata)."""
         from core.models import Cliente
+
         col = Cliente.__table__.columns["no_doc"]
         assert col.unique, "no_doc should be unique"
 
     def test_relaciones_cliente(self, db_session):
         """Cliente has relationships: rentas, reservas, comparendos."""
         from core.models import Cliente
+
         c = Cliente(nombre_completo="Cliente Relaciones")
         db_session.add(c)
         db_session.flush()
@@ -348,17 +385,20 @@ class TestClienteModel:
 # Renta
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestRentaModel:
     """Renta model — rentals."""
 
     def test_table_name(self):
         """Renta maps to 'rentas'."""
         from core.models import Renta
+
         assert Renta.__tablename__ == "rentas"
 
     def test_crear_minimo(self, db_session):
         """Renta can be created with minimum required fields."""
         from core.models import Renta
+
         r = Renta()
         db_session.add(r)
         db_session.flush()
@@ -367,6 +407,7 @@ class TestRentaModel:
     def test_crear_con_valores(self, db_session):
         """Renta can store monetary values as Decimal."""
         from core.models import Renta
+
         r = Renta(
             valor_dia=Decimal("120000.00"),
             descuento=Decimal("10000.00"),
@@ -385,6 +426,7 @@ class TestRentaModel:
     def test_defaults_renta(self, db_session):
         """Renta server_default values."""
         from core.models import Renta
+
         r = Renta()
         db_session.add(r)
         db_session.flush()
@@ -398,6 +440,7 @@ class TestRentaModel:
     def test_repr(self):
         """Renta __repr__ returns expected format."""
         from core.models import Renta
+
         r = Renta(id=42, placa="ABC123", estado="Activo")
         assert repr(r) == "<Renta 42 - ABC123 (Activo)>"
 
@@ -411,6 +454,7 @@ class TestRentaModel:
     def test_relaciones_renta(self, db_session):
         """Renta has relationships: auto_rel, cliente_rel, pagos, inspecciones, comparendos."""
         from core.models import Renta
+
         r = Renta()
         db_session.add(r)
         db_session.flush()
@@ -426,17 +470,20 @@ class TestRentaModel:
 # Reserva
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestReservaModel:
     """Reserva model — reservations."""
 
     def test_table_name(self):
         """Reserva maps to 'reservas'."""
         from core.models import Reserva
+
         assert Reserva.__tablename__ == "reservas"
 
     def test_crear_minimo(self, db_session):
         """Reserva can be created with minimum required fields."""
         from core.models import Reserva
+
         r = Reserva()
         db_session.add(r)
         db_session.flush()
@@ -445,6 +492,7 @@ class TestReservaModel:
     def test_crear_con_valores(self, db_session):
         """Reserva stores financial fields correctly."""
         from core.models import Reserva
+
         r = Reserva(
             nombre_cliente="Pedro Gómez",
             categoria_vehiculo="Automóvil",
@@ -460,6 +508,7 @@ class TestReservaModel:
     def test_defaults_reserva(self, db_session):
         """Reserva server_default values."""
         from core.models import Reserva
+
         r = Reserva()
         db_session.add(r)
         db_session.flush()
@@ -470,12 +519,14 @@ class TestReservaModel:
     def test_repr(self):
         """Reserva __repr__ returns expected format."""
         from core.models import Reserva
+
         r = Reserva(id=7, nombre_cliente="Luis García")
         assert repr(r) == "<Reserva 7 - Luis García>"
 
     def test_relaciones_reserva(self, db_session):
         """Reserva has relationships: cliente_rel, auto_rel, rentas."""
         from core.models import Reserva
+
         r = Reserva()
         db_session.add(r)
         db_session.flush()
@@ -488,17 +539,20 @@ class TestReservaModel:
 # MantenimientoVehiculo
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestMantenimientoVehiculoModel:
     """MantenimientoVehiculo model — vehicle maintenance."""
 
     def test_table_name(self):
         """MantenimientoVehiculo maps to 'mantenimiento_vehiculos'."""
         from core.models import MantenimientoVehiculo
+
         assert MantenimientoVehiculo.__tablename__ == "mantenimiento_vehiculos"
 
     def test_crear_minimo(self, db_session):
         """MantenimientoVehiculo can be created with minimum fields."""
         from core.models import MantenimientoVehiculo
+
         m = MantenimientoVehiculo()
         db_session.add(m)
         db_session.flush()
@@ -507,6 +561,7 @@ class TestMantenimientoVehiculoModel:
     def test_crear_con_valores(self, db_session):
         """MantenimientoVehiculo stores maintenance data correctly."""
         from core.models import MantenimientoVehiculo
+
         m = MantenimientoVehiculo(
             pieza_varias_tipo="Cambio Aceite",
             cost_varios=Decimal("150000.00"),
@@ -519,6 +574,7 @@ class TestMantenimientoVehiculoModel:
     def test_defaults_mantenimiento(self, db_session):
         """MantenimientoVehiculo server_default values."""
         from core.models import MantenimientoVehiculo
+
         m = MantenimientoVehiculo()
         db_session.add(m)
         db_session.flush()
@@ -528,12 +584,14 @@ class TestMantenimientoVehiculoModel:
     def test_repr(self):
         """MantenimientoVehiculo __repr__ returns expected format."""
         from core.models import MantenimientoVehiculo
+
         m = MantenimientoVehiculo(id=5, placa="ABC123")
         assert repr(m) == "<Mantenimiento 5 - ABC123>"
 
     def test_relacion_auto(self, db_session):
         """MantenimientoVehiculo has auto_rel relationship."""
         from core.models import MantenimientoVehiculo
+
         m = MantenimientoVehiculo()
         db_session.add(m)
         db_session.flush()
@@ -544,17 +602,20 @@ class TestMantenimientoVehiculoModel:
 # Configuracion
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestConfiguracionModel:
     """Configuracion model — key-value configuration."""
 
     def test_table_name(self):
         """Configuracion maps to 'configuracion'."""
         from core.models import Configuracion
+
         assert Configuracion.__tablename__ == "configuracion"
 
     def test_crear(self, db_session):
         """Configuracion stores key-value pairs."""
         from core.models import Configuracion
+
         c = Configuracion(clave="IVA", valor="19", tipo="porcentaje")
         db_session.add(c)
         db_session.flush()
@@ -563,11 +624,13 @@ class TestConfiguracionModel:
     def test_clave_primary_key(self):
         """clave is the primary key."""
         from core.models import Configuracion
+
         assert Configuracion.__mapper__.primary_key[0].name == "clave"
 
     def test_repr(self):
         """Configuracion __repr__ returns expected format."""
         from core.models import Configuracion
+
         c = Configuracion(clave="IVA")
         assert repr(c) == "<Configuracion IVA>"
 
@@ -576,17 +639,20 @@ class TestConfiguracionModel:
 # Auditoria
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestAuditoriaModel:
     """Auditoria model — audit log."""
 
     def test_table_name(self):
         """Auditoria maps to 'auditoria'."""
         from core.models import Auditoria
+
         assert Auditoria.__tablename__ == "auditoria"
 
     def test_crear(self, db_session):
         """Auditoria stores audit entries."""
         from core.models import Auditoria
+
         a = Auditoria(
             usuario="admin",
             accion="LOGIN",
@@ -601,6 +667,7 @@ class TestAuditoriaModel:
     def test_repr(self):
         """Auditoria __repr__ returns expected format."""
         from core.models import Auditoria
+
         a = Auditoria(id=1, usuario="admin")
         assert repr(a) == "<Auditoria 1 - admin>"
 
@@ -614,17 +681,20 @@ class TestAuditoriaModel:
 # Inspeccion
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestInspeccionModel:
     """Inspeccion model — vehicle inspections."""
 
     def test_table_name(self):
         """Inspeccion maps to 'inspecciones'."""
         from core.models import Inspeccion
+
         assert Inspeccion.__tablename__ == "inspecciones"
 
     def test_crear_con_requeridos(self, db_session):
         """Inspeccion requires id_renta, tipo, fecha, kilometraje, nivel_gasolina."""
         from core.models import Inspeccion, Renta
+
         renta = Renta()
         db_session.add(renta)
         db_session.flush()
@@ -642,6 +712,7 @@ class TestInspeccionModel:
     def test_defaults_inspeccion(self, db_session):
         """Inspeccion server_default values."""
         from core.models import Inspeccion, Renta
+
         renta = Renta()
         db_session.add(renta)
         db_session.flush()
@@ -663,18 +734,23 @@ class TestInspeccionModel:
     def test_repr(self):
         """Inspeccion __repr__ returns expected format."""
         from core.models import Inspeccion
+
         i = Inspeccion(id=3, id_renta=10)
         assert repr(i) == "<Inspeccion 3 - Renta 10>"
 
     def test_relacion_renta(self, db_session):
         """Inspeccion has renta_rel relationship."""
         from core.models import Inspeccion, Renta
+
         renta = Renta()
         db_session.add(renta)
         db_session.flush()
         i = Inspeccion(
-            id_renta=renta.id, tipo="Salida", fecha=datetime.now(),
-            kilometraje=0.0, nivel_gasolina="Lleno",
+            id_renta=renta.id,
+            tipo="Salida",
+            fecha=datetime.now(),
+            kilometraje=0.0,
+            nivel_gasolina="Lleno",
         )
         db_session.add(i)
         db_session.flush()
@@ -685,18 +761,21 @@ class TestInspeccionModel:
 # Comparendo
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestComparendoModel:
     """Comparendo model — traffic tickets."""
 
     def test_table_name(self):
         """Comparendo maps to 'comparendos'."""
         from core.models import Comparendo
+
         assert Comparendo.__tablename__ == "comparendos"
 
     def test_crear_con_requeridos(self, db_session):
         """Comparendo requires placa, fecha_infraccion, hora_infraccion, monto."""
         from datetime import time
         from core.models import Comparendo, Auto
+
         auto = Auto(placa="CMP001")
         db_session.add(auto)
         db_session.flush()
@@ -714,6 +793,7 @@ class TestComparendoModel:
         """Comparendo server_default values."""
         from datetime import time
         from core.models import Comparendo, Auto
+
         auto = Auto(placa="CMP002")
         db_session.add(auto)
         db_session.flush()
@@ -730,6 +810,7 @@ class TestComparendoModel:
     def test_repr(self):
         """Comparendo __repr__ returns expected format."""
         from core.models import Comparendo
+
         c = Comparendo(id=8, placa="XYZ789")
         assert repr(c) == "<Comparendo 8 - XYZ789>"
 
@@ -737,6 +818,7 @@ class TestComparendoModel:
         """Comparendo has auto_rel, renta_rel, cliente_rel relationships."""
         from datetime import time
         from core.models import Comparendo, Auto, Renta, Cliente
+
         auto = Auto(placa="CMP003")
         db_session.add(auto)
         cliente = Cliente(nombre_completo="Cmp Cliente")
@@ -764,17 +846,20 @@ class TestComparendoModel:
 # Pago
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestPagoModel:
     """Pago model — payments."""
 
     def test_table_name(self):
         """Pago maps to 'pagos'."""
         from core.models import Pago
+
         assert Pago.__tablename__ == "pagos"
 
     def test_crear_con_requeridos(self, db_session):
         """Pago requires id_renta, monto, metodo_pago, concepto."""
         from core.models import Pago, Renta
+
         renta = Renta()
         db_session.add(renta)
         db_session.flush()
@@ -792,6 +877,7 @@ class TestPagoModel:
     def test_crear_con_todos(self, db_session):
         """Pago can be created with all fields."""
         from core.models import Pago, Renta
+
         renta = Renta()
         db_session.add(renta)
         db_session.flush()
@@ -809,17 +895,20 @@ class TestPagoModel:
     def test_repr(self):
         """Pago __repr__ returns expected format."""
         from core.models import Pago
+
         p = Pago(id=5, id_renta=3, monto=Decimal("100000.00"))
         assert repr(p) == "<Pago 5 - Renta 3 - $100000.00>"
 
     def test_relacion_renta(self, db_session):
         """Pago has renta_rel relationship."""
         from core.models import Pago, Renta
+
         renta = Renta()
         db_session.add(renta)
         db_session.flush()
-        p = Pago(id_renta=renta.id, monto=Decimal("50000.00"),
-                 metodo_pago="Efectivo", concepto="Abono")
+        p = Pago(
+            id_renta=renta.id, monto=Decimal("50000.00"), metodo_pago="Efectivo", concepto="Abono"
+        )
         db_session.add(p)
         db_session.flush()
         assert hasattr(p, "renta_rel")
@@ -829,17 +918,20 @@ class TestPagoModel:
 # Gasto
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestGastoModel:
     """Gasto model — expenses."""
 
     def test_table_name(self):
         """Gasto maps to 'gastos'."""
         from core.models import Gasto
+
         assert Gasto.__tablename__ == "gastos"
 
     def test_crear_con_requeridos(self, db_session):
         """Gasto requires fecha, categoria, descripcion, monto."""
         from core.models import Gasto
+
         g = Gasto(
             fecha=date(2026, 4, 1),
             categoria="Mantenimiento",
@@ -853,6 +945,7 @@ class TestGastoModel:
     def test_crear_con_placa(self, db_session):
         """Gasto can be linked to a vehicle via placa."""
         from core.models import Gasto, Auto
+
         auto = Auto(placa="GST001")
         db_session.add(auto)
         db_session.flush()
@@ -871,6 +964,7 @@ class TestGastoModel:
     def test_defaults_gasto(self, db_session):
         """Gasto server_default values."""
         from core.models import Gasto
+
         g = Gasto(
             fecha=date(2026, 4, 1),
             categoria="Lavado",
@@ -884,14 +978,20 @@ class TestGastoModel:
     def test_repr(self):
         """Gasto __repr__ returns expected format."""
         from core.models import Gasto
+
         g = Gasto(id=2, categoria="Lavado", monto=Decimal("30000.00"))
         assert repr(g) == "<Gasto 2 - Lavado - $30000.00>"
 
     def test_relacion_auto(self, db_session):
         """Gasto has auto_rel relationship."""
         from core.models import Gasto
-        g = Gasto(fecha=date(2026, 4, 1), categoria="Peaje",
-                  descripcion="Peaje Ruta 45", monto=Decimal("10000.00"))
+
+        g = Gasto(
+            fecha=date(2026, 4, 1),
+            categoria="Peaje",
+            descripcion="Peaje Ruta 45",
+            monto=Decimal("10000.00"),
+        )
         db_session.add(g)
         db_session.flush()
         assert hasattr(g, "auto_rel")
@@ -900,6 +1000,7 @@ class TestGastoModel:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Cross-model relationships (integration)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestCrossModelRelationships:
     """Integration tests across related models."""
@@ -961,8 +1062,9 @@ class TestCrossModelRelationships:
         db_session.add(renta)
         db_session.flush()
 
-        pago = Pago(id_renta=renta.id, monto=Decimal("100000.00"),
-                    metodo_pago="Efectivo", concepto="Abono")
+        pago = Pago(
+            id_renta=renta.id, monto=Decimal("100000.00"), metodo_pago="Efectivo", concepto="Abono"
+        )
         db_session.add(pago)
         db_session.flush()
 
@@ -1015,9 +1117,13 @@ class TestCrossModelRelationships:
         db_session.add(auto)
         db_session.flush()
 
-        gasto = Gasto(placa="CROSS03", fecha=date(2026, 4, 1),
-                      categoria="Combustible", descripcion="Gasolina",
-                      monto=Decimal("100000.00"))
+        gasto = Gasto(
+            placa="CROSS03",
+            fecha=date(2026, 4, 1),
+            categoria="Combustible",
+            descripcion="Gasolina",
+            monto=Decimal("100000.00"),
+        )
         db_session.add(gasto)
         db_session.flush()
 

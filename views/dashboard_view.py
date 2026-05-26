@@ -1,11 +1,18 @@
 """
 dashboard_view.py — Panel principal / Dashboard (Tema: Dinamo Pro)
 """
+
 from datetime import datetime
 
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QTableWidgetItem, QComboBox, QTableWidget, QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QFrame,
+    QTableWidgetItem,
+    QComboBox,
+    QTableWidget,
+    QWidget,
     QProgressBar,
 )
 from PySide6.QtCore import Qt, QTimer
@@ -14,18 +21,15 @@ from PySide6.QtGui import QColor, QBrush, QFont
 from services.dashboard_service import DashboardService
 from services.auto_service import AutoService
 from views.base_widget import BaseWidget
-import views.styles as styles
-from core.config import (
-    COLOR_EXITO, COLOR_PRIMARIO, COLOR_ALERTA, COLOR_PELIGRO
-)
+from core.config import COLOR_EXITO, COLOR_PRIMARIO, COLOR_ALERTA, COLOR_PELIGRO
 
 # ── Paleta coherente con clientes_view ────────────────────────────────
-_NAV   = "#1a3558"
-_BLUE  = "#2563eb"
-_BG    = "#f1f5f9"
-_SURF  = "#ffffff"
-_BORD  = "#cbd5e1"
-_TEXT  = "#1e293b"
+_NAV = "#1a3558"
+_BLUE = "#2563eb"
+_BG = "#f1f5f9"
+_SURF = "#ffffff"
+_BORD = "#cbd5e1"
+_TEXT = "#1e293b"
 _MUTED = "#64748b"
 
 _DASH_STYLE = f"""
@@ -211,7 +215,9 @@ class _KpiCardOcupacion(QFrame):
         self.progress.setValue(int(pct))
         self.lbl_valor.setText(f"{pct:.0f}%")
         self.lbl_detalle.setText(f"{rentados} rentados / {activos} activos")
-        self.setToolTip(f"Ocupación: {pct:.1f}% — {rentados} vehículos rentados de {activos} activos en flota")
+        self.setToolTip(
+            f"Ocupación: {pct:.1f}% — {rentados} vehículos rentados de {activos} activos en flota"
+        )
 
 
 class _MiniCard(QFrame):
@@ -300,31 +306,7 @@ def _section_header(texto: str, icono: str = "") -> QWidget:
 
 def _apply_table_style(tbl: QTableWidget):
     """Aplica estilo refinado coherente con la paleta Dinamo Pro."""
-    styles.table_widget(tbl)
-    tbl.setStyleSheet(tbl.styleSheet() + f"""
-        QTableWidget {{
-            background: {_SURF};
-            border: 1px solid {_BORD};
-            border-radius: 6px;
-            gridline-color: #e2e8f0;
-        }}
-        QHeaderView::section {{
-            background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
-                stop:0 {_NAV}, stop:1 #1e3f6e);
-            color: #ffffff;
-            font-size: 9pt;
-            font-weight: 700;
-            padding: 7px 10px;
-            border: none;
-            letter-spacing: 0.3px;
-        }}
-        QTableWidget::item {{
-            padding: 5px 8px;
-        }}
-        QTableWidget::item:alternate {{
-            background: #f8fafc;
-        }}
-    """)
+    pass  # QSS global handles table styling
 
 
 class DashboardWidget(BaseWidget):
@@ -333,7 +315,6 @@ class DashboardWidget(BaseWidget):
     def __init__(self, session_id: str = None):
         super().__init__(session_id=session_id)
         self._todas_las_rentas = []
-        self.setStyleSheet(_DASH_STYLE)
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -347,12 +328,15 @@ class DashboardWidget(BaseWidget):
     def _construir_ui(self):
         # ── Banner superior ──────────────────────────────────────────────
         from views.layouts.form_helpers import create_banner
-        banner = create_banner("📊", "Tablero de Operaciones", "Resumen en tiempo real de la flota", self.cargar_datos)
+
+        banner = create_banner(
+            "📊", "Tablero de Operaciones", "Resumen en tiempo real de la flota", self.cargar_datos
+        )
         self.layout().addWidget(banner)
 
         # ── Área de contenido ────────────────────────────────────────────
         content = QWidget()
-        content.setStyleSheet(f"QWidget {{ background: {_BG}; }}")
+
         c_lay = QVBoxLayout(content)
         c_lay.setContentsMargins(22, 18, 22, 18)
         c_lay.setSpacing(16)
@@ -361,24 +345,34 @@ class DashboardWidget(BaseWidget):
         # ── KPIs — Fila única esencial ──────────────────────────────────
         kpi_row = QHBoxLayout()
         kpi_row.setSpacing(12)
-        self.card_activas   = _KpiCard("Rentas Activas",  "🚗", COLOR_PRIMARIO, _BLUE)
-        self.card_disp      = _KpiCard("Disponibles",     "🟢", COLOR_EXITO,   "#22c55e")
-        self.card_taller    = _KpiCard("En Taller",       "🔧", COLOR_ALERTA,  "#f59e0b")
-        self.card_alertas   = _KpiCard("Alertas Críticas","⚠️", COLOR_PELIGRO, "#ef4444")
+        self.card_activas = _KpiCard("Rentas Activas", "🚗", COLOR_PRIMARIO, _BLUE)
+        self.card_disp = _KpiCard("Disponibles", "🟢", COLOR_EXITO, "#22c55e")
+        self.card_taller = _KpiCard("En Taller", "🔧", COLOR_ALERTA, "#f59e0b")
+        self.card_alertas = _KpiCard("Alertas Críticas", "⚠️", COLOR_PELIGRO, "#ef4444")
         self.card_ocupacion = _KpiCardOcupacion()
-        for c in (self.card_activas, self.card_disp, self.card_taller, self.card_alertas, self.card_ocupacion):
+        for c in (
+            self.card_activas,
+            self.card_disp,
+            self.card_taller,
+            self.card_alertas,
+            self.card_ocupacion,
+        ):
             kpi_row.addWidget(c)
         c_lay.addLayout(kpi_row)
 
         # ── Resumen Financiero (una fila compacta de 4 mini-cards) ──────
         fin_row = QHBoxLayout()
         fin_row.setSpacing(12)
-        self.card_fin_ingresos  = _MiniCard("Ingresos Mes",  "📈", "#059669")
-        self.card_fin_taller    = _MiniCard("Taller",        "🔧", COLOR_ALERTA)
-        self.card_fin_caja      = _MiniCard("Gastos Caja",   "💳", "#7c3aed")
-        self.card_fin_utilidad  = _MiniCard("Utilidad Neta", "🏆", _BLUE)
-        for c in (self.card_fin_ingresos, self.card_fin_taller,
-                  self.card_fin_caja, self.card_fin_utilidad):
+        self.card_fin_ingresos = _MiniCard("Ingresos Mes", "📈", "#059669")
+        self.card_fin_taller = _MiniCard("Taller", "🔧", COLOR_ALERTA)
+        self.card_fin_caja = _MiniCard("Gastos Caja", "💳", "#7c3aed")
+        self.card_fin_utilidad = _MiniCard("Utilidad Neta", "🏆", _BLUE)
+        for c in (
+            self.card_fin_ingresos,
+            self.card_fin_taller,
+            self.card_fin_caja,
+            self.card_fin_utilidad,
+        ):
             fin_row.addWidget(c)
         c_lay.addLayout(fin_row)
 
@@ -412,10 +406,14 @@ class DashboardWidget(BaseWidget):
         hdr_r.addStretch()
 
         self.cmb_filtro = QComboBox()
-        self.cmb_filtro.addItems([
-            "Todas las Activas", "Vencen Hoy",
-            "Retrasadas (Vencidas)", "Entregas de Mañana",
-        ])
+        self.cmb_filtro.addItems(
+            [
+                "Todas las Activas",
+                "Vencen Hoy",
+                "Retrasadas (Vencidas)",
+                "Entregas de Mañana",
+            ]
+        )
         self.cmb_filtro.currentIndexChanged.connect(self.filtrar_tabla)
         hdr_r.addWidget(self.cmb_filtro)
         lay_r.addLayout(hdr_r)
@@ -428,7 +426,7 @@ class DashboardWidget(BaseWidget):
         lay_r.addWidget(self.tbl_rentas)
 
         mid.addWidget(fr_al, stretch=2)
-        mid.addWidget(fr_r,  stretch=3)
+        mid.addWidget(fr_r, stretch=3)
         c_lay.addLayout(mid, stretch=1)
 
     def cargar_datos(self):
@@ -465,6 +463,7 @@ class DashboardWidget(BaseWidget):
         # Actualizar tabla de alertas con StatusBadge
         self.tbl_alertas.setRowCount(0)
         from views.components.status_badge import StatusBadge
+
         for a in alertas:
             r = self.tbl_alertas.rowCount()
             self.tbl_alertas.insertRow(r)
@@ -484,7 +483,9 @@ class DashboardWidget(BaseWidget):
         filtro = self.cmb_filtro.currentText()
         hoy = datetime.now().date()
 
-        rentas_filtradas = self.ejecutar_seguro(DashboardService.obtener_activas_filtradas, filtro) or []
+        rentas_filtradas = (
+            self.ejecutar_seguro(DashboardService.obtener_activas_filtradas, filtro) or []
+        )
 
         for renta in rentas_filtradas:
             row = self.tbl_rentas.rowCount()
@@ -497,7 +498,9 @@ class DashboardWidget(BaseWidget):
 
             self.tbl_rentas.setItem(row, 2, QTableWidgetItem(renta.get("nombre_cliente", "")))
             fecha_ret = renta.get("fecha_retorno")
-            self.tbl_rentas.setItem(row, 3, QTableWidgetItem(fecha_ret.strftime("%Y-%m-%d") if fecha_ret else ""))
+            self.tbl_rentas.setItem(
+                row, 3, QTableWidgetItem(fecha_ret.strftime("%Y-%m-%d") if fecha_ret else "")
+            )
 
             try:
                 if isinstance(fecha_ret, str):
@@ -505,21 +508,29 @@ class DashboardWidget(BaseWidget):
                 else:
                     fr = fecha_ret
                 dias = (fr - hoy).days if fr else 0
-                txt = f"{dias} días" if dias > 0 else ("Hoy" if dias == 0 else f"Atrasado {abs(dias)}d")
+                txt = (
+                    f"{dias} días"
+                    if dias > 0
+                    else ("Hoy" if dias == 0 else f"Atrasado {abs(dias)}d")
+                )
                 it = QTableWidgetItem(txt)
                 color = COLOR_PELIGRO if dias < 0 else (COLOR_ALERTA if dias == 0 else COLOR_EXITO)
                 it.setForeground(QBrush(QColor(color)))
-                if dias <= 0: it.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+                if dias <= 0:
+                    it.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
                 self.tbl_rentas.setItem(row, 4, it)
             except (ValueError, TypeError):
                 self.tbl_rentas.setItem(row, 4, QTableWidgetItem("—"))
 
     def _abrir_cierre(self, row: int, _col: int):
         item = self.tbl_rentas.item(row, 0)
-        if not item: return
+        if not item:
+            return
         try:
             from views.cierre_renta_view import CierreRentaDialog
+
             dlg = CierreRentaDialog(self, int(item.text()))
-            if dlg.exec(): self.cargar_datos()
+            if dlg.exec():
+                self.cargar_datos()
         except Exception as e:
             self.mostrar_error(f"No se pudo abrir el cierre: {e}")

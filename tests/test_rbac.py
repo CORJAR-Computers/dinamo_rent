@@ -29,6 +29,7 @@ from core.exceptions import PermisoInsuficiente
 # Fixtures
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @pytest.fixture(autouse=True)
 def reset_session_manager():
     """Clear SessionManager state before each test."""
@@ -71,13 +72,14 @@ def operador_session():
 
 # Helper: a sample function decorated with require_role or require_active_session
 
-@require_role('Administrador', 'Supervisor')
+
+@require_role("Administrador", "Supervisor")
 def _func_protegida(session_id: str = None, **kwargs):
     """Sample function that requires Admin or Supervisor role."""
-    return kwargs.get('resultado', "OK")
+    return kwargs.get("resultado", "OK")
 
 
-@require_role('Administrador')
+@require_role("Administrador")
 def _func_solo_admin(session_id: str = None, **kwargs):
     """Sample function that only Administrador can access."""
     return "SOLO_ADMIN_OK"
@@ -93,8 +95,8 @@ def _func_sesion_activa(session_id: str = None, **kwargs):
 # _extract_session_id
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestExtractSessionId:
 
+class TestExtractSessionId:
     def test_extrae_de_session_id_kwarg(self):
         """Extracts session_id from kwargs['session_id']."""
         result = _extract_session_id((), {"session_id": "abc123"})
@@ -107,9 +109,7 @@ class TestExtractSessionId:
 
     def test_session_id_priority_over_sid(self):
         """session_id takes priority over sid if both are present."""
-        result = _extract_session_id(
-            (), {"session_id": "primary", "sid": "secondary"}
-        )
+        result = _extract_session_id((), {"session_id": "primary", "sid": "secondary"})
         assert result == "primary"
 
     def test_pop_session_id_from_kwargs(self):
@@ -156,8 +156,8 @@ class TestExtractSessionId:
 # _validate_session
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestValidateSession:
 
+class TestValidateSession:
     def test_sesion_valida_retorna_datos(self, admin_session):
         """Valid session returns user data dict."""
         data = _validate_session(admin_session)
@@ -205,8 +205,8 @@ class TestValidateSession:
 # require_role decorator
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestRequireRole:
 
+class TestRequireRole:
     def test_admin_puede_acceder(self, admin_session):
         """Administrador can access function requiring Admin/Supervisor."""
         result = _func_protegida(session_id=admin_session)
@@ -272,10 +272,11 @@ class TestRequireRole:
 
     def test_kwargs_extra_pasan_limpias(self, admin_session):
         """Extra kwargs (besides session_id) pass through to the decorated function."""
+
         def _check_kwargs(session_id=None, **kw):
             return kw
 
-        decorated = require_role('Administrador')(_check_kwargs)
+        decorated = require_role("Administrador")(_check_kwargs)
         result = decorated(session_id=admin_session, extra1="a", extra2="b")
         assert result == {"extra1": "a", "extra2": "b"}
 
@@ -284,8 +285,8 @@ class TestRequireRole:
 # require_active_session decorator
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestRequireActiveSession:
 
+class TestRequireActiveSession:
     def test_admin_con_sesion_activa_accede(self, admin_session):
         """Administrador with active session can access."""
         result = _func_sesion_activa(session_id=admin_session)
@@ -327,8 +328,8 @@ class TestRequireActiveSession:
 # PermissionChecker.check_role
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestPermissionCheckerCheckRole:
 
+class TestPermissionCheckerCheckRole:
     def test_admin_rol_permitido(self, admin_session):
         """Administrador passes check_role with matching roles."""
         data = PermissionChecker.check_role(admin_session, "Administrador", "Supervisor")
@@ -371,8 +372,8 @@ class TestPermissionCheckerCheckRole:
 # PermissionChecker.can_access_informes
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestCanAccessInformes:
 
+class TestCanAccessInformes:
     def test_admin_puede(self, admin_session):
         """Administrador can access reports."""
         assert PermissionChecker.can_access_informes(admin_session) is True
@@ -403,8 +404,8 @@ class TestCanAccessInformes:
 # PermissionChecker.can_manage_users
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestCanManageUsers:
 
+class TestCanManageUsers:
     def test_admin_puede(self, admin_session):
         """Administrador can manage users."""
         assert PermissionChecker.can_manage_users(admin_session) is True
@@ -430,8 +431,8 @@ class TestCanManageUsers:
 # PermissionChecker.get_user_role
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestGetUserRole:
 
+class TestGetUserRole:
     def test_admin_retorna_rol(self, admin_session):
         """Returns 'Administrador' for admin session."""
         role = PermissionChecker.get_user_role(admin_session)

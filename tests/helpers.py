@@ -47,7 +47,7 @@ Usage:
 from typing import Any, TypeVar
 
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QApplication, QDialog, QWidget
+from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QWidget
 from views.base_dialog import BaseDialog
 
 
@@ -56,6 +56,7 @@ from views.base_dialog import BaseDialog
 # ═══════════════════════════════════════════════════════════════════════════════
 
 TLoader = TypeVar("TLoader", bound="LoaderTestDialog")
+TWidget = TypeVar("TWidget", bound=QWidget)
 
 
 class LoaderTestDialog(BaseDialog):
@@ -88,7 +89,7 @@ class LoaderTestDialog(BaseDialog):
     """
 
     # ── Override in subclasses ──────────────────────────────────────────────
-    GUARD_WIDGET: str = ""        # e.g. "lbl"
+    GUARD_WIDGET: str = ""  # e.g. "lbl"
     LOADING_MESSAGE: str = "Loading..."
     ENABLE_ANIMATIONS: bool = False  # Tests no deben depender de animaciones
 
@@ -239,9 +240,7 @@ class BaseWidgetTestHelper(QWidget):  # type: ignore[misc]
         if self._loading_overlay is None:
             from views.components.loading_spinner import LoadingOverlay
 
-            self._loading_overlay = LoadingOverlay(
-                self, message or self.LOADING_MESSAGE
-            )
+            self._loading_overlay = LoadingOverlay(self, message or self.LOADING_MESSAGE)
         elif message:
             self._loading_overlay.set_message(message)
 
@@ -270,7 +269,7 @@ class BaseWidgetTestHelper(QWidget):  # type: ignore[misc]
             self.cargar_datos()
         except RuntimeError:
             pass
-        except Exception as e:
+        except Exception:
             raise
         finally:
             self._hide_overlay_safe()
@@ -316,8 +315,10 @@ class BaseWidgetTestHelper(QWidget):  # type: ignore[misc]
 # Helper: import logger inside class method to avoid circular imports
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def get_logger(name: str) -> Any:
     import logging
+
     return logging.getLogger(name)
 
 
@@ -325,53 +326,54 @@ def get_logger(name: str) -> Any:
 # LoaderTestMixin — Mixin for pytest test classes
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class LoaderTestMixin:
     """Mixin providing helper methods for LoadingOverlay + QTimer test scenarios.
 
-    Mix this into your pytest test class:
+        Mix this into your pytest test class:
 
-        class TestSomething(LoaderTestMixin):
-            def test_normal(self) -> None:
-                self.run_normal_execution(MyDialog)
+            class TestSomething(LoaderTestMixin):
+                def test_normal(self) -> None:
+                    self.run_normal_execution(MyDialog)
 
-    Available helpers:
-      - run_normal_execution(cls, **kwargs) — Full cycle test
-      - **run_normal_execution_with_structure(cls, expected_widgets, **kwargs)** — Full cycle + header/body/widget structure
-      - run_stale_timer(cls, **kwargs) — Stale timer, no crash
-      - run_stale_timer_multiple(cls, count=5, **kwargs) — Bulk stale timer
-      - run_callback_exception(cls, exception, **kwargs) — Exception in callback
-      - check_dialog_structure(dlg) — Assert header + body + root layout
-      - assert_expected_widgets(dlg, names) — Assert specific Qt widget types exist
-      - assert_overlay_exists(dlg)
-      - assert_callback_executed(dlg)
-      - assert_overlay_hidden(dlg)
+        Available helpers:
+          - run_normal_execution(cls, **kwargs) — Full cycle test
+          - **run_normal_execution_with_structure(cls, expected_widgets, **kwargs)** — Full cycle + header/body/widget structure
+          - run_stale_timer(cls, **kwargs) — Stale timer, no crash
+          - run_stale_timer_multiple(cls, count=5, **kwargs) — Bulk stale timer
+          - run_callback_exception(cls, exception, **kwargs) — Exception in callback
+          - check_dialog_structure(dlg) — Assert header + body + root layout
+          - assert_expected_widgets(dlg, names) — Assert specific Qt widget types exist
+          - assert_overlay_exists(dlg)
+          - assert_callback_executed(dlg)
+          - assert_overlay_hidden(dlg)
+
+        Usage::
+
+            class TestMisDialogos(LoaderTestMixin):
+                def test_estructura_y_callback(self) -> None:
+                    dlg = self.run_normal_execution_with_structure(
+                        MiDialogoTest,
+                        ["QLineEdit", "QComboBox"],
+                    )
+                    assert dlg.my_specific_widget.isEnabled()
+
+    ---
+
+    **BaseWidgetTestMixin** — Mixin for testing BaseWidget subclasses.
 
     Usage::
 
-        class TestMisDialogos(LoaderTestMixin):
-            def test_estructura_y_callback(self) -> None:
-                dlg = self.run_normal_execution_with_structure(
-                    MiDialogoTest,
-                    ["QLineEdit", "QComboBox"],
-                )
-                assert dlg.my_specific_widget.isEnabled()
+        class TestMisWidgets(BaseWidgetTestMixin):
+            def test_banner(self) -> None:
+                self.assert_has_banner(MiWidget)
 
----
+            def test_deferred_load(self) -> None:
+                w = self.run_deferred_load(MiWidgetTest)  # uses helper
+                assert w.callback_executed
 
-**BaseWidgetTestMixin** — Mixin for testing BaseWidget subclasses.
-
-Usage::
-
-    class TestMisWidgets(BaseWidgetTestMixin):
-        def test_banner(self) -> None:
-            self.assert_has_banner(MiWidget)
-
-        def test_deferred_load(self) -> None:
-            w = self.run_deferred_load(MiWidgetTest)  # uses helper
-            assert w.callback_executed
-
-        def test_stale_widget(self) -> None:
-            self.run_stale_widget(MiWidgetTest)
+            def test_stale_widget(self) -> None:
+                self.run_stale_widget(MiWidgetTest)
     """
 
     # ── Lifecycle helpers ───────────────────────────────────────────────────
@@ -412,25 +414,18 @@ Usage::
         assert header is not None, (
             f"{type(dlg).__name__}: missing dlg_header widget (build_dialog_header)"
         )
-        assert not header.isHidden(), (
-            f"{type(dlg).__name__}: dlg_header is hidden"
-        )
+        assert not header.isHidden(), f"{type(dlg).__name__}: dlg_header is hidden"
 
         body = dlg.findChild(QWidget, "dlg_body")
         assert body is not None, (
             f"{type(dlg).__name__}: missing dlg_body widget (dialog_body_style)"
         )
-        assert not body.isHidden(), (
-            f"{type(dlg).__name__}: dlg_body is hidden"
-        )
+        assert not body.isHidden(), f"{type(dlg).__name__}: dlg_body is hidden"
 
         root_layout = dlg.layout()
-        assert root_layout is not None, (
-            f"{type(dlg).__name__}: no root layout"
-        )
+        assert root_layout is not None, f"{type(dlg).__name__}: no root layout"
         assert root_layout.count() >= 2, (
-            f"{type(dlg).__name__}: expected >= 2 items in root layout, "
-            f"got {root_layout.count()}"
+            f"{type(dlg).__name__}: expected >= 2 items in root layout, got {root_layout.count()}"
         )
 
     @staticmethod
@@ -477,17 +472,11 @@ Usage::
             if qt_type is None:
                 # Fallback: try to get from PySide6.QtWidgets
                 import importlib
-                qt_type = getattr(
-                    importlib.import_module("PySide6.QtWidgets"), name, None
-                )
-                assert qt_type is not None, (
-                    f"Unknown widget type: {name}"
-                )
+
+                qt_type = getattr(importlib.import_module("PySide6.QtWidgets"), name, None)
+                assert qt_type is not None, f"Unknown widget type: {name}"
             count = len(dlg.findChildren(qt_type))
-            assert count > 0, (
-                f"{type(dlg).__name__}: expected at least one "
-                f"{name} widget, found 0"
-            )
+            assert count > 0, f"{type(dlg).__name__}: expected at least one {name} widget, found 0"
 
     # ── Assertion helpers ───────────────────────────────────────────────────
 
@@ -504,9 +493,7 @@ Usage::
 
         Only works with LoaderTestDialog subclasses that set callback_executed.
         """
-        assert dlg.callback_executed, (
-            f"Deferred callback of {type(dlg).__name__} did not execute"
-        )
+        assert dlg.callback_executed, f"Deferred callback of {type(dlg).__name__} did not execute"
 
     @staticmethod
     def assert_overlay_hidden(dlg: LoaderTestDialog) -> None:
@@ -542,9 +529,7 @@ Usage::
         dlg = dialog_cls(**kwargs)
         try:
             self.assert_overlay_exists(dlg)
-            assert not dlg.callback_executed, (
-                "Callback should NOT have run yet (timer not fired)"
-            )
+            assert not dlg.callback_executed, "Callback should NOT have run yet (timer not fired)"
 
             self.process_events()
 
@@ -661,9 +646,7 @@ Usage::
                 pass  # Exception propagated — still valid
 
             # Callback should have failed before setting callback_executed
-            assert not dlg.callback_executed, (
-                "Callback should have failed due to exception"
-            )
+            assert not dlg.callback_executed, "Callback should have failed due to exception"
             # Overlay should still be hidden by the finally block
             self.assert_overlay_hidden(dlg)
             return dlg
@@ -674,6 +657,7 @@ Usage::
 # ═══════════════════════════════════════════════════════════════════════════════
 # BaseWidgetTestMixin — Mixin for testing BaseWidget subclasses
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class BaseWidgetTestMixin:
     """Mixin providing helper methods for BaseWidget test scenarios.
@@ -713,12 +697,20 @@ class BaseWidgetTestMixin:
 
     @staticmethod
     def _find_banner(widget: QWidget) -> QWidget | None:
-        """Find a banner QWidget child with fixedHeight=64 and gradient style.
+        """Find a banner QWidget child with fixedHeight=64.
+
+        Detects banners by either:
+          - ``class="banner"`` QSS property (new QSS-based styling), or
+          - Inline stylesheet containing ``qlineargradient`` (legacy).
 
         Returns the banner widget or None.
         """
         for child in widget.findChildren(QWidget):
             if child.minimumHeight() == 64 and child.maximumHeight() == 64:
+                # QSS class-based banner (post-migration)
+                if child.property("class") == "banner":
+                    return child
+                # Legacy inline gradient fallback
                 ss = child.styleSheet()
                 if "qlineargradient" in ss.lower():
                     return child
@@ -734,12 +726,34 @@ class BaseWidgetTestMixin:
         if banner is None:
             return ""
         from PySide6.QtWidgets import QLabel
+
         labels = banner.findChildren(QLabel)
         for lbl in labels:
             txt = lbl.text()
             if txt and len(txt) > 3:
                 return txt.strip()
         return ""
+
+    @staticmethod
+    def check_base_widget(widget: QWidget) -> None:
+        """Verify a widget has the minimum BaseWidget interface.
+
+        Checks:
+          1. Widget is not None
+          2. Widget is a QWidget
+          3. Widget has a layout
+          4. Widget has required BaseWidget methods: ``_init_loading_overlay``,
+             ``_deferred_call``, ``mostrar_error``, ``ejecutar_seguro``
+
+        This is the canonical way to verify a widget inherits from BaseWidget.
+        """
+        assert widget is not None, "Widget should not be None"
+        assert isinstance(widget, QWidget), f"Expected QWidget, got {type(widget).__name__}"
+        assert widget.layout() is not None, f"{type(widget).__name__}: widget has no layout"
+        for attr in ("_init_loading_overlay", "_deferred_call", "mostrar_error", "ejecutar_seguro"):
+            assert hasattr(widget, attr), (
+                f"{type(widget).__name__}: missing required BaseWidget method '{attr}'"
+            )
 
     @staticmethod
     def assert_has_banner(widget: QWidget) -> None:
@@ -831,9 +845,7 @@ class BaseWidgetTestMixin:
         w = helper_cls(**kwargs)
         try:
             self.assert_overlay_init(w)
-            assert not w.callback_executed, (
-                f"{type(w).__name__}: callback should NOT have run yet"
-            )
+            assert not w.callback_executed, f"{type(w).__name__}: callback should NOT have run yet"
 
             self.process_events()
 
@@ -907,6 +919,7 @@ class BaseWidgetTestMixin:
                     )
                 else:
                     import pytest
+
                     with pytest.raises(type(exception)):
                         w._deferred_call(w.cargar_datos)
             else:

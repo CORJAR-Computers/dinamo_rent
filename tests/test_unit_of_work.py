@@ -28,6 +28,7 @@ from core.models import Base
 # Helper: create a minimal isolated in-memory engine + sessionmaker
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _make_memory_engine():
     """Create an in-memory SQLite engine with foreign keys enabled."""
     eng = create_engine(
@@ -70,6 +71,7 @@ def _make_sessionmaker(eng=None):
 # UnitOfWork uses the patched sessionmaker, we must patch both locations.
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @pytest.fixture
 def test_db(monkeypatch):
     """Create an isolated in-memory DB with tables, patch both SessionLocal refs."""
@@ -90,6 +92,7 @@ def test_db(monkeypatch):
 # ═══════════════════════════════════════════════════════════════════════════════
 # UnitOfWork
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestUnitOfWorkEnterExit:
     """UnitOfWork context manager entry and exit behaviour."""
@@ -189,9 +192,7 @@ class TestUnitOfWorkEnterExit:
         # Both should persist
         maker = test_db
         with maker() as s:
-            count = s.query(Auto).filter(
-                Auto.placa.in_(["UOW001", "UOW002"])
-            ).count()
+            count = s.query(Auto).filter(Auto.placa.in_(["UOW001", "UOW002"])).count()
             assert count == 2
 
     def test_rollback_manual(self, test_db):
@@ -276,7 +277,7 @@ class TestUnitOfWorkEnterExit:
         """UoW with no operations exits cleanly."""
         from core.unit_of_work import UnitOfWork
 
-        with UnitOfWork() as uow:
+        with UnitOfWork() as _:
             pass  # no operations
 
         # Should not raise
@@ -378,6 +379,7 @@ class TestUnitOfWorkErrorHandling:
 # session_scope
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestSessionScopeSinSession:
     """session_scope() without a session parameter delegates to get_session()."""
 
@@ -385,6 +387,7 @@ class TestSessionScopeSinSession:
         """Without session, scope creates own session and commits on success."""
         # Patch get_session in unit_of_work namespace too
         from core.database_sa import get_session as real_get_session
+
         monkeypatch.setattr("core.unit_of_work.get_session", real_get_session)
 
         from core.unit_of_work import session_scope
@@ -409,6 +412,7 @@ class TestSessionScopeSinSession:
     def test_rollback_en_excepcion(self, test_db, monkeypatch):
         """Without session, scope rollbacks on exception."""
         from core.database_sa import get_session as real_get_session
+
         monkeypatch.setattr("core.unit_of_work.get_session", real_get_session)
 
         from core.unit_of_work import session_scope
@@ -435,6 +439,7 @@ class TestSessionScopeSinSession:
     def test_flush_obtiene_id(self, test_db, monkeypatch):
         """Without session, flush gets auto-generated ID within scope."""
         from core.database_sa import get_session as real_get_session
+
         monkeypatch.setattr("core.unit_of_work.get_session", real_get_session)
 
         from core.unit_of_work import session_scope
@@ -603,17 +608,20 @@ class TestSessionScopeConSession:
 # Module-level exports
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestModuleExports:
     """UnitOfWork and session_scope are importable."""
 
     def test_unit_of_work_importable(self):
         """UnitOfWork class is importable from core.unit_of_work."""
         from core.unit_of_work import UnitOfWork
+
         assert UnitOfWork is not None
         assert callable(UnitOfWork)
 
     def test_session_scope_importable(self):
         """session_scope function is importable from core.unit_of_work."""
         from core.unit_of_work import session_scope
+
         assert session_scope is not None
         assert callable(session_scope)

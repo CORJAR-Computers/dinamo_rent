@@ -1,4 +1,5 @@
 from views.components import ModernMessageBox
+
 """
 views/informes_view.py — Informes financieros y operativos (Acceso Restringido)
 
@@ -15,9 +16,16 @@ Mejoras UI/UX:
 import os
 
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
-    QLabel, QTabWidget, QPushButton, QWidget,
-    QFileDialog, QAbstractItemView,
+    QVBoxLayout,
+    QHBoxLayout,
+    QTableWidget,
+    QTableWidgetItem,
+    QLabel,
+    QTabWidget,
+    QPushButton,
+    QWidget,
+    QFileDialog,
+    QAbstractItemView,
 )
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QBrush, QFont
@@ -26,34 +34,30 @@ from core.config import COLOR_EXITO, COLOR_PELIGRO, COLOR_ALERTA
 from services.financial_service import FinancialService
 from services.informe_service import InformeService
 from views.base_widget import BaseWidget
-from views.styles import btn_success, lbl_section, table_widget, view_background, tab_widget_pane_style, tab_bar_style
+# Estilos via QSS global (sin styles.py inline)
 
-# ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
-_NAV   = "#1a3558"
-_BLUE  = "#2563eb"
-_BG    = "#f1f5f9"
-_SURF  = "#ffffff"
-_BORD  = "#cbd5e1"
-_TEXT  = "#1e293b"
-_MUTED = "#64748b"
 
 class InformesWidget(BaseWidget):
     """Panel de Informes Financieros Gerenciales."""
 
     def __init__(self, session_id: str = None):
         super().__init__(session_id=session_id)
-        self.setStyleSheet(f"QWidget {{ background: {_BG}; }} QLabel {{ color: {_TEXT}; }}")
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
         from views.layouts.form_helpers import create_banner
-        banner = create_banner("📊", "Informes Financieros Gerenciales", "Balance consolidado y Rentabilidad (ROI)", self.cargar_datos)
+
+        banner = create_banner(
+            "📊",
+            "Informes Financieros Gerenciales",
+            "Balance consolidado y Rentabilidad (ROI)",
+            self.cargar_datos,
+        )
         main_layout.addWidget(banner)
 
         content = QWidget()
-        content.setStyleSheet(f"QWidget {{ background: {_BG}; }}")
         c_lay = QVBoxLayout(content)
         c_lay.setContentsMargins(20, 16, 20, 16)
         c_lay.setSpacing(14)
@@ -62,7 +66,7 @@ class InformesWidget(BaseWidget):
         top = QHBoxLayout()
         top.addStretch()
         btn_excel = QPushButton("Exportar a Excel")
-        btn_success(btn_excel)
+        btn_excel.setProperty("class", "success")
         btn_excel.clicked.connect(self._exportar)
         top.addWidget(btn_excel)
 
@@ -70,27 +74,27 @@ class InformesWidget(BaseWidget):
 
         # ── Tabs ──
         self.tabs = QTabWidget()
-        tab_widget_pane_style(self.tabs)
-        tab_bar_style(self.tabs.tabBar())
-        view_background(self)
 
         # --- TAB 1: Balance Consolidado ---
         tab_bal = QWidget()
         lay_bal = QVBoxLayout(tab_bal)
 
-        lbl_info = QLabel(
-            "Resumen de Utilidad Neta (Ingresos de Pagos vs Egresos Totales)"
-        )
-        lbl_section(lbl_info)
+        lbl_info = QLabel("Resumen de Utilidad Neta (Ingresos de Pagos vs Egresos Totales)")
+        lbl_info.setProperty("class", "section")
         lay_bal.addWidget(lbl_info)
 
         self.tbl_bal = QTableWidget()
         self.tbl_bal.setAlternatingRowColors(True)
-        table_widget(self.tbl_bal)
-        self.ajustar_tabla(self.tbl_bal, [
-            "Mes (Ano-Mes)", "Ingresos (Rentas)", "Egresos (Taller)",
-            "Gastos (Caja Menor)", "Utilidad Neta",
-        ])
+        self.ajustar_tabla(
+            self.tbl_bal,
+            [
+                "Mes (Ano-Mes)",
+                "Ingresos (Rentas)",
+                "Egresos (Taller)",
+                "Gastos (Caja Menor)",
+                "Utilidad Neta",
+            ],
+        )
         self.tbl_bal.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         lay_bal.addWidget(self.tbl_bal)
 
@@ -99,16 +103,23 @@ class InformesWidget(BaseWidget):
         lay_roi = QVBoxLayout(tab_roi)
 
         lbl_roi = QLabel("Analisis de rentabilidad por vehiculo de la flota")
-        lbl_section(lbl_roi)
+        lbl_roi.setProperty("class", "section")
         lay_roi.addWidget(lbl_roi)
 
         self.tbl_roi = QTableWidget()
         self.tbl_roi.setAlternatingRowColors(True)
-        table_widget(self.tbl_roi)
-        self.ajustar_tabla(self.tbl_roi, [
-            "Placa", "Vehiculo", "Ingresos Totales",
-            "Gastos Mtto.", "Costos Fijos Acum.", "Utilidad Total", "Punto Equilibrio",
-        ])
+        self.ajustar_tabla(
+            self.tbl_roi,
+            [
+                "Placa",
+                "Vehiculo",
+                "Ingresos Totales",
+                "Gastos Mtto.",
+                "Costos Fijos Acum.",
+                "Utilidad Total",
+                "Punto Equilibrio",
+            ],
+        )
         self.tbl_roi.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         lay_roi.addWidget(self.tbl_roi)
 
@@ -127,7 +138,10 @@ class InformesWidget(BaseWidget):
 
     def _cargar_balance(self):
         self.tbl_bal.setRowCount(0)
-        balance = self.ejecutar_seguro(InformeService.balance_mensual_real, session_id=self._session_id) or []
+        balance = (
+            self.ejecutar_seguro(InformeService.balance_mensual_real, session_id=self._session_id)
+            or []
+        )
         for r in balance:
             row = self.tbl_bal.rowCount()
             self.tbl_bal.insertRow(row)
@@ -138,9 +152,9 @@ class InformesWidget(BaseWidget):
             it_mes.setFont(fnt)
             self.tbl_bal.setItem(row, 0, it_mes)
 
-            self._celda_moneda(row, 1, r["ingresos"],   COLOR_EXITO,   self.tbl_bal)
-            self._celda_moneda(row, 2, r["taller"],     COLOR_PELIGRO, self.tbl_bal)
-            self._celda_moneda(row, 3, r["caja_menor"], COLOR_ALERTA,  self.tbl_bal)
+            self._celda_moneda(row, 1, r["ingresos"], COLOR_EXITO, self.tbl_bal)
+            self._celda_moneda(row, 2, r["taller"], COLOR_PELIGRO, self.tbl_bal)
+            self._celda_moneda(row, 3, r["caja_menor"], COLOR_ALERTA, self.tbl_bal)
 
             util = r["utilidad"]
             color = COLOR_EXITO if util >= 0 else COLOR_PELIGRO
@@ -154,9 +168,9 @@ class InformesWidget(BaseWidget):
             self.tbl_roi.insertRow(row)
             self.tbl_roi.setItem(row, 0, QTableWidgetItem(r.get("placa", "")))
             self.tbl_roi.setItem(row, 1, QTableWidgetItem(r.get("vehiculo", "")))
-            self._celda_moneda(row, 2, r.get("ingresos", 0),      "#333333", self.tbl_roi)
-            self._celda_moneda(row, 3, r.get("mantenimiento", 0),  "#333333", self.tbl_roi)
-            self._celda_moneda(row, 4, r.get("costos_fijos", 0),   "#333333", self.tbl_roi)
+            self._celda_moneda(row, 2, r.get("ingresos", 0), "#333333", self.tbl_roi)
+            self._celda_moneda(row, 3, r.get("mantenimiento", 0), "#333333", self.tbl_roi)
+            self._celda_moneda(row, 4, r.get("costos_fijos", 0), "#333333", self.tbl_roi)
 
             util = r.get("utilidad", 0)
             color = COLOR_EXITO if util >= 0 else COLOR_PELIGRO
@@ -191,13 +205,15 @@ class InformesWidget(BaseWidget):
             import pandas as pd
         except ImportError:
             ModernMessageBox.warning(
-                self, "Libreria faltante",
+                self,
+                "Libreria faltante",
                 "Para exportar instale pandas:\n\npip install pandas openpyxl",
             )
             return
 
         archivo, _ = QFileDialog.getSaveFileName(
-            self, "Guardar Informe Gerencial",
+            self,
+            "Guardar Informe Gerencial",
             "Informe_Financiero_Dinamo.xlsx",
             "Excel (*.xlsx)",
         )
@@ -208,22 +224,26 @@ class InformesWidget(BaseWidget):
             balance = InformeService.balance_mensual_real(session_id=self._session_id)
             roi = FinancialService.roi_flota()
 
-            df_bal = pd.DataFrame(balance).rename(columns={
-                "mes": "Mes",
-                "ingresos": "Ingresos (Rentas)",
-                "taller": "Egresos (Taller)",
-                "caja_menor": "Gastos (Caja Menor)",
-                "utilidad": "Utilidad Neta",
-            })
-            df_roi = pd.DataFrame(roi).rename(columns={
-                "placa": "Placa",
-                "vehiculo": "Vehiculo",
-                "ingresos": "Ingresos Totales",
-                "mantenimiento": "Mantenimiento",
-                "costos_fijos": "Costos Fijos Acum.",
-                "utilidad": "Utilidad Total",
-                "equilibrio": "Punto Equilibrio (Dias)",
-            })
+            df_bal = pd.DataFrame(balance).rename(
+                columns={
+                    "mes": "Mes",
+                    "ingresos": "Ingresos (Rentas)",
+                    "taller": "Egresos (Taller)",
+                    "caja_menor": "Gastos (Caja Menor)",
+                    "utilidad": "Utilidad Neta",
+                }
+            )
+            df_roi = pd.DataFrame(roi).rename(
+                columns={
+                    "placa": "Placa",
+                    "vehiculo": "Vehiculo",
+                    "ingresos": "Ingresos Totales",
+                    "mantenimiento": "Mantenimiento",
+                    "costos_fijos": "Costos Fijos Acum.",
+                    "utilidad": "Utilidad Total",
+                    "equilibrio": "Punto Equilibrio (Dias)",
+                }
+            )
 
             with pd.ExcelWriter(archivo, engine="openpyxl") as writer:
                 df_bal.to_excel(writer, sheet_name="Balance Consolidado", index=False)

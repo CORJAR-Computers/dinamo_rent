@@ -10,18 +10,18 @@ Uso:
 """
 
 import time
-import sys
-from typing import Callable, Any
+from typing import Callable
 
 # ── Configurar logging silencioso antes de importar la app ──────────────
 import logging
+
 logging.basicConfig(level=logging.WARNING)
 for name in ["core.logger", "core.database_sa", "repositories", "services"]:
     logging.getLogger(name).setLevel(logging.WARNING)
 
 
 # ── Inicializar DB ─────────────────────────────────────────────────────
-from core.database_sa import init_db, get_engine, get_session
+from core.database_sa import init_db, get_session
 from core.config import DB_ENGINE
 
 print("=" * 70)
@@ -34,7 +34,18 @@ print()
 init_db()
 
 # Contar registros en cada tabla
-from core.models import Auto, Cliente, Renta, Reserva, Comparendo, Gasto, MantenimientoVehiculo, Pago, Usuario, Inspeccion
+from core.models import (
+    Auto,
+    Cliente,
+    Renta,
+    Reserva,
+    Comparendo,
+    Gasto,
+    MantenimientoVehiculo,
+    Pago,
+    Usuario,
+    Inspeccion,
+)
 
 _tables = {
     "Autos": Auto,
@@ -57,6 +68,7 @@ with get_session() as s:
 print()
 
 # ── Utilities de profiling ──────────────────────────────────────────────
+
 
 def time_query(name: str, fn: Callable, *args, **kwargs) -> float:
     """Ejecuta fn, mide tiempo en ms, imprime resultado. Retorna duración."""
@@ -81,7 +93,7 @@ def time_query(name: str, fn: Callable, *args, **kwargs) -> float:
         row_count = len(result)
     elif isinstance(result, dict):
         row_count = len(result)
-    elif hasattr(result, 'get'):
+    elif hasattr(result, "get"):
         row_count = len(result)
 
     label = f"  {name:55s}"
@@ -120,13 +132,16 @@ def time_service(name: str, fn: Callable) -> float:
 
 results: list[tuple[str, float, int]] = []  # (name, elapsed_ms, rows)
 
+
 def t(name, fn, *a, **kw):
     elapsed = time_query(name, fn, *a, **kw)
     return elapsed
 
+
 def ts(name, fn):
     elapsed = time_service(name, fn)
     return elapsed
+
 
 # ── Repositorios individuales ───────────────────────────────────────────
 
@@ -161,12 +176,25 @@ t("GastoRepositorySA.obtener_todos(200)", GastoRepositorySA.obtener_todos, 200)
 
 t("ReservaRepositorySA.obtener_todas()", ReservaRepositorySA.obtener_todas)
 
-t("MantenimientoRepositorySA.obtener_historial(50)", MantenimientoRepositorySA.obtener_historial, 50)
-t("MantenimientoRepositorySA.obtener_autos_con_km()", MantenimientoRepositorySA.obtener_autos_con_km)
+t(
+    "MantenimientoRepositorySA.obtener_historial(50)",
+    MantenimientoRepositorySA.obtener_historial,
+    50,
+)
+t(
+    "MantenimientoRepositorySA.obtener_autos_con_km()",
+    MantenimientoRepositorySA.obtener_autos_con_km,
+)
 
 t("AlertaRepositorySA.obtener_rentas_por_vencer()", AlertaRepositorySA.obtener_rentas_por_vencer)
-t("AlertaRepositorySA.obtener_documentos_por_vencer()", AlertaRepositorySA.obtener_documentos_por_vencer)
-t("AlertaRepositorySA.obtener_mantenimientos_proximos()", AlertaRepositorySA.obtener_mantenimientos_proximos)
+t(
+    "AlertaRepositorySA.obtener_documentos_por_vencer()",
+    AlertaRepositorySA.obtener_documentos_por_vencer,
+)
+t(
+    "AlertaRepositorySA.obtener_mantenimientos_proximos()",
+    AlertaRepositorySA.obtener_mantenimientos_proximos,
+)
 
 t("UsuarioRepositorySA.obtener_todos()", UsuarioRepositorySA.obtener_todos)
 
@@ -176,10 +204,22 @@ print()
 print("  INFORMES / ANALÍTICAS (queries agrupadas)")
 print("-" * 70)
 
-t("InformeRepositorySA.obtener_balance_consolidado()", InformeRepositorySA.obtener_balance_consolidado)
-t("InformeRepositorySA.obtener_ingresos_por_vehiculo()", InformeRepositorySA.obtener_ingresos_por_vehiculo)
-t("InformeRepositorySA.obtener_mantenimiento_por_vehiculo()", InformeRepositorySA.obtener_mantenimiento_por_vehiculo)
-t("InformeRepositorySA.obtener_gastos_por_vehiculo()", InformeRepositorySA.obtener_gastos_por_vehiculo)
+t(
+    "InformeRepositorySA.obtener_balance_consolidado()",
+    InformeRepositorySA.obtener_balance_consolidado,
+)
+t(
+    "InformeRepositorySA.obtener_ingresos_por_vehiculo()",
+    InformeRepositorySA.obtener_ingresos_por_vehiculo,
+)
+t(
+    "InformeRepositorySA.obtener_mantenimiento_por_vehiculo()",
+    InformeRepositorySA.obtener_mantenimiento_por_vehiculo,
+)
+t(
+    "InformeRepositorySA.obtener_gastos_por_vehiculo()",
+    InformeRepositorySA.obtener_gastos_por_vehiculo,
+)
 
 # ── Servicios compuestos (múltiples queries internas) ───────────────────
 
@@ -288,7 +328,7 @@ for name, _, _ in all_calls:
             result = fn(200)
         else:
             result = fn()
-    except Exception as e:
+    except Exception:
         elapsed = 0.0
     else:
         elapsed = (time.perf_counter() - start) * 1000

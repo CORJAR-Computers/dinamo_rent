@@ -41,8 +41,8 @@ from core.exceptions import (
 # sanitize_for_sql
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestSanitizeForSql:
 
+class TestSanitizeForSql:
     def test_cadena_limpia_no_cambia(self):
         """Sanitizes a clean string without changes."""
         assert sanitize_for_sql("Hola mundo") == "Hola mundo"
@@ -53,7 +53,7 @@ class TestSanitizeForSql:
 
     def test_elimina_caracteres_control(self):
         """Control characters are removed."""
-        assert sanitize_for_sql("Hola\x00Mundo\x1F") == "HolaMundo"
+        assert sanitize_for_sql("Hola\x00Mundo\x1f") == "HolaMundo"
 
     def test_strip_trim(self):
         """Whitespace is stripped."""
@@ -81,8 +81,8 @@ class TestSanitizeForSql:
 # validate_no_xss
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestValidateNoXss:
 
+class TestValidateNoXss:
     def test_cadena_limpia_pasa(self):
         """Clean string passes validation unchanged."""
         assert validate_no_xss("Hola mundo") == "Hola mundo"
@@ -153,8 +153,8 @@ class TestValidateNoXss:
 # requerir
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestRequerir:
 
+class TestRequerir:
     def test_valor_valido_retorna_str(self):
         """Valid value is returned as stripped string."""
         assert requerir("  texto  ", "nombre") == "texto"
@@ -193,8 +193,8 @@ class TestRequerir:
 # sanitizar
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestSanitizar:
 
+class TestSanitizar:
     def test_texto_limpio(self):
         """sanitizar() cleans and trims text."""
         assert sanitizar("  Hola  ") == "Hola"
@@ -233,8 +233,8 @@ class TestSanitizar:
 # solo_numeros
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestSoloNumeros:
 
+class TestSoloNumeros:
     def test_solo_digitos_retorna_igual(self):
         """solo_numeros() returns digits unchanged."""
         assert solo_numeros("12345", "documento") == "12345"
@@ -272,8 +272,8 @@ class TestSoloNumeros:
 # validar_placa
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestValidarPlaca:
 
+class TestValidarPlaca:
     def test_placa_valida_retorna_mayusculas(self):
         """Valid plate returns uppercase normalized string."""
         assert validar_placa("abc123") == "ABC123"
@@ -328,8 +328,8 @@ class TestValidarPlaca:
 # parsear_fecha
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestParsearFecha:
 
+class TestParsearFecha:
     def test_fecha_valida_retorna_date(self):
         """Valid date string returns date object."""
         result = parsear_fecha("2024-12-25", "navidad")
@@ -384,8 +384,8 @@ class TestParsearFecha:
 # validar_rango_fechas
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestValidarRangoFechas:
 
+class TestValidarRangoFechas:
     def test_inicio_igual_fin(self):
         """Starting on the same day is valid."""
         # Should not raise
@@ -413,8 +413,8 @@ class TestValidarRangoFechas:
 # validar_positivo
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestValidarPositivo:
 
+class TestValidarPositivo:
     def test_cero_es_valido(self):
         """Zero is valid (>= 0)."""
         assert validar_positivo(0, "monto") == 0.0
@@ -447,8 +447,8 @@ class TestValidarPositivo:
 # validar_rango
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestValidarRango:
 
+class TestValidarRango:
     def test_dentro_rango(self):
         """Value within range returns as float."""
         assert validar_rango(5, "nota", 1, 10) == 5.0
@@ -490,8 +490,8 @@ class TestValidarRango:
 # validar_email
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestValidarEmail:
 
+class TestValidarEmail:
     def test_email_valido_retorna_limpio(self):
         """Valid email returns cleaned value."""
         assert validar_email("  user@example.com  ") == "user@example.com"
@@ -542,8 +542,8 @@ class TestValidarEmail:
 # validar_documento
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestValidarDocumento:
 
+class TestValidarDocumento:
     def test_cedula_valida(self):
         """Valid Cédula (numeric, 6-15 digits) returns cleaned value."""
         assert validar_documento("12345678", "Cédula") == "12345678"

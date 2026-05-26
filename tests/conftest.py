@@ -10,10 +10,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 os.environ["DINAMO_DB_ENGINE"] = "sqlite"
 
 from core import config
+
 # Override DB_PATH to use an in-memory database
 config.DB_PATH = ":memory:"
 
 from core.database_sa import get_engine, SessionLocal, init_db
+
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
@@ -21,7 +23,9 @@ def setup_test_db():
     init_db()
     yield
     from core.models import Base
+
     Base.metadata.drop_all(bind=get_engine())
+
 
 @pytest.fixture
 def db_session():

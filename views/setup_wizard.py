@@ -4,8 +4,18 @@ Guía al usuario para configurar la Base de Datos, Administrador y Preferencias.
 """
 
 from PySide6.QtWidgets import (
-    QWizard, QWizardPage, QVBoxLayout, QHBoxLayout, QLabel,
-    QLineEdit, QComboBox, QFormLayout, QCheckBox, QPushButton, QMessageBox, QDialog
+    QWizard,
+    QWizardPage,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QComboBox,
+    QFormLayout,
+    QCheckBox,
+    QPushButton,
+    QMessageBox,
+    QDialog,
 )
 from PySide6.QtCore import Qt
 from sqlalchemy import create_engine, text
@@ -14,7 +24,6 @@ from sqlalchemy.orm import sessionmaker
 from core.security import SecurityManager
 from core.models import Base, Usuario
 from core.config import guardar_configuracion
-from views.styles import input_field, dialog_background
 
 
 class DbSetupPage(QWizardPage):
@@ -38,10 +47,6 @@ class DbSetupPage(QWizardPage):
         self.txt_pass = QLineEdit()
         self.txt_pass.setEchoMode(QLineEdit.EchoMode.Password)
         self.txt_db = QLineEdit("dinamo_rent")
-
-        for w in (self.cmb_engine, self.txt_host, self.txt_port, self.txt_user, self.txt_pass, self.txt_db):
-            if isinstance(w, QLineEdit):
-                input_field(w)
 
         self.lbl_host = QLabel("Host:")
         self.lbl_port = QLabel("Puerto:")
@@ -81,7 +86,7 @@ class DbSetupPage(QWizardPage):
         self._connection_ok = False
 
     def _toggle_mysql_fields(self, text):
-        is_mysql = (text == "mysql")
+        is_mysql = text == "mysql"
         self.lbl_host.setVisible(is_mysql)
         self.txt_host.setVisible(is_mysql)
         self.lbl_port.setVisible(is_mysql)
@@ -141,10 +146,6 @@ class AdminSetupPage(QWizardPage):
         self.txt_pass.setEchoMode(QLineEdit.EchoMode.Password)
         self.txt_nombre = QLineEdit("Administrador Principal")
 
-        input_field(self.txt_user)
-        input_field(self.txt_pass)
-        input_field(self.txt_nombre)
-
         form.addRow("Usuario:", self.txt_user)
         form.addRow("Contraseña:", self.txt_pass)
         form.addRow("Nombre:", self.txt_nombre)
@@ -189,12 +190,9 @@ class PreferencesSetupPage(QWizardPage):
         self.txt_encrypt_pass.setEchoMode(QLineEdit.EchoMode.Password)
         self.txt_encrypt_pass.setEnabled(False)
 
-        self.chk_encrypt.stateChanged.connect(lambda state: self.txt_encrypt_pass.setEnabled(state == Qt.CheckState.Checked.value))
-
-        input_field(self.txt_empresa)
-        input_field(self.txt_direccion)
-        input_field(self.txt_telefono)
-        input_field(self.txt_encrypt_pass)
+        self.chk_encrypt.stateChanged.connect(
+            lambda state: self.txt_encrypt_pass.setEnabled(state == Qt.CheckState.Checked.value)
+        )
 
         self.txt_direccion.setPlaceholderText("Ej. Calle 20 # 15-30, Sincelejo")
         self.txt_telefono.setPlaceholderText("Ej. +57 300 123 4567")
@@ -223,8 +221,6 @@ class SetupWizard(QWizard):
         self.setMinimumSize(600, 450)
         self.setWizardStyle(QWizard.WizardStyle.ModernStyle)
 
-        dialog_background(self)
-
         self.addPage(DbSetupPage())
         self.addPage(AdminSetupPage())
         self.addPage(PreferencesSetupPage())
@@ -234,7 +230,11 @@ class SetupWizard(QWizard):
             self._save_configuration()
             super().accept()
         except Exception as e:
-            QMessageBox.critical(self, "Error de Configuración", f"Ocurrió un error guardando la configuración:\\n{str(e)}")
+            QMessageBox.critical(
+                self,
+                "Error de Configuración",
+                f"Ocurrió un error guardando la configuración:\\n{str(e)}",
+            )
 
     def _save_configuration(self):
         engine_type = self.field("db_engine")
@@ -253,6 +253,7 @@ class SetupWizard(QWizard):
 
         # 1. Crear Base de Datos temporalmente e insertar admin
         import os
+
         if engine_type == "sqlite":
             os.makedirs("data", exist_ok=True)
 
@@ -269,7 +270,7 @@ class SetupWizard(QWizard):
                     nombre=self.field("admin_name"),
                     rol="Administrador",
                     activo=1,
-                    debe_cambiar_password=0
+                    debe_cambiar_password=0,
                 )
                 session.add(admin)
                 session.commit()
@@ -283,15 +284,16 @@ class SetupWizard(QWizard):
             "company_name": self.field("pref_empresa"),
             "company_address": self.field("pref_direccion"),
             "company_phone": self.field("pref_telefono"),
-            "currency_symbol": self.field("pref_moneda")
+            "currency_symbol": self.field("pref_moneda"),
         }
         guardar_configuracion("app", app_config)
 
         backup_config = {
             "encryption_enabled": "true" if self.field("pref_encrypt") else "false",
-            "encryption_password": self.field("pref_encrypt_pass")
+            "encryption_password": self.field("pref_encrypt_pass"),
         }
         guardar_configuracion("backup", backup_config)
+
 
 def run_setup_wizard():
     """Lanza el asistente de configuración."""
@@ -300,7 +302,9 @@ def run_setup_wizard():
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Icon.Information)
         msg.setWindowTitle("Configuración Completada")
-        msg.setText("El sistema se ha configurado exitosamente.\\nLa aplicación se cerrará para aplicar los cambios.\\nPor favor, vuelva a abrirla.")
+        msg.setText(
+            "El sistema se ha configurado exitosamente.\\nLa aplicación se cerrará para aplicar los cambios.\\nPor favor, vuelva a abrirla."
+        )
         msg.exec()
         return True
     return False

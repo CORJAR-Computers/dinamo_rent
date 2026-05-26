@@ -4,6 +4,7 @@ security.py — Gestión de contraseñas, sesiones y seguridad mejorada
 Separado de database.py para poder usarlo sin importar la BD
 (por ejemplo, desde los tests).
 """
+
 import hashlib
 import secrets
 import time
@@ -138,8 +139,7 @@ class LoginAttemptTracker:
         """Elimina timestamps fuera de la ventana."""
         cutoff = now - LOGIN_RATE_LIMIT_WINDOW
         self._login_timestamps[identifier] = [
-            ts for ts in self._login_timestamps[identifier]
-            if ts > cutoff
+            ts for ts in self._login_timestamps[identifier] if ts > cutoff
         ]
 
     def get_remaining_attempts(self, identifier: str) -> int:
@@ -203,11 +203,11 @@ class SecurityManager:
             errors.append("La contraseña debe tener al menos 8 caracteres")
         if len(password) > 128:
             errors.append("La contraseña no puede tener más de 128 caracteres")
-        if not re.search(r'[A-Z]', password):
+        if not re.search(r"[A-Z]", password):
             errors.append("Debe contener al menos una letra mayúscula")
-        if not re.search(r'[a-z]', password):
+        if not re.search(r"[a-z]", password):
             errors.append("Debe contener al menos una letra minúscula")
-        if not re.search(r'\d', password):
+        if not re.search(r"\d", password):
             errors.append("Debe contener al menos un número")
         if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
             errors.append("Debe contener al menos un carácter especial (!@#$%^&*(),.?\"':{}|<>)")
@@ -240,29 +240,30 @@ class SecurityManager:
             # Eliminar caracteres potencialmente peligrosos
             # Mantener caracteres básicos para nombres, direcciones, etc.
             dangerous_patterns = [
-                r'<script',
-                r'javascript:',
-                r'on\w+\s*=',  # event handlers como onclick=
-                r'<iframe',
-                r'<object',
-                r'<embed',
-                r'<form',
-                r'union\s+select',  # SQL injection
-                r'drop\s+table',    # SQL injection
-                r';\s*--',          # SQL comment injection
+                r"<script",
+                r"javascript:",
+                r"on\w+\s*=",  # event handlers como onclick=
+                r"<iframe",
+                r"<object",
+                r"<embed",
+                r"<form",
+                r"union\s+select",  # SQL injection
+                r"drop\s+table",  # SQL injection
+                r";\s*--",  # SQL comment injection
             ]
 
             value_lower = value.lower()
             for pattern in dangerous_patterns:
                 if re.search(pattern, value_lower, re.IGNORECASE):
                     from core.exceptions import InputSanitizationError
+
                     raise InputSanitizationError(
                         detalle=f"Patrón peligroso detectado: {pattern}",
-                        mensaje_usuario="El texto contiene caracteres no permitidos."
+                        mensaje_usuario="El texto contiene caracteres no permitidos.",
                     )
 
         # Eliminar null bytes
-        value = value.replace('\x00', '')
+        value = value.replace("\x00", "")
 
         return value.strip()
 
@@ -281,10 +282,10 @@ class SessionManager:
     def create(cls, user_id: int, username: str, role: str, nombre: str) -> str:
         session_id = secrets.token_urlsafe(32)
         cls._sessions[session_id] = {
-            "user_id":      user_id,
-            "username":     username,
-            "role":         role,
-            "nombre":       nombre,
+            "user_id": user_id,
+            "username": username,
+            "role": role,
+            "nombre": nombre,
             "last_activity": time.time(),
         }
         return session_id
@@ -309,7 +310,8 @@ class SessionManager:
         """Elimina sesiones expiradas. Retorna la cantidad eliminada."""
         ahora = time.time()
         expiradas = [
-            sid for sid, data in cls._sessions.items()
+            sid
+            for sid, data in cls._sessions.items()
             if ahora - data["last_activity"] > SESSION_TIMEOUT
         ]
         for sid in expiradas:

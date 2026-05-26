@@ -13,7 +13,6 @@ audit = get_audit_logger()
 
 
 class ClienteService:
-
     @staticmethod
     def buscar(termino: str = "") -> List[Dict]:
         return ClienteRepositorySA.buscar(termino)
@@ -56,11 +55,7 @@ class ClienteService:
 
         paises_combinados = sorted(list(set(PAISES_DEFECTO + paises_db)))
 
-        return {
-            "paises": paises_combinados,
-            "regiones": regiones_db,
-            "ciudades": ciudades_db
-        }
+        return {"paises": paises_combinados, "regiones": regiones_db, "ciudades": ciudades_db}
 
     @staticmethod
     def obtener_regiones_por_pais(pais: str) -> List[str]:

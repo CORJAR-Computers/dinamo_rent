@@ -17,15 +17,12 @@ Los errores se limpian automáticamente cuando el usuario empieza a escribir.
 """
 
 import re
-from typing import List, Optional, Callable, Any
+from typing import List, Optional, Callable
 
-from PySide6.QtWidgets import QWidget, QLabel, QLineEdit, QComboBox, QHBoxLayout, QVBoxLayout
-from PySide6.QtCore import Qt
-
-from views.styles import input_error, input_success, input_field, input_combo
-
+from PySide6.QtWidgets import QWidget, QLabel, QLineEdit, QComboBox
 
 # ─── Reglas de validación ─────────────────────────────────────────────────────
+
 
 class ValidationRule:
     """Regla base. Sobrescribir validate() y obtener mensaje de error."""
@@ -207,6 +204,7 @@ class Custom(ValidationRule):
 
 # ─── Tipo de widget admitido ──────────────────────────────────────────────────
 
+
 def _get_widget_value(widget: QWidget) -> str:
     """Obtiene el valor actual del widget según su tipo."""
     if isinstance(widget, QLineEdit):
@@ -230,6 +228,7 @@ def _connect_change_signal(widget: QWidget, callback: Callable) -> None:
 
 # ─── FieldValidator ───────────────────────────────────────────────────────────
 
+
 class FieldValidator:
     """Valida un campo individual con feedback visual.
 
@@ -240,8 +239,13 @@ class FieldValidator:
         error_label: QLabel opcional para mostrar el mensaje de error inline.
     """
 
-    def __init__(self, widget: QWidget, rules: List[ValidationRule],
-                 field_name: str = "", error_label: Optional[QLabel] = None):
+    def __init__(
+        self,
+        widget: QWidget,
+        rules: List[ValidationRule],
+        field_name: str = "",
+        error_label: Optional[QLabel] = None,
+    ):
         self.widget = widget
         self.rules = rules
         self.field_name = field_name
@@ -253,7 +257,9 @@ class FieldValidator:
         _connect_change_signal(widget, self._on_change)
 
         if error_label:
-            error_label.setStyleSheet("QLabel { color: #dc2626; font-size: 9pt; padding: 2px 0 0 0; }")
+            error_label.setStyleSheet(
+                "QLabel { color: #dc2626; font-size: 9pt; padding: 2px 0 0 0; }"
+            )
             error_label.hide()
 
     def _on_change(self, _value: str) -> None:
@@ -287,7 +293,6 @@ class FieldValidator:
         setattr(self.widget, "_field_error", True)
         if isinstance(self.widget, (QLineEdit, QComboBox)):
             self.widget.setProperty("validation_state", "error")
-            input_error(self.widget)
             self.widget.style().unpolish(self.widget)
             self.widget.style().polish(self.widget)
         if self.error_label:
@@ -299,7 +304,6 @@ class FieldValidator:
         setattr(self.widget, "_field_error", False)
         if isinstance(self.widget, (QLineEdit, QComboBox)):
             self.widget.setProperty("validation_state", "success")
-            input_success(self.widget)
             self.widget.style().unpolish(self.widget)
             self.widget.style().polish(self.widget)
         if self.error_label:
@@ -311,10 +315,6 @@ class FieldValidator:
         setattr(self.widget, "_field_error", False)
         if isinstance(self.widget, (QLineEdit, QComboBox)):
             self.widget.setProperty("validation_state", None)
-            if isinstance(self.widget, QLineEdit):
-                input_field(self.widget)
-            elif isinstance(self.widget, QComboBox):
-                input_combo(self.widget)
             self.widget.style().unpolish(self.widget)
             self.widget.style().polish(self.widget)
         if self.error_label:
@@ -326,6 +326,7 @@ class FieldValidator:
 
 
 # ─── FormValidator ────────────────────────────────────────────────────────────
+
 
 class FormValidator:
     """Gestiona la validación de múltiples campos en un formulario.
@@ -346,9 +347,13 @@ class FormValidator:
     def __init__(self):
         self._fields: List[FieldValidator] = []
 
-    def add_field(self, widget: QWidget, rules: List[ValidationRule],
-                  field_name: str = "",
-                  error_label: Optional[QLabel] = None) -> FieldValidator:
+    def add_field(
+        self,
+        widget: QWidget,
+        rules: List[ValidationRule],
+        field_name: str = "",
+        error_label: Optional[QLabel] = None,
+    ) -> FieldValidator:
         """Agrega un campo al formulario para validación."""
         fv = FieldValidator(widget, rules, field_name, error_label)
         self._fields.append(fv)
@@ -388,6 +393,7 @@ class FormValidator:
 
 
 # ─── Helper para crear label de error inline ──────────────────────────────────
+
 
 def make_error_label() -> QLabel:
     """Crea un QLabel listo para usar como error label inline."""

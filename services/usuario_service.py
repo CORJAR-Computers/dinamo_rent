@@ -16,7 +16,6 @@ audit = get_audit_logger()
 
 
 class UsuarioService:
-
     @staticmethod
     @require_role(*ROLES_CON_USUARIOS)
     def listar(session_id: str = None) -> List[Dict]:
@@ -30,7 +29,9 @@ class UsuarioService:
         requerir(datos.get("nombre"), "Nombre completo")
         pwd = datos.get("password_raw", "")
         if not pwd:
-            raise ValidacionError(mensaje_usuario="La contraseña es obligatoria para nuevos usuarios.")
+            raise ValidacionError(
+                mensaje_usuario="La contraseña es obligatoria para nuevos usuarios."
+            )
 
         # Validar fortaleza de contraseña
         password_errors = SecurityManager.validate_password_strength(pwd)
@@ -38,7 +39,7 @@ class UsuarioService:
             error_msg = "; ".join(password_errors)
             raise ValidacionError(
                 detalle=f"Contraseña débil: {error_msg}",
-                mensaje_usuario=f"La contraseña no cumple los requisitos: {error_msg}"
+                mensaje_usuario=f"La contraseña no cumple los requisitos: {error_msg}",
             )
 
         if UsuarioRepositorySA.obtener_por_username(datos["username"]):
@@ -73,7 +74,7 @@ class UsuarioService:
                 error_msg = "; ".join(password_errors)
                 raise ValidacionError(
                     detalle=f"Contraseña débil: {error_msg}",
-                    mensaje_usuario=f"La contraseña no cumple los requisitos: {error_msg}"
+                    mensaje_usuario=f"La contraseña no cumple los requisitos: {error_msg}",
                 )
 
         update_data = UsuarioUpdate(

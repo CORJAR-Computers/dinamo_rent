@@ -1,4 +1,5 @@
 from views.components import ModernMessageBox
+
 """
 views/mantenimiento_view.py — Vista para el Taller y Mantenimiento.
 
@@ -11,10 +12,23 @@ Mejoras UI/UX:
   - Mejor UX: info del auto con estilo consistente
 """
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
-    QPushButton, QHeaderView, QLabel, QDialog, QFormLayout,
-    QComboBox, QDateEdit, QGroupBox, QDoubleSpinBox,
-    QTextEdit, QSpinBox, QAbstractItemView, QWidget, QLineEdit,
+    QVBoxLayout,
+    QHBoxLayout,
+    QTableWidget,
+    QTableWidgetItem,
+    QPushButton,
+    QHeaderView,
+    QLabel,
+    QFormLayout,
+    QComboBox,
+    QDateEdit,
+    QGroupBox,
+    QDoubleSpinBox,
+    QTextEdit,
+    QSpinBox,
+    QAbstractItemView,
+    QWidget,
+    QLineEdit,
 )
 from PySide6.QtCore import QDate, QTimer
 from PySide6.QtGui import QFont
@@ -24,16 +38,7 @@ from services.mantenimiento_service import MantenimientoService
 from core.exceptions import DinamoBaseError
 from views.base_widget import BaseWidget
 from views.base_dialog import BaseDialog
-from views.styles import btn_danger, btn_default, btn_primary, btn_warning, lbl_section, group_box, input_combo, input_date, input_spinbox, dialog_background, table_widget, edit_search
-
-# ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
-_NAV   = "#1a3558"
-_BLUE  = "#2563eb"
-_BG    = "#f1f5f9"
-_SURF  = "#ffffff"
-_BORD  = "#cbd5e1"
-_TEXT  = "#1e293b"
-_MUTED = "#64748b"
+# Estilos via QSS global (sin styles.py inline)
 
 
 # =============================================================================
@@ -61,19 +66,23 @@ class NuevoMantenimientoDialog(BaseDialog):
         root.setContentsMargins(0, 0, 0, 0)
 
         from views.layouts.form_helpers import build_dialog_header
-        root.addWidget(build_dialog_header("🛠️", "Registrar Mantenimiento / Taller", "Registro de servicios de taller y mantenimiento vehicular"))
 
-        from views.styles import dialog_body_style
+        root.addWidget(
+            build_dialog_header(
+                "🛠️",
+                "Registrar Mantenimiento / Taller",
+                "Registro de servicios de taller y mantenimiento vehicular",
+            )
+        )
+
         body = QWidget()
         body.setObjectName("dlg_body")
-        dialog_body_style(body)
         body_lay = QVBoxLayout(body)
         body_lay.setSpacing(14)
         body_lay.setContentsMargins(20, 16, 20, 14)
 
         # 1. Seleccion de vehiculo
         group_veh = QGroupBox("1. Vehiculo")
-        group_box(group_veh)
         lay_veh = QFormLayout()
 
         self.cmb_placa = QComboBox()
@@ -81,7 +90,7 @@ class NuevoMantenimientoDialog(BaseDialog):
         self.cmb_placa.currentIndexChanged.connect(self._cargar_datos_auto)
 
         self.lbl_info_auto = QLabel("Seleccione un vehiculo...")
-        lbl_section(self.lbl_info_auto)
+        self.lbl_info_auto.setProperty("class", "section")
 
         lay_veh.addRow("Placa:", self.cmb_placa)
         lay_veh.addRow(self.lbl_info_auto)
@@ -90,28 +99,32 @@ class NuevoMantenimientoDialog(BaseDialog):
 
         # 2. Detalles del servicio
         group_srv = QGroupBox("2. Servicio Realizado")
-        group_box(group_srv)
         lay_srv = QFormLayout()
 
-        self.cmb_tipo = QComboBox(); input_combo(self.cmb_tipo)
-        self.cmb_tipo.addItems([
-            "Cambio Aceite", "Frenos", "Llantas", "Bateria",
-            "Tecno-Mecanica", "Lavado General", "Reparacion Mecanica", "Otro",
-        ])
+        self.cmb_tipo = QComboBox()
+        self.cmb_tipo.addItems(
+            [
+                "Cambio Aceite",
+                "Frenos",
+                "Llantas",
+                "Bateria",
+                "Tecno-Mecanica",
+                "Lavado General",
+                "Reparacion Mecanica",
+                "Otro",
+            ]
+        )
 
         self.date_fecha = QDateEdit(QDate.currentDate())
         self.date_fecha.setCalendarPopup(True)
-        input_date(self.date_fecha)
 
         self.spin_costo = QDoubleSpinBox()
         self.spin_costo.setRange(0, 100_000_000)
         self.spin_costo.setPrefix("$ ")
-        input_spinbox(self.spin_costo)
 
         self.spin_km_actual = QSpinBox()
         self.spin_km_actual.setRange(0, 999_999)
         self.spin_km_actual.setSuffix(" km")
-        input_spinbox(self.spin_km_actual)
 
         lay_srv.addRow("Tipo Servicio:", self.cmb_tipo)
         lay_srv.addRow("Fecha Realizacion:", self.date_fecha)
@@ -122,25 +135,24 @@ class NuevoMantenimientoDialog(BaseDialog):
 
         # 3. Proyeccion y notas
         group_proy = QGroupBox("3. Proximo Servicio (Alerta)")
-        group_box(group_proy)
         lay_proy = QFormLayout()
 
         self.spin_prox_km = QSpinBox()
         self.spin_prox_km.setRange(0, 999_999)
         self.spin_prox_km.setSuffix(" km")
         self.spin_prox_km.setSpecialValueText("Opcional")
-        input_spinbox(self.spin_prox_km)
 
         self.txt_obs = QTextEdit()
         self.txt_obs.setMaximumHeight(60)
 
         self.chk_cambiar_estado = QComboBox()
-        self.chk_cambiar_estado.addItems([
-            "Mantener Estado Actual",
-            "Poner en Mantenimiento",
-            "Poner Disponible",
-        ])
-        input_combo(self.chk_cambiar_estado)
+        self.chk_cambiar_estado.addItems(
+            [
+                "Mantener Estado Actual",
+                "Poner en Mantenimiento",
+                "Poner Disponible",
+            ]
+        )
 
         lay_proy.addRow("Proximo Cambio (Km):", self.spin_prox_km)
         lay_proy.addRow("Observaciones:", self.txt_obs)
@@ -152,9 +164,10 @@ class NuevoMantenimientoDialog(BaseDialog):
 
         # Separador
         from PySide6.QtWidgets import QFrame
+
         sep = QFrame()
         sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet("QFrame { background: #cbd5e1; max-height: 1px; border: none; }")
+        sep.setProperty("class", "divider")
         body_lay.addWidget(sep)
 
         # Botones
@@ -162,11 +175,11 @@ class NuevoMantenimientoDialog(BaseDialog):
         btn_box.setSpacing(10)
 
         btn_cancel = QPushButton("Cancelar")
-        btn_danger(btn_cancel)
+        btn_cancel.setProperty("class", "danger")
         btn_cancel.clicked.connect(self.reject)
 
         btn_save = QPushButton("Registrar")
-        btn_primary(btn_save)
+        btn_save.setProperty("class", "primary")
         btn_save.clicked.connect(self._guardar)
 
         btn_box.addStretch()
@@ -231,7 +244,10 @@ class NuevoMantenimientoDialog(BaseDialog):
         try:
             MantenimientoService.registrar(datos)
             from views.components.toast_notification import ToastNotification
-            ToastNotification(self.window(), "Mantenimiento registrado y vehículo actualizado.", "success")
+
+            ToastNotification(
+                self.window(), "Mantenimiento registrado y vehículo actualizado.", "success"
+            )
             self.accept()
         except DinamoBaseError as e:
             ModernMessageBox.error(self, "Error", str(e))
@@ -245,18 +261,22 @@ class MantenimientoWidget(BaseWidget):
 
     def __init__(self, session_id: str = None):
         super().__init__(session_id=session_id)
-        self.setStyleSheet(f"QWidget {{ background: {_BG}; }} QLabel {{ color: {_TEXT}; }}")
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
         from views.layouts.form_helpers import create_banner
-        banner = create_banner("🛠️", "Taller y Mantenimiento", "Registro de mantenimientos y servicios de taller", self.cargar_historial)
+
+        banner = create_banner(
+            "🛠️",
+            "Taller y Mantenimiento",
+            "Registro de mantenimientos y servicios de taller",
+            self.cargar_historial,
+        )
         main_layout.addWidget(banner)
 
         content = QWidget()
-        content.setStyleSheet(f"QWidget {{ background: {_BG}; }}")
         c_lay = QVBoxLayout(content)
         c_lay.setContentsMargins(20, 16, 20, 16)
         c_lay.setSpacing(14)
@@ -266,32 +286,40 @@ class MantenimientoWidget(BaseWidget):
         top = QHBoxLayout()
 
         self.txt_buscar = QLineEdit()
-        edit_search(self.txt_buscar)
+        self.txt_buscar.setProperty("class", "search")
         self.txt_buscar.setPlaceholderText("Buscar por placa, tipo de servicio...")
         self.txt_buscar.setMinimumWidth(220)
         self.txt_buscar.textChanged.connect(self._filtrar)
         top.addWidget(self.txt_buscar)
 
         self.cmb_filtro = QComboBox()
-        self.cmb_filtro.addItems([
-            "Todos los servicios", "Cambio Aceite", "Frenos", "Llantas",
-            "Batería", "Tecno-Mecánica", "Lavado General", "Reparación Mecánica", "Otro",
-        ])
+        self.cmb_filtro.addItems(
+            [
+                "Todos los servicios",
+                "Cambio Aceite",
+                "Frenos",
+                "Llantas",
+                "Batería",
+                "Tecno-Mecánica",
+                "Lavado General",
+                "Reparación Mecánica",
+                "Otro",
+            ]
+        )
         self.cmb_filtro.setCurrentIndex(0)
         self.cmb_filtro.setMinimumWidth(180)
-        input_combo(self.cmb_filtro)
         self.cmb_filtro.currentIndexChanged.connect(self._filtrar)
         top.addWidget(self.cmb_filtro)
 
         top.addStretch()
 
         btn_ref = QPushButton("Actualizar")
-        btn_default(btn_ref)
+        btn_ref.setProperty("class", "ghost")
         btn_ref.clicked.connect(self.cargar_historial)
         top.addWidget(btn_ref)
 
         btn_new = QPushButton("+ Registrar Servicio")
-        btn_warning(btn_new)
+        btn_new.setProperty("class", "warning")
         btn_new.clicked.connect(self._nuevo_servicio)
         top.addWidget(btn_new)
 
@@ -299,7 +327,6 @@ class MantenimientoWidget(BaseWidget):
 
         # ── Tabla ──
         self.tabla = QTableWidget()
-        table_widget(self.tabla)
         self._configurar_tabla()
         c_lay.addWidget(self.tabla)
 
@@ -352,12 +379,8 @@ class MantenimientoWidget(BaseWidget):
         for i, r in enumerate(datos):
             self.tabla.insertRow(i)
 
-            self.tabla.setItem(
-                i, 0, QTableWidgetItem(str(r.get("pieza_varias_fecha", "")))
-            )
-            self.tabla.setItem(
-                i, 1, QTableWidgetItem(str(r.get("placa", "")))
-            )
+            self.tabla.setItem(i, 0, QTableWidgetItem(str(r.get("pieza_varias_fecha", ""))))
+            self.tabla.setItem(i, 1, QTableWidgetItem(str(r.get("placa", ""))))
 
             # Auto (Marca / Modelo)
             marca = r.get("_auto_marca", "")
@@ -374,9 +397,7 @@ class MantenimientoWidget(BaseWidget):
 
             costo = float(r.get("total_mantenimiento", 0) or 0)
             self.tabla.setItem(i, 4, QTableWidgetItem(f"${costo:,.0f}"))
-            self.tabla.setItem(
-                i, 5, QTableWidgetItem(str(r.get("pieza_varias_obs", "")))
-            )
+            self.tabla.setItem(i, 5, QTableWidgetItem(str(r.get("pieza_varias_obs", ""))))
 
             # KM Próximo
             km_prox = r.get("km_proximo_cambio_aceite", 0) or 0
@@ -394,14 +415,14 @@ class MantenimientoWidget(BaseWidget):
         if filtro_tipo > 0:
             tipo_seleccionado = self.cmb_filtro.currentText()
             filtrados = [
-                r for r in filtrados
-                if r.get("pieza_varias_tipo", "") == tipo_seleccionado
+                r for r in filtrados if r.get("pieza_varias_tipo", "") == tipo_seleccionado
             ]
 
         # 2. Filtrar por texto
         if txt:
             filtrados = [
-                r for r in filtrados
+                r
+                for r in filtrados
                 if txt in str(r.get("placa", "")).lower()
                 or txt in str(r.get("pieza_varias_tipo", "")).lower()
                 or txt in str(r.get("_auto_marca", "")).lower()

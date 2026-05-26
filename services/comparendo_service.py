@@ -14,7 +14,6 @@ audit = get_audit_logger()
 
 
 class ComparendoService:
-
     @staticmethod
     def listar() -> List[Dict]:
         return ComparendoRepositorySA.obtener_todos()
@@ -38,17 +37,17 @@ class ComparendoService:
 
         for r in rentas:
             try:
-                f_rec_str = str(r['fecha_recogida'])[:10]
-                h_rec_str = str(r['hora_recogida'])[:5] if r['hora_recogida'] else "00:00"
-                f_ret_str = str(r['fecha_retorno'])[:10]
-                h_ret_str = str(r['hora_retorno'])[:5] if r['hora_retorno'] else "00:00"
+                f_rec_str = str(r["fecha_recogida"])[:10]
+                h_rec_str = str(r["hora_recogida"])[:5] if r["hora_recogida"] else "00:00"
+                f_ret_str = str(r["fecha_retorno"])[:10]
+                h_ret_str = str(r["hora_retorno"])[:5] if r["hora_retorno"] else "00:00"
 
                 inicio_dt = dt_datetime.strptime(f"{f_rec_str} {h_rec_str}", "%Y-%m-%d %H:%M")
                 fin_dt = dt_datetime.strptime(f"{f_ret_str} {h_ret_str}", "%Y-%m-%d %H:%M")
 
                 if inicio_dt <= infraccion_dt <= fin_dt:
-                    cliente_encontrado = r['id_cliente']
-                    renta_encontrada = r['id']
+                    cliente_encontrado = r["id_cliente"]
+                    renta_encontrada = r["id"]
                     break
             except Exception as e:
                 log.warning(f"Error parseando fechas de renta {r['id']}: {e}")
@@ -72,13 +71,15 @@ class ComparendoService:
             raise ValidacionError(f"Datos de comparendo inválidos: {str(e)}")
 
         id_nuevo = ComparendoRepositorySA.insertar(comparendo_validado)
-        audit.info("Comparendo registrado para placa %s. Renta vinculada: %s", placa, renta_encontrada)
+        audit.info(
+            "Comparendo registrado para placa %s. Renta vinculada: %s", placa, renta_encontrada
+        )
 
         return {
             "id_comparendo": id_nuevo,
             "vinculado": cliente_encontrado is not None,
             "id_renta": renta_encontrada,
-            "id_cliente": cliente_encontrado
+            "id_cliente": cliente_encontrado,
         }
 
     @staticmethod

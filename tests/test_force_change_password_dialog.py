@@ -11,7 +11,7 @@ the widget's own visibility flag regardless of parent visibility.
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 # ── QApplication fixture ──────────────────────────────────────────────────────
 
@@ -20,6 +20,7 @@ from unittest.mock import patch, MagicMock
 def qapp():
     """Create a QApplication instance for Qt widget testing."""
     from PySide6.QtWidgets import QApplication
+
     app = QApplication.instance()
     if app is None:
         app = QApplication([])
@@ -32,7 +33,6 @@ def qapp():
 
 
 class TestForceChangePasswordDialog:
-
     _SESSION = {
         "username": "testuser",
         "nombre": "Test User",

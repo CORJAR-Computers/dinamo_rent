@@ -24,18 +24,18 @@ from views.base_widget import BaseWidget
 # ── Registro de todas las vistas del sistema ──────────────────────────────────
 # Cada entrada: (nombre_clase, nombre_modulo)
 WIDGET_CLASSES = [
-    ("AlertasWidget",     "views.alertas_view"),
-    ("AutosWidget",       "views.autos_view"),
-    ("CalendarioWidget",  "views.calendario_view"),
-    ("ClientesWidget",    "views.clientes_view"),
+    ("AlertasWidget", "views.alertas_view"),
+    ("AutosWidget", "views.autos_view"),
+    ("CalendarioWidget", "views.calendario_view"),
+    ("ClientesWidget", "views.clientes_view"),
     ("ComparendosWidget", "views.comparendos_view"),
-    ("DashboardWidget",   "views.dashboard_view"),
-    ("GastosWidget",      "views.gastos_view"),
-    ("InformesWidget",    "views.informes_view"),
+    ("DashboardWidget", "views.dashboard_view"),
+    ("GastosWidget", "views.gastos_view"),
+    ("InformesWidget", "views.informes_view"),
     ("MantenimientoWidget", "views.mantenimiento_view"),
-    ("RentasWidget",      "views.rentas_view"),
-    ("ReservasWidget",    "views.reservas_view"),
-    ("UsuariosWidget",    "views.usuarios_view"),
+    ("RentasWidget", "views.rentas_view"),
+    ("ReservasWidget", "views.reservas_view"),
+    ("UsuariosWidget", "views.usuarios_view"),
 ]
 
 
@@ -64,11 +64,14 @@ def _tiene_banner(class_name: str, module_name: str) -> bool:
     if "create_banner(" in source:
         return True
 
-    # Patrón 2: Banner manual con variable 'banner' y gradiente QSS
-    # (calendario_view.py construye su banner manualmente con qlineargradient)
-    has_banner_var = bool(re.search(r'\bbanner\s*=\s*(QWidget|QFrame)\(\)', source))
+    # Patrón 2: Banner manual con variable 'banner' y QSS class-based or inline gradient
+    # (calendario_view.py construye su banner manualmente con class="banner")
+    has_banner_var = bool(re.search(r"\bbanner\s*=\s*(QWidget|QFrame)\(\)", source))
     if has_banner_var:
-        # Verificar que tenga configuraciones propias de banner
+        # QSS class-based banner (post-migration)
+        if 'setProperty("class", "banner")' in source and "FixedHeight" in source:
+            return True
+        # Legacy inline gradient fallback
         if "qlineargradient" in source and "FixedHeight" in source:
             return True
 
@@ -79,8 +82,10 @@ def _tiene_banner(class_name: str, module_name: str) -> bool:
 #  Test 1: Herencia de BaseWidget
 # ═══════════════════════════════════════════════════════════════════════════════
 
-@pytest.mark.parametrize("class_name,module_name", WIDGET_CLASSES,
-                         ids=lambda x: x if isinstance(x, str) else f"{x[0]}")
+
+@pytest.mark.parametrize(
+    "class_name,module_name", WIDGET_CLASSES, ids=lambda x: x if isinstance(x, str) else f"{x[0]}"
+)
 def test_hereda_de_base_widget(class_name, module_name):
     """Todas las vistas del sistema deben heredar de BaseWidget."""
     cls = _cargar_clase(class_name, module_name)
@@ -94,8 +99,10 @@ def test_hereda_de_base_widget(class_name, module_name):
 #  Test 2: Presencia de banner
 # ═══════════════════════════════════════════════════════════════════════════════
 
-@pytest.mark.parametrize("class_name,module_name", WIDGET_CLASSES,
-                         ids=lambda x: x if isinstance(x, str) else f"{x[0]}")
+
+@pytest.mark.parametrize(
+    "class_name,module_name", WIDGET_CLASSES, ids=lambda x: x if isinstance(x, str) else f"{x[0]}"
+)
 def test_tiene_banner(class_name, module_name):
     """
     Todas las vistas deben tener un banner superior (create_banner o manual).
@@ -117,6 +124,7 @@ def test_tiene_banner(class_name, module_name):
 #  Test 3: Reporte completo (opcional, agrupa toda la info)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def test_reporte_completo():
     """
     Genera un reporte legible con el estado de todas las vistas.
@@ -136,7 +144,9 @@ def test_reporte_completo():
         if not banner:
             fallos.append("sin banner detectado")
 
-        resultados.append(f"  {estado} {class_name:20s}  →  {', '.join(fallos) if fallos else 'OK'}")
+        resultados.append(
+            f"  {estado} {class_name:20s}  →  {', '.join(fallos) if fallos else 'OK'}"
+        )
         if not (hereda and banner):
             todos_ok = False
 

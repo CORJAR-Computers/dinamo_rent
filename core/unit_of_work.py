@@ -31,6 +31,7 @@ Uso en Repositorios:
             s.flush()
             return nueva.id
 """
+
 from contextlib import contextmanager
 from typing import Generator, Optional
 
@@ -45,6 +46,7 @@ log = get_logger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════
 # UNIT OF WORK
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class UnitOfWork:
     """
@@ -65,7 +67,7 @@ class UnitOfWork:
     def __init__(self):
         self.session: Optional[Session] = None
 
-    def __enter__(self) -> 'UnitOfWork':
+    def __enter__(self) -> "UnitOfWork":
         self.session = SessionLocal()
         log.debug("UnitOfWork: sesión creada (id=%s)", id(self.session))
         return self
@@ -75,7 +77,8 @@ class UnitOfWork:
             if exc_type is not None:
                 log.warning(
                     "UnitOfWork: rollback por excepción (%s: %s)",
-                    exc_type.__name__ if exc_type else '', exc_val
+                    exc_type.__name__ if exc_type else "",
+                    exc_val,
                 )
                 self.session.rollback()
             else:
@@ -105,6 +108,7 @@ class UnitOfWork:
 # ═══════════════════════════════════════════════════════════════════════════
 # SESSION SCOPE HELPER
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @contextmanager
 def session_scope(session: Optional[Session] = None) -> Generator[Session, None, None]:

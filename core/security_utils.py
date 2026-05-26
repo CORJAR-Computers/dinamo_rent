@@ -6,6 +6,7 @@ Proporciona funciones para:
 - Gestión segura de credenciales
 - Limpieza segura de archivos
 """
+
 import os
 import base64
 from cryptography.fernet import Fernet
@@ -52,13 +53,13 @@ class FileEncryptor:
         fernet = Fernet(key)
 
         # Leer y encriptar
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             file_data = f.read()
 
         encrypted_data = fernet.encrypt(file_data)
 
         # Guardar con salt al inicio
-        with open(output_path, 'wb') as f:
+        with open(output_path, "wb") as f:
             f.write(salt)
             f.write(encrypted_data)
 
@@ -81,13 +82,13 @@ class FileEncryptor:
             raise FileNotFoundError(f"Archivo no encontrado: {encrypted_path}")
 
         if output_path is None:
-            if encrypted_path.endswith('.enc'):
+            if encrypted_path.endswith(".enc"):
                 output_path = encrypted_path[:-4]
             else:
                 output_path = encrypted_path + ".decrypted"
 
         # Leer archivo
-        with open(encrypted_path, 'rb') as f:
+        with open(encrypted_path, "rb") as f:
             salt = f.read(16)
             encrypted_data = f.read()
 
@@ -97,7 +98,7 @@ class FileEncryptor:
         decrypted_data = fernet.decrypt(encrypted_data)
 
         # Guardar
-        with open(output_path, 'wb') as f:
+        with open(output_path, "wb") as f:
             f.write(decrypted_data)
 
         return output_path
@@ -116,7 +117,7 @@ class SecureEnvManager:
         if not value or len(value) < 4:
             return "****"
 
-        sensitive_keys = ['password', 'secret', 'key', 'token', 'pass']
+        sensitive_keys = ["password", "secret", "key", "token", "pass"]
         is_sensitive = any(s in key.lower() for s in sensitive_keys)
 
         if not is_sensitive:
@@ -135,6 +136,7 @@ class SecureEnvManager:
         """
         if env_path is None:
             from core.config import BASE_DIR
+
             env_path = BASE_DIR / ".env"
 
         issues = []
@@ -146,26 +148,26 @@ class SecureEnvManager:
         # Verificar permisos del archivo (Windows)
         # En Windows los permisos son más limitados, pero podemos verificar si es de solo lectura
 
-        with open(env_path, 'r') as f:
+        with open(env_path, "r") as f:
             for line in f:
                 line = line.strip()
-                if not line or line.startswith('#'):
+                if not line or line.startswith("#"):
                     continue
 
-                if '=' in line:
-                    key, value = line.split('=', 1)
+                if "=" in line:
+                    key, value = line.split("=", 1)
                     key = key.strip()
                     value = value.strip()
 
                     # Verificar contraseñas vacías
-                    if 'password' in key.lower() and not value:
+                    if "password" in key.lower() and not value:
                         issues.append(f"Contraseña vacía para: {key}")
 
                     # Verificar contraseñas débiles
-                    if 'password' in key.lower() and value:
+                    if "password" in key.lower() and value:
                         if len(value) < 8:
                             issues.append(f"Contraseña muy corta para {key} (< 8 caracteres)")
-                        if value in ['password', '123456', 'admin', 'root', '']:
+                        if value in ["password", "123456", "admin", "root", ""]:
                             issues.append(f"Contraseña por defecto o débil para {key}")
 
         return issues
@@ -190,7 +192,7 @@ class SecureEnvManager:
 
             # Sobrescribir múltiples veces
             for i in range(passes):
-                with open(file_path, 'wb') as f:
+                with open(file_path, "wb") as f:
                     # Escribir bytes aleatorios
                     f.write(os.urandom(file_size))
                     f.flush()
@@ -201,6 +203,7 @@ class SecureEnvManager:
             return True
         except Exception as e:
             from core.logger import get_logger
+
             log = get_logger(__name__)
             log.error("Error elimin archivo seguro %s: %s", file_path, e)
             return False
@@ -217,9 +220,9 @@ class CredentialManager:
         """Almacena credenciales en memoria (no persistente) usando cifrado en memoria."""
         encrypted = cls._fernet.encrypt(password.encode()).decode()
         cls._credentials[service] = {
-            'username': username,
-            'password': encrypted,
-            '_encrypted': True,
+            "username": username,
+            "password": encrypted,
+            "_encrypted": True,
         }
 
     @classmethod
@@ -228,12 +231,12 @@ class CredentialManager:
         cred = cls._credentials.get(service)
         if not cred:
             return None
-        if cred.get('_encrypted'):
+        if cred.get("_encrypted"):
             try:
-                decoded = cls._fernet.decrypt(cred['password'].encode())
+                decoded = cls._fernet.decrypt(cred["password"].encode())
                 return {
-                    'username': cred['username'],
-                    'password': decoded.decode(),
+                    "username": cred["username"],
+                    "password": decoded.decode(),
                 }
             except Exception:
                 return None

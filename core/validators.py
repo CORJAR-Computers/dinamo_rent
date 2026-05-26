@@ -4,16 +4,23 @@ validators.py — Validadores de datos reutilizables
 Todas las validaciones de negocio en un lugar. La capa de servicios
 llama a estos validadores antes de persistir cualquier dato.
 """
+
 import re
 from datetime import date, datetime
 from typing import Any
 
 from core.exceptions import (
-    CampoRequerido, PlacaInvalida, FechaInvalida, RangoInvalido, ValidacionError, InputSanitizationError
+    CampoRequerido,
+    PlacaInvalida,
+    FechaInvalida,
+    RangoInvalido,
+    ValidacionError,
+    InputSanitizationError,
 )
 
 
 # ─── Seguridad - Sanitización ─────────────────────────────────────────────────
+
 
 def sanitize_for_sql(value: str) -> str:
     """
@@ -27,7 +34,7 @@ def sanitize_for_sql(value: str) -> str:
     value = value.replace("'", "''")
 
     # Eliminar caracteres de control
-    value = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', value)
+    value = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", "", value)
 
     return value.strip()
 
@@ -44,16 +51,16 @@ def validate_no_xss(value: str, max_length: int = 500) -> str:
 
     # Patrones peligrosos XSS
     dangerous_patterns = [
-        r'<script',
-        r'javascript:',
-        r'on\w+\s*=',  # onclick=, onload=, etc
-        r'<iframe',
-        r'<object',
-        r'<embed',
-        r'<form',
-        r'eval\s*\(',
-        r'document\.',
-        r'window\.',
+        r"<script",
+        r"javascript:",
+        r"on\w+\s*=",  # onclick=, onload=, etc
+        r"<iframe",
+        r"<object",
+        r"<embed",
+        r"<form",
+        r"eval\s*\(",
+        r"document\.",
+        r"window\.",
     ]
 
     value_lower = value.lower()
@@ -61,13 +68,14 @@ def validate_no_xss(value: str, max_length: int = 500) -> str:
         if re.search(pattern, value_lower, re.IGNORECASE):
             raise InputSanitizationError(
                 detalle=f"Patrón XSS detectado: {pattern}",
-                mensaje_usuario="El texto contiene caracteres no permitidos."
+                mensaje_usuario="El texto contiene caracteres no permitidos.",
             )
 
     return value.strip()
 
 
 # ─── Texto ────────────────────────────────────────────────────────────────────
+
 
 def requerir(valor: Any, campo: str) -> str:
     """Verifica que el campo no esté vacío. Retorna el valor limpio."""
@@ -113,6 +121,7 @@ def validar_placa(placa: str) -> str:
 
 # ─── Fechas ───────────────────────────────────────────────────────────────────
 
+
 def parsear_fecha(valor: str, campo: str = "fecha") -> date:
     """Parsea una fecha en formato YYYY-MM-DD."""
     try:
@@ -134,6 +143,7 @@ def validar_rango_fechas(inicio: date, fin: date) -> None:
 
 
 # ─── Numéricos ────────────────────────────────────────────────────────────────
+
 
 def validar_positivo(valor: float, campo: str) -> float:
     """El valor debe ser >= 0."""
@@ -168,6 +178,7 @@ def validar_email(email: str) -> str:
 
 
 # ─── Documento de identidad ───────────────────────────────────────────────────
+
 
 def validar_documento(no_doc: str, tipo_doc: str = "Cédula") -> str:
     """Valida que el número de documento no esté vacío."""

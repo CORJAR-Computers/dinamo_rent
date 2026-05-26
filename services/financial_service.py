@@ -15,7 +15,6 @@ audit = get_audit_logger()
 
 
 class FinancialService:
-
     @staticmethod
     def calcular_total_renta(datos: dict) -> float:
         """Calculate rental total: (days × rate) + (extra_hours × hourly_rate) + extras - discount + taxes."""
@@ -23,10 +22,17 @@ class FinancialService:
         valor_dia = float(datos.get("valor_dia", 0))
         horas = int(datos.get("horas_extras", 0))
         valor_hora = float(datos.get("valor_hora_extra", 0))
-        extras = sum(float(datos.get(c, 0)) for c in [
-            "costo_lavado", "costo_silla", "costo_retorno",
-            "costo_domicilio", "costo_cables", "costo_inversor",
-        ])
+        extras = sum(
+            float(datos.get(c, 0))
+            for c in [
+                "costo_lavado",
+                "costo_silla",
+                "costo_retorno",
+                "costo_domicilio",
+                "costo_cables",
+                "costo_inversor",
+            ]
+        )
         descuento = float(datos.get("descuento", 0))
         subtotal = dias * valor_dia + horas * valor_hora + extras - descuento
         impuestos = float(datos.get("impuestos", 0))
@@ -61,7 +67,7 @@ class FinancialService:
         reporte = []
 
         for a in autos:
-            if a.get('estado') in ['Vendido', 'Baja']:
+            if a.get("estado") in ["Vendido", "Baja"]:
                 continue
 
             placa = a["placa"]
@@ -70,9 +76,7 @@ class FinancialService:
             gastos_auto = float(gastos_por_placa.get(placa, 0))
 
             try:
-                f_ing = datetime.datetime.strptime(
-                    str(a.get("fecha_ingreso", ""))[:10], "%Y-%m-%d"
-                )
+                f_ing = datetime.datetime.strptime(str(a.get("fecha_ingreso", ""))[:10], "%Y-%m-%d")
                 meses = max(1, (hoy.year - f_ing.year) * 12 + (hoy.month - f_ing.month))
             except (ValueError, TypeError):
                 meses = 1
@@ -93,16 +97,18 @@ class FinancialService:
                 if promedio_dia > 0 and costo_fijo_mensual > 0:
                     dias_rentado = round(costo_fijo_mensual / promedio_dia, 1)
 
-            reporte.append({
-                "placa": placa,
-                "vehiculo": f"{a.get('marca', '')} {a.get('modelo', '')}",
-                "ingresos": ingresos,
-                "mantenimiento": manto,
-                "gastos": gastos_auto,
-                "costos_fijos": costos_fijos,
-                "utilidad": utilidad,
-                "roi_pct": round(roi_pct, 1),
-                "equilibrio_dias": dias_rentado,
-            })
+            reporte.append(
+                {
+                    "placa": placa,
+                    "vehiculo": f"{a.get('marca', '')} {a.get('modelo', '')}",
+                    "ingresos": ingresos,
+                    "mantenimiento": manto,
+                    "gastos": gastos_auto,
+                    "costos_fijos": costos_fijos,
+                    "utilidad": utilidad,
+                    "roi_pct": round(roi_pct, 1),
+                    "equilibrio_dias": dias_rentado,
+                }
+            )
 
         return reporte

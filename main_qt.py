@@ -1,6 +1,7 @@
 """
 main_qt.py — Punto de entrada de Dinamo Rent ERP
 """
+
 import sys
 import os
 import time
@@ -10,22 +11,41 @@ from functools import lru_cache
 os.environ["G_MESSAGES_DEBUG"] = "none"
 
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLineEdit, QPushButton, QLabel, QFrame, QStackedWidget, QDialog,
-    QProgressBar, QGraphicsDropShadowEffect,
-    QToolButton, QScrollArea, QSizePolicy
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLineEdit,
+    QPushButton,
+    QLabel,
+    QFrame,
+    QStackedWidget,
+    QDialog,
+    QProgressBar,
+    QGraphicsDropShadowEffect,
+    QToolButton,
+    QScrollArea,
+    QSizePolicy,
 )
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QIcon, QFont, QPixmap, QColor
 
 # ── Core ─────────────────────────────────────────────────────────────────────
 from core.config import (
-    APP_NAME, APP_VERSION, COLOR_PRIMARIO, COLOR_FONDO,
-    FONT_FAMILY, FONT_SIZE, BACKUP_HOURS, BACKUP_INTERVAL_MS,
-    ROLES_CON_INFORMES, ROLES_CON_USUARIOS, ASSETS_DIR,
+    APP_NAME,
+    APP_VERSION,
+    COLOR_PRIMARIO,
+    FONT_FAMILY,
+    FONT_SIZE,
+    BACKUP_HOURS,
+    BACKUP_INTERVAL_MS,
+    ROLES_CON_INFORMES,
+    ROLES_CON_USUARIOS,
+    ASSETS_DIR,
     PRODUCTION_MODE,
 )
-from core.exceptions import DinamoBaseError, CredencialesInvalidas
+from core.exceptions import DinamoBaseError
 from core.logger import get_logger
 from core.database_sa import init_db
 from core.security import SecurityManager
@@ -36,6 +56,7 @@ log = get_logger(__name__)
 # ── Cache paralogo (evita búsquedas repetidas) ───────────────────────────────
 _LOGO_CACHE = None
 
+
 @lru_cache(maxsize=1)
 def _buscar_logo_cached():
     """Busca el logo una sola vez y cachea el resultado."""
@@ -45,6 +66,7 @@ def _buscar_logo_cached():
             return p
     return ""
 
+
 def _obtener_logo_ruta():
     """Obtiene la ruta del logo usando cache."""
     global _LOGO_CACHE
@@ -52,8 +74,10 @@ def _obtener_logo_ruta():
         _LOGO_CACHE = _buscar_logo_cached()
     return _LOGO_CACHE
 
+
 # ── Thread pool para operaciones pesadas ────────────────────────────────
 _backup_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="BackupWorker")
+
 
 # ── Inicialización de la base de datos con SQLAlchemy ─────────────────────────
 def inicializar_base_datos(force_dialog=False):
@@ -82,19 +106,19 @@ def inicializar_base_datos(force_dialog=False):
     from core.database_sa import get_session
 
     with get_session() as session:
-        admin = session.query(Usuario).filter(Usuario.username == 'admin').first()
+        admin = session.query(Usuario).filter(Usuario.username == "admin").first()
 
         dev_password = "Admin123!"
 
         if not PRODUCTION_MODE:
             if not admin:
                 admin = Usuario(
-                    username='admin',
+                    username="admin",
                     password=SecurityManager.hash_password(dev_password),
-                    nombre='Administrador Principal',
-                    rol='Administrador',
+                    nombre="Administrador Principal",
+                    rol="Administrador",
                     activo=1,
-                    debe_cambiar_password=0
+                    debe_cambiar_password=0,
                 )
                 session.add(admin)
                 log.info("Usuario admin creado con contraseña de desarrollo: Admin123!")
@@ -102,45 +126,61 @@ def inicializar_base_datos(force_dialog=False):
                 admin.password = SecurityManager.hash_password(dev_password)
                 admin.activo = 1
                 admin.debe_cambiar_password = 0
-                log.info("Usuario admin verificado. Contraseña restablecida a la contraseña de desarrollo: Admin123!")
+                log.info(
+                    "Usuario admin verificado. Contraseña restablecida a la contraseña de desarrollo: Admin123!"
+                )
             return
 
         if admin:
             return
 
         import secrets
+
         new_password = secrets.token_urlsafe(12)
         admin = Usuario(
-            username='admin',
+            username="admin",
             password=SecurityManager.hash_password(new_password),
-            nombre='Administrador Principal',
-            rol='Administrador',
+            nombre="Administrador Principal",
+            rol="Administrador",
             activo=1,
-            debe_cambiar_password=1
+            debe_cambiar_password=1,
         )
         session.add(admin)
         log.info("Usuario admin creado con contraseña aleatoria de producción")
-        log.warning("Contraseña temporal generada: %s (no almacenar, cambiarla en primer inicio)", new_password)
+        log.warning(
+            "Contraseña temporal generada: %s (no almacenar, cambiarla en primer inicio)",
+            new_password,
+        )
+
 
 # ── Vistas (importación diferida para acelerar arranque) ──────────────────────
 def _cargar_vistas():
-    from views.dashboard_view      import DashboardWidget
-    from views.calendario_view     import CalendarioWidget
-    from views.rentas_view         import RentasWidget
-    from views.reservas_view       import ReservasWidget
-    from views.clientes_view       import ClientesWidget
-    from views.autos_view          import AutosWidget
-    from views.mantenimiento_view  import MantenimientoWidget
-    from views.usuarios_view       import UsuariosWidget
-    from views.informes_view       import InformesWidget
-    from views.comparendos_view    import ComparendosWidget
-    from views.alertas_view        import AlertasWidget
-    from views.gastos_view         import GastosWidget
+    from views.dashboard_view import DashboardWidget
+    from views.calendario_view import CalendarioWidget
+    from views.rentas_view import RentasWidget
+    from views.reservas_view import ReservasWidget
+    from views.clientes_view import ClientesWidget
+    from views.autos_view import AutosWidget
+    from views.mantenimiento_view import MantenimientoWidget
+    from views.usuarios_view import UsuariosWidget
+    from views.informes_view import InformesWidget
+    from views.comparendos_view import ComparendosWidget
+    from views.alertas_view import AlertasWidget
+    from views.gastos_view import GastosWidget
 
     return (
-        DashboardWidget, CalendarioWidget, RentasWidget, ReservasWidget,
-        ClientesWidget, AutosWidget, MantenimientoWidget, UsuariosWidget,
-        InformesWidget, ComparendosWidget, AlertasWidget, GastosWidget
+        DashboardWidget,
+        CalendarioWidget,
+        RentasWidget,
+        ReservasWidget,
+        ClientesWidget,
+        AutosWidget,
+        MantenimientoWidget,
+        UsuariosWidget,
+        InformesWidget,
+        ComparendosWidget,
+        AlertasWidget,
+        GastosWidget,
     )
 
 
@@ -168,10 +208,7 @@ class SplashScreen(QWidget):
         outer.setContentsMargins(10, 10, 10, 10)
 
         self.card = QFrame()
-        self.card.setStyleSheet(
-            "QFrame{background-color:white;border-radius:20px;"
-            "border:1px solid #e0e0e0;}"
-        )
+        self.card.setProperty("class", "login-card")
         sombra = QGraphicsDropShadowEffect(self)
         sombra.setBlurRadius(20)
         sombra.setColor(QColor(0, 0, 0, 60))
@@ -185,7 +222,8 @@ class SplashScreen(QWidget):
         logo_path = _obtener_logo_ruta()
         if logo_path:
             pix = QPixmap(logo_path).scaled(
-                180, 180,
+                180,
+                180,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
@@ -197,8 +235,7 @@ class SplashScreen(QWidget):
         lbl_tit = QLabel(APP_NAME)
         lbl_tit.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_tit.setStyleSheet(
-            f"font-size:28px;font-weight:900;color:{COLOR_PRIMARIO};"
-            "margin-top:20px;"
+            f"font-size:28px;font-weight:900;color:{COLOR_PRIMARIO};margin-top:20px;"
         )
         lbl_sub = QLabel(f"Sistema de Gestión de Flota v{APP_VERSION}")
         lbl_sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -207,22 +244,14 @@ class SplashScreen(QWidget):
         self.progress = QProgressBar()
         self.progress.setTextVisible(False)
         self.progress.setFixedHeight(6)
-        self.progress.setStyleSheet(
-            f"QProgressBar{{background:#f0f0f0;border-radius:3px;}}"
-            f"QProgressBar::chunk{{background:{COLOR_PRIMARIO};border-radius:3px;}}"
-        )
         self.lbl_estado = QLabel("Iniciando sistema…")
         self.lbl_estado.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lbl_estado.setStyleSheet(
-            "font-size:12px;color:#9e9e9e;margin-top:10px;"
-        )
+        self.lbl_estado.setStyleSheet("font-size:12px;color:#9e9e9e;margin-top:10px;")
 
         # ── Indicador de versión / compilación (esquina inferior) ──
         self.lbl_version = QLabel(f"v{APP_VERSION}")
         self.lbl_version.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lbl_version.setStyleSheet(
-            "font-size:10px;color:#c0c0c0;margin-top:4px;"
-        )
+        self.lbl_version.setStyleSheet("font-size:10px;color:#c0c0c0;margin-top:4px;")
 
         lay.addWidget(lbl_logo)
         lay.addWidget(lbl_tit)
@@ -270,6 +299,7 @@ class SplashScreen(QWidget):
         """Ejecuta backup de forma segura capturando errores."""
         try:
             from services.backup_service import BackupService
+
             BackupService.crear()
         except Exception as e:
             log.warning("Backup automático falló: %s", e)
@@ -293,6 +323,7 @@ class SplashScreen(QWidget):
         geo = QApplication.primaryScreen().availableGeometry()
         self.move(geo.center() - self.rect().center())
 
+
 # =============================================================================
 # 2. LOGIN
 # =============================================================================
@@ -309,7 +340,6 @@ class LoginWindow(QMainWindow):
         if os.path.exists(ico):
             self.setWindowIcon(QIcon(ico))
 
-        self.setStyleSheet(f"background-color:{COLOR_FONDO};")
         central = QWidget()
         self.setCentralWidget(central)
         outer = QVBoxLayout(central)
@@ -318,10 +348,7 @@ class LoginWindow(QMainWindow):
 
         self.card = QFrame()
         self.card.setFixedSize(380, 500)
-        self.card.setStyleSheet(
-            "QFrame{background-color:qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ffffff, stop:1 #f8f9ff);"
-            "border-radius:25px;border:1px solid #e0e0e0;}"
-        )
+        self.card.setProperty("class", "login-card")
         sombra = QGraphicsDropShadowEffect(self)
         sombra.setBlurRadius(30)
         sombra.setColor(QColor(0, 0, 0, 50))
@@ -335,15 +362,12 @@ class LoginWindow(QMainWindow):
         lbl_bienvenido = QLabel("Bienvenido")
         lbl_bienvenido.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_bienvenido.setStyleSheet(
-            f"font-size:32px;font-weight:900;color:{COLOR_PRIMARIO};"
-            "border:none;"
+            f"font-size:32px;font-weight:900;color:{COLOR_PRIMARIO};border:none;"
         )
         lbl_sub = QLabel("Ingresa tus credenciales para continuar")
         lbl_sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_sub.setWordWrap(True)
-        lbl_sub.setStyleSheet(
-            "font-size:14px;color:#757575;border:none;margin-bottom:10px;"
-        )
+        lbl_sub.setStyleSheet("font-size:14px;color:#757575;border:none;margin-bottom:10px;")
 
         self.txt_user = QLineEdit()
         self.txt_user.setPlaceholderText("Usuario")
@@ -366,30 +390,15 @@ class LoginWindow(QMainWindow):
         self.btn_login = QPushButton("INICIAR SESIÓN")
         self.btn_login.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_login.setFixedHeight(52)
-        # Botón primario con gradiente moderno
-        self.btn_login.setStyleSheet(
-            "QPushButton{color:#ffffff;"
-            "background:qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #004aad, stop:1 #003d8f);"
-            "font-weight:bold;padding:12px 32px;border:none;border-radius:10px;"
-            "font-size:11pt;}"
-            "QPushButton:hover{background:qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #003d8f, stop:1 #002f6c);}"
-            "QPushButton:pressed{background:qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #002f6c, stop:1 #001f4d);}"
-        )
 
         self.lbl_error = QLabel("")
         self.lbl_error.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lbl_error.setStyleSheet(
-            "color:#d32f2f;font-size:13px;font-weight:bold;border:none;"
-        )
+        self.lbl_error.setStyleSheet("color:#d32f2f;font-size:13px;font-weight:bold;border:none;")
 
         self.btn_config_db = QPushButton("⚙️ Configurar Base de Datos")
-        self.btn_config_db.setFlat(True)
         self.btn_config_db.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_config_db.setFixedHeight(30)
-        self.btn_config_db.setStyleSheet(
-            "QPushButton{color:#004aad;font-weight:bold;font-size:10pt;border:none;background:transparent;}"
-            "QPushButton:hover{color:#002f6c;text-decoration:underline;}"
-        )
+        self.btn_config_db.setProperty("class", "ghost")
         self.btn_config_db.clicked.connect(self._open_db_config)
 
         lay.addWidget(lbl_bienvenido)
@@ -415,12 +424,17 @@ class LoginWindow(QMainWindow):
         QApplication.processEvents()
 
         client_ip = self._obtener_ip()
-        try:
-            session = AuthService.login(user, pwd, ip=client_ip)
 
+        from core.worker import Worker
+        from PySide6.QtCore import QThreadPool
+
+        worker = Worker(AuthService.login, user, pwd, ip=client_ip)
+
+        def _on_success(session):
             # Si debe cambiar contraseña, mostrar diálogo obligatorio
             if session.get("debe_cambiar_password"):
                 from views.force_change_password_dialog import ForceChangePasswordDialog
+
                 dlg = ForceChangePasswordDialog(self, session)
                 if dlg.exec() != QDialog.Accepted:
                     self.lbl_error.setText("Debes cambiar tu contraseña para acceder.")
@@ -431,20 +445,33 @@ class LoginWindow(QMainWindow):
             self._main = MainWindow(session)
             self._main.show()
             self.close()
-        except CredencialesInvalidas:
-            self.lbl_error.setText("Usuario o contraseña incorrectos")
-        except DinamoBaseError as e:
-            self.lbl_error.setText(f"{e.mensaje_usuario}")
-        except Exception as e:
-            self.lbl_error.setText("Error inesperado")
-            log.error("Error en login: %s", e, exc_info=True)
-        finally:
+
+        def _on_error(err_tuple):
+            exctype, value, tb = err_tuple
+            from services.auth_service import CredencialesInvalidas
+
+            if issubclass(exctype, CredencialesInvalidas):
+                self.lbl_error.setText("Usuario o contraseña incorrectos")
+            elif issubclass(exctype, DinamoBaseError):
+                self.lbl_error.setText(f"{value.mensaje_usuario}")
+            else:
+                self.lbl_error.setText("Error inesperado")
+                log.error("Error en login: %s", value, exc_info=True)
+
+        def _on_finished():
             self.btn_login.setText("INICIAR SESIÓN")
             self.btn_login.setEnabled(True)
+
+        worker.signals.result.connect(_on_success)
+        worker.signals.error.connect(_on_error)
+        worker.signals.finished.connect(_on_finished)
+
+        QThreadPool.globalInstance().start(worker)
 
     def _obtener_ip(self) -> str:
         """Obtiene la IP del cliente."""
         import socket
+
         try:
             hostname = socket.gethostname()
             ip = socket.gethostbyname(hostname)
@@ -454,6 +481,7 @@ class LoginWindow(QMainWindow):
 
     def _open_db_config(self):
         from views.database_config_dialog import DatabaseConfigDialog
+
         dlg = DatabaseConfigDialog(self)
         dlg.exec()
 
@@ -463,10 +491,10 @@ class LoginWindow(QMainWindow):
 # =============================================================================
 class MenuCategory(QWidget):
     """Widget de categoría colapsable para el menú lateral"""
+
     item_selected = Signal(int)
 
-    def __init__(self, title: str, icon: str, items: list,
-                 rol: str, parent=None):
+    def __init__(self, title: str, icon: str, items: list, rol: str, parent=None):
         super().__init__(parent)
         self.items_data = []
         self.buttons = []
@@ -479,31 +507,10 @@ class MenuCategory(QWidget):
         # Cabecera colapsable
         self.header = QToolButton()
         self.header.setText(f"▼  {title}")
-        self.header.setToolButtonStyle(
-            Qt.ToolButtonStyle.ToolButtonTextBesideIcon
-        )
-        self.header.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
-        )
+        self.header.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self.header.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.header.setFixedHeight(45)
-        self.header.setStyleSheet("""
-            QToolButton {
-                background-color: #0d3c7a;
-                color: #90caf9;
-                border: none;
-                border-left: 4px solid #1976d2;
-                padding: 0 15px;
-                font-size: 13px;
-                font-weight: bold;
-                text-align: left;
-            }
-            QToolButton:hover {
-                background:qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1565c0, stop:1 #0d47a1);
-                color: white;
-                border-left: 5px solid #42a5f5;
-            }
-            QToolButton::menu-indicator { image: none; }
-        """)
+        self.header.setProperty("class", "sidebar-category")
         self.header.setCheckable(True)
         self.header.setChecked(True)
         self.header.clicked.connect(self._toggle)
@@ -516,42 +523,6 @@ class MenuCategory(QWidget):
         content_layout.setContentsMargins(0, 5, 0, 10)
         content_layout.setSpacing(2)
 
-        _ITEM_STYLE = """
-            QPushButton {
-                background-color: transparent;
-                color: #e3f2fd;
-                border: none;
-                border-left: 5px solid transparent;
-                padding: 0 30px;
-                font-size: 14px;
-                text-align: left;
-                border-radius: 4px;
-            }
-            QPushButton:hover {
-                background:qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1565c0, stop:1 #0d47a1);
-                color: white;
-                border-left: 5px solid #42a5f5;
-            }
-            QPushButton:pressed {
-                background:qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0d47a1, stop:1 #002f6c);
-            }
-        """
-        _ITEM_ACTIVE = """
-            QPushButton {
-                background:qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1976d2, stop:1 #0d47a1);
-                color: white;
-                border: none;
-                border-left: 5px solid #64b5f6;
-                padding: 0 30px;
-                font-size: 14px;
-                font-weight: bold;
-                text-align: left;
-            }
-            QPushButton:hover {
-                background:qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0d47a1, stop:1 #002f6c);
-            }
-        """
-
         for txt, idx, visible_condition in items:
             if callable(visible_condition):
                 if not visible_condition(rol):
@@ -562,21 +533,15 @@ class MenuCategory(QWidget):
             btn = QPushButton(txt)
             btn.setFlat(True)
             btn.setFixedHeight(38)
-            btn.setSizePolicy(
-                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
-            )
-            btn.setStyleSheet(_ITEM_STYLE)
+            btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+            btn.setProperty("class", "sidebar-item")
             btn.setProperty("view_index", idx)
-            btn.clicked.connect(
-                lambda checked, i=idx, b=btn: self._on_item_clicked(i, b)
-            )
+            btn.clicked.connect(lambda checked, i=idx, b=btn: self._on_item_clicked(i, b))
             self.buttons.append(btn)
             content_layout.addWidget(btn)
             self.items_data.append((idx, btn))
 
         layout.addWidget(self.content)
-        self._ITEM_STYLE = _ITEM_STYLE
-        self._ITEM_ACTIVE = _ITEM_ACTIVE
 
     def _toggle(self):
         self.expanded = not self.expanded
@@ -588,16 +553,22 @@ class MenuCategory(QWidget):
 
     def _on_item_clicked(self, idx, clicked_btn):
         for btn in self.buttons:
-            btn.setStyleSheet(self._ITEM_STYLE)
-        clicked_btn.setStyleSheet(self._ITEM_ACTIVE)
+            btn.setProperty("class", "sidebar-item")
+            btn.style().unpolish(btn)
+            btn.style().polish(btn)
+        clicked_btn.setProperty("class", "sidebar-item-active")
+        clicked_btn.style().unpolish(clicked_btn)
+        clicked_btn.style().polish(clicked_btn)
         self.item_selected.emit(idx)
 
     def set_active_item(self, idx: int):
         for button_idx, btn in self.items_data:
             if button_idx == idx:
-                btn.setStyleSheet(self._ITEM_ACTIVE)
+                btn.setProperty("class", "sidebar-item-active")
             else:
-                btn.setStyleSheet(self._ITEM_STYLE)
+                btn.setProperty("class", "sidebar-item")
+            btn.style().unpolish(btn)
+            btn.style().polish(btn)
 
 
 # =============================================================================
@@ -605,28 +576,48 @@ class MenuCategory(QWidget):
 # =============================================================================
 class MainWindow(QMainWindow):
     _MENU_STRUCTURE = [
-        ("PRINCIPAL", "", [
-            ("Dashboard", 0, True),
-            ("Calendario", 1, True),
-            ("Alertas", 10, True),
-        ]),
-        ("OPERACIÓN", "", [
-            ("Rentas", 2, True),
-            ("Reservas", 3, True),
-            ("Comparendos", 9, True),
-        ]),
-        ("ADMINISTRACIÓN", "", [
-            ("Clientes", 4, True),
-            ("Flota", 5, True),
-            ("Taller", 6, True),
-        ]),
-        ("FINANZAS", "", [
-            ("Caja Menor", 11, True),
-            ("Informes", 8, lambda rol: rol in ROLES_CON_INFORMES),
-        ]),
-        ("SISTEMA", "", [
-            ("Usuarios", 7, lambda rol: rol in ROLES_CON_USUARIOS),
-        ]),
+        (
+            "PRINCIPAL",
+            "",
+            [
+                ("Dashboard", 0, True),
+                ("Calendario", 1, True),
+                ("Alertas", 10, True),
+            ],
+        ),
+        (
+            "OPERACIÓN",
+            "",
+            [
+                ("Rentas", 2, True),
+                ("Reservas", 3, True),
+                ("Comparendos", 9, True),
+            ],
+        ),
+        (
+            "ADMINISTRACIÓN",
+            "",
+            [
+                ("Clientes", 4, True),
+                ("Flota", 5, True),
+                ("Taller", 6, True),
+            ],
+        ),
+        (
+            "FINANZAS",
+            "",
+            [
+                ("Caja Menor", 11, True),
+                ("Informes", 8, lambda rol: rol in ROLES_CON_INFORMES),
+            ],
+        ),
+        (
+            "SISTEMA",
+            "",
+            [
+                ("Usuarios", 7, lambda rol: rol in ROLES_CON_USUARIOS),
+            ],
+        ),
     ]
 
     def __init__(self, session: dict):
@@ -649,11 +640,14 @@ class MainWindow(QMainWindow):
         self._menu = self._crear_menu_colapsable(session.get("rol", ""))
         lay_h.addWidget(self._menu)
 
+        # ── Contenido derecho (QStackedWidget) ──
         self.stack = QStackedWidget()
-        self.stack.setStyleSheet(f"background-color:{COLOR_FONDO};")
         lay_h.addWidget(self.stack)
 
         self._inicializar_vistas()
+
+        # ── Marca de inicio de sesión ───────────────────────────────────────
+        self._session_start = time.time()
 
         # Backup automático
         self._horas_backup = set(BACKUP_HOURS)
@@ -663,15 +657,14 @@ class MainWindow(QMainWindow):
 
         log.info(
             "Sesión iniciada: %s (rol=%s)",
-            session["username"], session["rol"],
+            session["username"],
+            session["rol"],
         )
 
     def _crear_menu_colapsable(self, rol: str) -> QFrame:
         frame = QFrame()
         frame.setFixedWidth(190)
-        frame.setStyleSheet(
-            f"background-color:{COLOR_PRIMARIO};color:white;border:none;"
-        )
+        frame.setProperty("class", "sidebar-header")
 
         main_layout = QVBoxLayout(frame)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -679,9 +672,7 @@ class MainWindow(QMainWindow):
 
         # Header con logo
         hdr = QFrame()
-        hdr.setStyleSheet(
-            "background-color:white;border-bottom:3px solid #002f6c;"
-        )
+        hdr.setProperty("class", "sidebar-header")
         hdr.setFixedHeight(80)
         h_lay = QHBoxLayout(hdr)
         h_lay.setContentsMargins(15, 10, 15, 10)
@@ -690,7 +681,8 @@ class MainWindow(QMainWindow):
         logo_ruta = _obtener_logo_ruta()
         if logo_ruta and os.path.exists(logo_ruta):
             pix = QPixmap(logo_ruta).scaled(
-                50, 50,
+                50,
+                50,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
@@ -699,9 +691,7 @@ class MainWindow(QMainWindow):
         else:
             lbl_img.setText("🚗")
         lbl_tit = QLabel("DINAMO\nRENT ERP")
-        lbl_tit.setStyleSheet(
-            f"color:{COLOR_PRIMARIO};font-weight:800;font-size:16px;"
-        )
+        lbl_tit.setStyleSheet(f"color:{COLOR_PRIMARIO};font-weight:800;font-size:16px;")
         h_lay.addWidget(lbl_img)
         h_lay.addWidget(lbl_tit)
         h_lay.addStretch()
@@ -710,12 +700,8 @@ class MainWindow(QMainWindow):
         # Scroll area
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        scroll.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAsNeeded
-        )
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scroll.setStyleSheet("""
             QScrollArea { border: none; background-color: transparent; }
             QScrollBar:vertical {
@@ -759,88 +745,37 @@ class MainWindow(QMainWindow):
 
         # Footer
         footer = QFrame()
-        footer.setStyleSheet(
-            "background-color: #0d47a1; border-top: 1px solid #1565c0;"
-        )
-        footer.setFixedHeight(130)
+        footer.setProperty("class", "sidebar-footer")
         footer_layout = QVBoxLayout(footer)
         footer_layout.setContentsMargins(15, 10, 15, 10)
         footer_layout.setSpacing(5)
 
         lbl_usr = QLabel(
-            f"Usuario: {self._session.get('username', '').upper()}\n"
-            f"Rol: {rol.upper()}"
+            f"Usuario: {self._session.get('username', '').upper()}\nRol: {rol.upper()}"
         )
         lbl_usr.setStyleSheet("color:#bbdefb;font-size:11px;")
 
         # ── Botón de cambio de tema ──
         from views.themes.theme_manager import get_current_theme_name
+
         _current_theme = get_current_theme_name()
         _theme_icon = "☀️" if _current_theme == "dinamo" else "🌙"
         _theme_label = "Claro" if _current_theme == "dinamo" else "Oscuro"
         self._btn_theme = QPushButton(f"{_theme_icon} Tema {_theme_label}")
-        self._btn_theme.setFlat(True)
         self._btn_theme.setFixedHeight(32)
         self._btn_theme.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._btn_theme.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                color: #90caf9;
-                border: 1px solid #1565c0;
-                border-radius: 6px;
-                font-size: 11px;
-                padding: 4px 12px;
-            }
-            QPushButton:hover {
-                background-color: #1565c0;
-                color: white;
-            }
-        """)
+        self._btn_theme.setProperty("class", "secondary")
         self._btn_theme.clicked.connect(self._toggle_theme)
 
         btn_about = QPushButton("ℹ️ Acerca de")
-        btn_about.setFlat(True)
         btn_about.setFixedHeight(32)
         btn_about.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_about.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                color: #90caf9;
-                border: 1px solid transparent;
-                border-radius: 6px;
-                font-size: 11px;
-                padding: 4px 12px;
-            }
-            QPushButton:hover {
-                background-color: #1565c0;
-                color: white;
-                border-color: #1565c0;
-            }
-        """)
+        btn_about.setProperty("class", "ghost")
         btn_about.clicked.connect(self._open_about)
 
         btn_logout = QPushButton("Cerrar Sesión")
-        btn_logout.setFlat(True)
         btn_logout.setFixedHeight(36)
-        btn_logout.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                color: #ef5350;
-                border: 2px solid #ef5350;
-                border-radius: 8px;
-                font-size: 12px;
-                font-weight: bold;
-                padding: 6px 16px;
-            }
-            QPushButton:hover {
-                background:qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ef5350, stop:1 #c62828);
-                color: white;
-                border-color: #c62828;
-            }
-            QPushButton:pressed {
-                background:qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #c62828, stop:1 #b71c1c);
-            }
-        """)
+        btn_logout.setProperty("class", "danger")
         btn_logout.clicked.connect(self._cerrar_sesion)
 
         footer_layout.addWidget(lbl_usr)
@@ -868,13 +803,27 @@ class MainWindow(QMainWindow):
             self._cerrar_sesion()
             return
 
+        # ── Si es el mismo índice, ignorar ──────────────────────────────────
+        if self.stack.currentIndex() == idx:
+            return
+
+        # ── Guarda anti-re-entrada mientras la animación está en curso ──────
+        if getattr(self, "_page_animating", False):
+            return
+
         # Lazy Load: Instanciar la vista solo la primera vez que se visita
         if idx not in self._vistas_instancias:
             session_id = self._session.get("session_id")
             Cls = self._vistas_classes[idx]
-            # Mostrar mensaje en el footer o consola
-            log.info(f"Cargando vista perezosa: {Cls.__name__}")
+            log.info("Lazy loading: %s...", Cls.__name__)
+            _t0 = time.perf_counter()
             instancia = Cls(session_id=session_id)
+            _elapsed_ms = (time.perf_counter() - _t0) * 1000
+            log.info(
+                "Vista %s cargada en %.0f ms",
+                Cls.__name__,
+                _elapsed_ms,
+            )
             self._vistas_instancias[idx] = instancia
 
             # Reemplazar el placeholder por la vista real
@@ -883,9 +832,62 @@ class MainWindow(QMainWindow):
             self.stack.insertWidget(idx, instancia)
             dummy.deleteLater()
 
-        self.stack.setCurrentIndex(idx)
-        for cat in self._menu_categories:
-            cat.set_active_item(idx)
+        # ── Transición animada fade-out / fade-in ───────────────────────────
+        current = self.stack.currentWidget()
+        target = self.stack.widget(idx)
+
+        if not current or current == target:
+            # Sin animación: primer arranque o widget idéntico
+            self.stack.setCurrentIndex(idx)
+            for cat in self._menu_categories:
+                cat.set_active_item(idx)
+            return
+
+        from PySide6.QtWidgets import QGraphicsOpacityEffect
+        from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QAbstractAnimation
+
+        self._page_animating = True
+
+        # ── Fade-out del widget actual (1.0 → 0.0) ──────────────────────────
+        effect_out = QGraphicsOpacityEffect(current)
+        current.setGraphicsEffect(effect_out)
+
+        anim_out = QPropertyAnimation(effect_out, b"opacity")
+        anim_out.setParent(effect_out)
+        anim_out.setDuration(120)
+        anim_out.setStartValue(1.0)
+        anim_out.setEndValue(0.0)
+        anim_out.setEasingCurve(QEasingCurve.Type.OutCubic)
+
+        def _on_fade_out():
+            # Limpiar efecto del widget saliente
+            current.setGraphicsEffect(None)
+
+            # Cambiar de página
+            self.stack.setCurrentIndex(idx)
+            for cat in self._menu_categories:
+                cat.set_active_item(idx)
+
+            # ── Fade-in del widget entrante (0.0 → 1.0) ─────────────────────
+            effect_in = QGraphicsOpacityEffect(target)
+            target.setGraphicsEffect(effect_in)
+
+            anim_in = QPropertyAnimation(effect_in, b"opacity")
+            anim_in.setParent(effect_in)
+            anim_in.setDuration(120)
+            anim_in.setStartValue(0.0)
+            anim_in.setEndValue(1.0)
+            anim_in.setEasingCurve(QEasingCurve.Type.OutCubic)
+
+            def _on_fade_in():
+                target.setGraphicsEffect(None)
+                self._page_animating = False
+
+            anim_in.finished.connect(_on_fade_in)
+            anim_in.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
+
+        anim_out.finished.connect(_on_fade_out)
+        anim_out.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
 
     def _backup_auto(self):
         hora = time.strftime("%H:%M")
@@ -893,37 +895,57 @@ class MainWindow(QMainWindow):
             log.info("Backup automático a las %s", hora)
             try:
                 from services.backup_service import BackupService
+
                 BackupService.crear()
             except Exception as e:
                 log.warning("Backup automático falló: %s", e)
             self._timer_backup.stop()
-            QTimer.singleShot(
-                61_000, lambda: self._timer_backup.start(BACKUP_INTERVAL_MS)
-            )
+            QTimer.singleShot(61_000, lambda: self._timer_backup.start(BACKUP_INTERVAL_MS))
 
     def _open_about(self):
         """Abre el diálogo de información del sistema."""
         from views.about_dialog import AboutDialog
+
         dlg = AboutDialog(self)
         dlg.exec()
 
     def _toggle_theme(self):
-        """Cambia al tema opuesto y lo aplica en toda la app."""
-        from views.themes.theme_manager import toggle_theme, THEME_LABELS, THEME_ICONS
-        new = toggle_theme()
+        """Cambia al tema opuesto y lo aplica en toda la app con transición suave."""
+        from views.themes.theme_manager import animated_toggle_theme, THEME_LABELS, THEME_ICONS
+
+        new = animated_toggle_theme(self.centralWidget())
+        if new is None:
+            return  # Animación en curso, ignorar clic
         icon = THEME_ICONS.get(new, "☀️")
         label = THEME_LABELS.get(new, "Claro")
         self._btn_theme.setText(f"{icon} Tema {label}")
-        log.info("Tema cambiado a: %s", label)
+        qss_len = len(QApplication.instance().styleSheet() or "")
+        log.info(
+            "Tema cambiado a: %s · %s caracteres QSS",
+            label,
+            f"{qss_len:,}",
+        )
 
         # Notificación toast
         from views.components.toast_notification import ToastNotification
-        ToastNotification.show_info(
-            self, f"Tema cambiado a \"{label}\""
-        )
+
+        ToastNotification.show_info(self, f'Tema cambiado a "{label}"')
 
     def _cerrar_sesion(self):
-        log.info("Sesión cerrada: %s", self._session.get("username"))
+        elapsed = time.time() - self._session_start
+        mins, secs = divmod(int(elapsed), 60)
+        hrs, mins = divmod(mins, 60)
+        if hrs:
+            duracion = f"{hrs}h {mins}m {secs}s"
+        elif mins:
+            duracion = f"{mins}m {secs}s"
+        else:
+            duracion = f"{secs}s"
+        log.info(
+            "Sesión cerrada: %s · Duración: %s",
+            self._session.get("username"),
+            duracion,
+        )
         self.close()
         self._login = LoginWindow()
         self._login.show()
@@ -931,10 +953,8 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         from views.components import ModernMessageBox
         from PySide6.QtWidgets import QDialog
-        resp = ModernMessageBox.question(
-            self, "Salir",
-            "¿Está seguro de salir de la aplicación?"
-        )
+
+        resp = ModernMessageBox.question(self, "Salir", "¿Está seguro de salir de la aplicación?")
         if resp == QDialog.Accepted:
             event.accept()
         else:
@@ -947,9 +967,8 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     try:
         from ctypes import windll
-        windll.shell32.SetCurrentProcessExplicitAppUserModelID(
-            f"dinamo.rent.erp.{APP_VERSION}"
-        )
+
+        windll.shell32.SetCurrentProcessExplicitAppUserModelID(f"dinamo.rent.erp.{APP_VERSION}")
     except (ImportError, OSError):
         pass
 
@@ -968,6 +987,19 @@ if __name__ == "__main__":
     app.setFont(QFont(FONT_FAMILY, FONT_SIZE))
 
     # ── Splash temprano con progreso real ──────────────────────────────
+
+    # Aplicar tema antes del splash para que las clases funcionen
+    from views.themes.theme_manager import apply_theme, get_current_theme_name
+
+    apply_theme()
+    qss_len = len(app.styleSheet() or "")
+    theme_name = get_current_theme_name()
+    log.info(
+        "Tema activo: %s · %s caracteres QSS cargados",
+        theme_name,
+        f"{qss_len:,}",
+    )
+
     splash = SplashScreen()
     splash.show()
     splash.set_progress(5, "Inicializando sistema…")
@@ -977,6 +1009,7 @@ if __name__ == "__main__":
     if setup_result == "SETUP_NEEDED":
         splash.close()
         from views.setup_wizard import run_setup_wizard
+
         if not run_setup_wizard():
             log.warning("Setup inicial cancelado por el usuario")
             sys.exit(0)
@@ -984,10 +1017,7 @@ if __name__ == "__main__":
 
     splash.set_progress(30, "Verificando base de datos…")
 
-    splash.set_progress(50, "Cargando tema visual…")
-    from views.themes.theme_manager import apply_theme
-    apply_theme()
-    log.info("Hoja de estilos global (Modern QSS) cargada con éxito.")
+    splash.set_progress(50, "Validando configuraciones…")
 
     splash.set_progress(70, "Cargando módulos del sistema…")
     # Pre-carga de clases de vistas (no se instancian, solo se importan)

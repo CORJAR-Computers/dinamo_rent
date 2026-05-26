@@ -3,6 +3,7 @@ cliente_repository_sa.py — Repositorio de Clientes
 
 F1C: Extraído y completado para separación de responsabilidades.
 """
+
 from typing import List, Dict
 
 from sqlalchemy import or_
@@ -17,7 +18,6 @@ log = get_logger(__name__)
 
 
 class ClienteRepositorySA:
-
     @staticmethod
     def buscar(termino: str = "") -> List[Dict]:
         """Busca clientes por nombre, documento, celular o email."""
@@ -53,31 +53,46 @@ class ClienteRepositorySA:
 
         with get_session() as session:
             columna = getattr(Cliente, campo)
-            resultados = session.query(columna).filter(
-                columna.isnot(None),
-                columna != ""
-            ).distinct().order_by(columna).all()
+            resultados = (
+                session.query(columna)
+                .filter(columna.isnot(None), columna != "")
+                .distinct()
+                .order_by(columna)
+                .all()
+            )
             return [r[0] for r in resultados]
 
     @staticmethod
     def obtener_regiones_por_pais(pais: str) -> List[str]:
         with get_session() as session:
-            resultados = session.query(Cliente.estado_region).filter(
-                Cliente.pais == pais,
-                Cliente.estado_region.isnot(None),
-                Cliente.estado_region != ""
-            ).distinct().order_by(Cliente.estado_region).all()
+            resultados = (
+                session.query(Cliente.estado_region)
+                .filter(
+                    Cliente.pais == pais,
+                    Cliente.estado_region.isnot(None),
+                    Cliente.estado_region != "",
+                )
+                .distinct()
+                .order_by(Cliente.estado_region)
+                .all()
+            )
             return [r[0] for r in resultados]
 
     @staticmethod
     def obtener_ciudades_por_region(pais: str, region: str) -> List[str]:
         with get_session() as session:
-            resultados = session.query(Cliente.ciudad).filter(
-                Cliente.pais == pais,
-                Cliente.estado_region == region,
-                Cliente.ciudad.isnot(None),
-                Cliente.ciudad != ""
-            ).distinct().order_by(Cliente.ciudad).all()
+            resultados = (
+                session.query(Cliente.ciudad)
+                .filter(
+                    Cliente.pais == pais,
+                    Cliente.estado_region == region,
+                    Cliente.ciudad.isnot(None),
+                    Cliente.ciudad != "",
+                )
+                .distinct()
+                .order_by(Cliente.ciudad)
+                .all()
+            )
             return [r[0] for r in resultados]
 
     @staticmethod
@@ -124,7 +139,7 @@ class ClienteRepositorySA:
             if not cliente:
                 raise RegistroNoEncontrado(f"Cliente #{datos.id} no encontrado.")
 
-            update_fields = datos.model_dump(exclude_unset=True, exclude={'id'})
+            update_fields = datos.model_dump(exclude_unset=True, exclude={"id"})
             for campo, valor in update_fields.items():
                 if hasattr(cliente, campo):
                     setattr(cliente, campo, valor)
@@ -134,27 +149,27 @@ class ClienteRepositorySA:
     @staticmethod
     def _to_dict(cliente: Cliente) -> Dict:
         return {
-            'id': cliente.id,
-            'tipo_doc': cliente.tipo_doc,
-            'no_doc': cliente.no_doc,
-            'nombres': cliente.nombres,
-            'apellidos': cliente.apellidos,
-            'nombre_completo': cliente.nombre_completo,
-            'celular': cliente.celular,
-            'celular2': cliente.celular2,
-            'email': cliente.email,
-            'ciudad': cliente.ciudad,
-            'estado_region': cliente.estado_region,
-            'pais': cliente.pais,
-            'nacionalidad': cliente.nacionalidad,
-            'dir_residencia': cliente.dir_residencia,
-            'dir_temporal': cliente.dir_temporal,
-            'hotel': cliente.hotel,
-            'habitacion': cliente.habitacion,
-            'no_licencia': cliente.no_licencia,
-            'tipo_licencia': cliente.tipo_licencia,
-            'vencimiento_licencia': cliente.vencimiento_licencia,
-            'estado': cliente.estado,
-            'created_at': cliente.created_at,
-            'updated_at': cliente.updated_at,
+            "id": cliente.id,
+            "tipo_doc": cliente.tipo_doc,
+            "no_doc": cliente.no_doc,
+            "nombres": cliente.nombres,
+            "apellidos": cliente.apellidos,
+            "nombre_completo": cliente.nombre_completo,
+            "celular": cliente.celular,
+            "celular2": cliente.celular2,
+            "email": cliente.email,
+            "ciudad": cliente.ciudad,
+            "estado_region": cliente.estado_region,
+            "pais": cliente.pais,
+            "nacionalidad": cliente.nacionalidad,
+            "dir_residencia": cliente.dir_residencia,
+            "dir_temporal": cliente.dir_temporal,
+            "hotel": cliente.hotel,
+            "habitacion": cliente.habitacion,
+            "no_licencia": cliente.no_licencia,
+            "tipo_licencia": cliente.tipo_licencia,
+            "vencimiento_licencia": cliente.vencimiento_licencia,
+            "estado": cliente.estado,
+            "created_at": cliente.created_at,
+            "updated_at": cliente.updated_at,
         }

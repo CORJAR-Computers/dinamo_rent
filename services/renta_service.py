@@ -3,8 +3,11 @@
 from typing import List, Dict
 
 from core.exceptions import (
-    VehiculoNoDisponible, RentaYaCerrada, ClienteEnListaNegra,
-    ValidacionError, NegocioError,
+    VehiculoNoDisponible,
+    RentaYaCerrada,
+    ClienteEnListaNegra,
+    ValidacionError,
+    NegocioError,
 )
 from core.logger import get_logger, get_audit_logger
 from core.validators import validar_placa
@@ -21,7 +24,6 @@ audit = get_audit_logger()
 
 
 class RentaService:
-
     @staticmethod
     def crear(datos: dict) -> int:
         """Create a rental and mark vehicle as rented (atomic)."""
@@ -51,8 +53,12 @@ class RentaService:
             id_renta = RentaRepositorySA.insertar(renta_validada, session=uow.session)
             AutoRepositorySA.cambiar_estado(placa, "Rentado", session=uow.session)
 
-        audit.info("Renta creada: id=%s, placa=%s, cliente=%s",
-                   id_renta, placa, datos.get("nombre_cliente"))
+        audit.info(
+            "Renta creada: id=%s, placa=%s, cliente=%s",
+            id_renta,
+            placa,
+            datos.get("nombre_cliente"),
+        )
         return id_renta
 
     @staticmethod
@@ -84,13 +90,15 @@ class RentaService:
         with UnitOfWork() as uow:
             RentaRepositorySA.cerrar_renta(id_renta, cierre_validado, session=uow.session)
             AutoRepositorySA.cambiar_estado(
-                renta["placa"], "Disponible",
+                renta["placa"],
+                "Disponible",
                 kilometraje=km_final_float,
                 session=uow.session,
             )
 
-        audit.info("Renta cerrada: id=%s, total=%.0f, placa=%s",
-                   id_renta, gran_total, renta["placa"])
+        audit.info(
+            "Renta cerrada: id=%s, total=%.0f, placa=%s", id_renta, gran_total, renta["placa"]
+        )
         return gran_total
 
     @staticmethod
@@ -102,24 +110,37 @@ class RentaService:
         return RentaRepositorySA.obtener_activas()
 
     @staticmethod
-    def extender(id_renta: int, nueva_fecha: str, nueva_hora: str,
-                 nuevos_dias: int, nuevo_total: float, nuevo_saldo: float) -> None:
-        RentaRepositorySA.extender(id_renta, nueva_fecha, nueva_hora, nuevos_dias, nuevo_total, nuevo_saldo)
+    def extender(
+        id_renta: int,
+        nueva_fecha: str,
+        nueva_hora: str,
+        nuevos_dias: int,
+        nuevo_total: float,
+        nuevo_saldo: float,
+    ) -> None:
+        RentaRepositorySA.extender(
+            id_renta, nueva_fecha, nueva_hora, nuevos_dias, nuevo_total, nuevo_saldo
+        )
         audit.info("Renta %s extendida hasta %s", id_renta, nueva_fecha)
 
     @staticmethod
-    def cambiar_vehiculo(id_renta: int, placa_actual: str, km_actual: float,
-                         estado_actual: str, placa_nueva: str, motivo: str) -> None:
+    def cambiar_vehiculo(
+        id_renta: int,
+        placa_actual: str,
+        km_actual: float,
+        estado_actual: str,
+        placa_nueva: str,
+        motivo: str,
+    ) -> None:
         """Swap vehicle on an active rental (atomic: 3 operations)."""
         nota = f"\n[CAMBIO VEHÍCULO: de {placa_actual} a {placa_nueva}. Motivo: {motivo}]"
 
         with UnitOfWork() as uow:
-            AutoRepositorySA.cambiar_estado(placa_actual, estado_actual, km_actual,
-                                            session=uow.session)
-            AutoRepositorySA.cambiar_estado(placa_nueva, "Rentado",
-                                            session=uow.session)
-            RentaRepositorySA.actualizar_placa(id_renta, placa_nueva, nota,
-                                               session=uow.session)
+            AutoRepositorySA.cambiar_estado(
+                placa_actual, estado_actual, km_actual, session=uow.session
+            )
+            AutoRepositorySA.cambiar_estado(placa_nueva, "Rentado", session=uow.session)
+            RentaRepositorySA.actualizar_placa(id_renta, placa_nueva, nota, session=uow.session)
 
         audit.info("Cambio de vehículo renta %s: %s -> %s", id_renta, placa_actual, placa_nueva)
 

@@ -14,7 +14,6 @@ audit = get_audit_logger()
 
 
 class AutoService:
-
     @staticmethod
     def listar() -> List[Dict]:
         return AutoRepositorySA.obtener_todos()
@@ -56,31 +55,35 @@ class AutoService:
         datetime.date.today()
 
         for alerta in AutoRepositorySA.obtener_alertas_flota():
-            tipo = alerta.get('tipo')
+            tipo = alerta.get("tipo")
 
-            if tipo == 'Aceite':
-                km_act = alerta.get('km_actual', 0)
-                km_prox = alerta.get('km_proximo', 0)
+            if tipo == "Aceite":
+                km_act = alerta.get("km_actual", 0)
+                km_prox = alerta.get("km_proximo", 0)
                 estado = "CRÍTICO" if km_act >= km_prox else "Pronto"
-                alertas.append({
-                    "placa": alerta['placa'],
-                    "tipo": "Aceite",
-                    "detalle": f"{km_act:,.0f}/{km_prox:,.0f} km",
-                    "estado": estado,
-                })
-            elif tipo in ['SOAT', 'Tecno-mecánica']:
-                dias = alerta.get('dias_restantes', 0)
+                alertas.append(
+                    {
+                        "placa": alerta["placa"],
+                        "tipo": "Aceite",
+                        "detalle": f"{km_act:,.0f}/{km_prox:,.0f} km",
+                        "estado": estado,
+                    }
+                )
+            elif tipo in ["SOAT", "Tecno-mecánica"]:
+                dias = alerta.get("dias_restantes", 0)
                 if dias < 0:
                     estado = "VENCIDO"
                 else:
                     estado = f"{dias} días"
 
-                doc_tipo = tipo.replace('-mecánica', '').replace('Tecno', 'Tecno')
-                alertas.append({
-                    "placa": alerta['placa'],
-                    "tipo": doc_tipo,
-                    "detalle": str(alerta.get('vencimiento', '')),
-                    "estado": estado,
-                })
+                doc_tipo = tipo.replace("-mecánica", "").replace("Tecno", "Tecno")
+                alertas.append(
+                    {
+                        "placa": alerta["placa"],
+                        "tipo": doc_tipo,
+                        "detalle": str(alerta.get("vencimiento", "")),
+                        "estado": estado,
+                    }
+                )
 
         return alertas

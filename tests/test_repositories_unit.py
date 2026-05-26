@@ -18,9 +18,12 @@ import pytest
 
 from core.models import Auto, Cliente, Renta
 from core.schemas import (
-    AutoCreate, AutoUpdate,
-    ClienteCreate, ClienteUpdate,
-    RentaCreate, RentaCierre,
+    AutoCreate,
+    AutoUpdate,
+    ClienteCreate,
+    ClienteUpdate,
+    RentaCreate,
+    RentaCierre,
     PagoCreate,
 )
 from core.exceptions import RegistroNoEncontrado
@@ -55,6 +58,7 @@ def _next_doc(prefix="DOC") -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Fixtures
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @pytest.fixture
 def db_session():
@@ -107,8 +111,8 @@ def _raw_insert_cliente(**kwargs) -> int:
 # AutoRepositorySA Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestAutoRepositorySA:
 
+class TestAutoRepositorySA:
     def test_insertar_y_obtener_todos(self):
         """insertar() creates auto records; obtener_todos() returns them."""
         p1, p2 = _next_placa("RAA"), _next_placa("RAA")
@@ -123,9 +127,9 @@ class TestAutoRepositorySA:
     def test_obtener_por_placa(self):
         """obtener_por_placa() returns the correct auto dict."""
         p = _next_placa()
-        AutoRepositorySA.insertar(AutoCreate(
-            placa=p, marca="Toyota", modelo="Corolla", kilometraje=5000.0
-        ))
+        AutoRepositorySA.insertar(
+            AutoCreate(placa=p, marca="Toyota", modelo="Corolla", kilometraje=5000.0)
+        )
         auto = AutoRepositorySA.obtener_por_placa(p)
         assert auto["placa"] == p
         assert auto["marca"] == "Toyota"
@@ -169,7 +173,9 @@ class TestAutoRepositorySA:
         p = _next_placa()
         AutoRepositorySA.insertar(AutoCreate(placa=p, marca="Toyota", modelo="Corolla"))
 
-        AutoRepositorySA.actualizar(AutoUpdate(placa=p, marca="Toyota Upd", color="Rojo", kilometraje=6000.0))
+        AutoRepositorySA.actualizar(
+            AutoUpdate(placa=p, marca="Toyota Upd", color="Rojo", kilometraje=6000.0)
+        )
 
         auto = AutoRepositorySA.obtener_por_placa(p)
         assert auto["marca"] == "Toyota Upd"
@@ -264,13 +270,33 @@ class TestAutoRepositorySA:
         AutoRepositorySA.insertar(AutoCreate(placa=p, marca="T", modelo="M"))
         auto = AutoRepositorySA.obtener_por_placa(p)
         expected = {
-            "placa", "marca", "modelo", "version", "color", "tipo",
-            "cilindraje", "transmision", "combustible", "no_motor", "no_chasis",
-            "propietario", "estado", "costo_fijo_mensual", "kilometraje",
-            "ubicacion", "tipo_adquisicion", "proximo_aceite", "proximo_frenos",
-            "vencimiento_soat", "vencimiento_tecnico", "vencimiento_extintor",
-            "vencimiento_bateria", "observaciones", "fecha_ingreso",
-            "created_at", "updated_at",
+            "placa",
+            "marca",
+            "modelo",
+            "version",
+            "color",
+            "tipo",
+            "cilindraje",
+            "transmision",
+            "combustible",
+            "no_motor",
+            "no_chasis",
+            "propietario",
+            "estado",
+            "costo_fijo_mensual",
+            "kilometraje",
+            "ubicacion",
+            "tipo_adquisicion",
+            "proximo_aceite",
+            "proximo_frenos",
+            "vencimiento_soat",
+            "vencimiento_tecnico",
+            "vencimiento_extintor",
+            "vencimiento_bateria",
+            "observaciones",
+            "fecha_ingreso",
+            "created_at",
+            "updated_at",
         }
         assert expected.issubset(auto.keys())
 
@@ -279,19 +305,33 @@ class TestAutoRepositorySA:
 # ClienteRepositorySA Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestClienteRepositorySA:
 
+class TestClienteRepositorySA:
     def test_insertar_y_buscar(self):
         """insertar() creates a client; buscar() retrieves by name."""
         d1, d2 = _next_doc(), _next_doc()
-        ClienteRepositorySA.insertar(ClienteCreate(
-            tipo_doc="Cédula", no_doc=d1, nombres="Repo", apellidos="Uno",
-            nombre_completo="Repo Uno", celular="+573111111111", estado="Activo",
-        ))
-        ClienteRepositorySA.insertar(ClienteCreate(
-            tipo_doc="Pasaporte", no_doc=d2, nombres="Repo", apellidos="Dos",
-            nombre_completo="Repo Dos", celular="+573222222222", estado="Activo",
-        ))
+        ClienteRepositorySA.insertar(
+            ClienteCreate(
+                tipo_doc="Cédula",
+                no_doc=d1,
+                nombres="Repo",
+                apellidos="Uno",
+                nombre_completo="Repo Uno",
+                celular="+573111111111",
+                estado="Activo",
+            )
+        )
+        ClienteRepositorySA.insertar(
+            ClienteCreate(
+                tipo_doc="Pasaporte",
+                no_doc=d2,
+                nombres="Repo",
+                apellidos="Dos",
+                nombre_completo="Repo Dos",
+                celular="+573222222222",
+                estado="Activo",
+            )
+        )
 
         results = ClienteRepositorySA.buscar("Repo Uno")
         assert len(results) >= 1
@@ -300,24 +340,42 @@ class TestClienteRepositorySA:
     def test_buscar_por_documento(self):
         """buscar() finds clients by document number."""
         d = _next_doc()
-        ClienteRepositorySA.insertar(ClienteCreate(
-            tipo_doc="Cédula", no_doc=d, nombres="T", apellidos="C",
-            nombre_completo="Test C", estado="Activo",
-        ))
+        ClienteRepositorySA.insertar(
+            ClienteCreate(
+                tipo_doc="Cédula",
+                no_doc=d,
+                nombres="T",
+                apellidos="C",
+                nombre_completo="Test C",
+                estado="Activo",
+            )
+        )
         results = ClienteRepositorySA.buscar(d)
         assert results[0]["no_doc"] == d
 
     def test_buscar_sin_termino(self):
         """buscar() with empty string returns all clients."""
         d1, d2 = _next_doc(), _next_doc()
-        ClienteRepositorySA.insertar(ClienteCreate(
-            tipo_doc="Cédula", no_doc=d1, nombres="A", apellidos="B",
-            nombre_completo="A B", estado="Activo",
-        ))
-        ClienteRepositorySA.insertar(ClienteCreate(
-            tipo_doc="Pasaporte", no_doc=d2, nombres="C", apellidos="D",
-            nombre_completo="C D", estado="Activo",
-        ))
+        ClienteRepositorySA.insertar(
+            ClienteCreate(
+                tipo_doc="Cédula",
+                no_doc=d1,
+                nombres="A",
+                apellidos="B",
+                nombre_completo="A B",
+                estado="Activo",
+            )
+        )
+        ClienteRepositorySA.insertar(
+            ClienteCreate(
+                tipo_doc="Pasaporte",
+                no_doc=d2,
+                nombres="C",
+                apellidos="D",
+                nombre_completo="C D",
+                estado="Activo",
+            )
+        )
         results = ClienteRepositorySA.buscar("")
         docs = [c["no_doc"] for c in results]
         assert d1 in docs
@@ -330,11 +388,18 @@ class TestClienteRepositorySA:
     def test_obtener_por_id(self):
         """obtener_por_id() returns the correct client."""
         d = _next_doc()
-        cid = ClienteRepositorySA.insertar(ClienteCreate(
-            tipo_doc="Cédula", no_doc=d, nombres="Repo", apellidos="Test",
-            nombre_completo="Repo Test", pais="Colombia", nacionalidad="Colombiana",
-            estado="Activo",
-        ))
+        cid = ClienteRepositorySA.insertar(
+            ClienteCreate(
+                tipo_doc="Cédula",
+                no_doc=d,
+                nombres="Repo",
+                apellidos="Test",
+                nombre_completo="Repo Test",
+                pais="Colombia",
+                nacionalidad="Colombiana",
+                estado="Activo",
+            )
+        )
         cliente = ClienteRepositorySA.obtener_por_id(cid)
         assert cliente["no_doc"] == d
         assert cliente["pais"] == "Colombia"
@@ -348,14 +413,26 @@ class TestClienteRepositorySA:
     def test_actualizar(self):
         """actualizar() updates fields of an existing client."""
         d = _next_doc()
-        cid = ClienteRepositorySA.insertar(ClienteCreate(
-            tipo_doc="Cédula", no_doc=d, nombres="R", apellidos="T",
-            nombre_completo="R T", celular="+573000000000", pais="Colombia",
-            estado="Activo",
-        ))
-        ClienteRepositorySA.actualizar(ClienteUpdate(
-            id=cid, celular="+573333333333", email="u@test.com", ciudad="Cartagena",
-        ))
+        cid = ClienteRepositorySA.insertar(
+            ClienteCreate(
+                tipo_doc="Cédula",
+                no_doc=d,
+                nombres="R",
+                apellidos="T",
+                nombre_completo="R T",
+                celular="+573000000000",
+                pais="Colombia",
+                estado="Activo",
+            )
+        )
+        ClienteRepositorySA.actualizar(
+            ClienteUpdate(
+                id=cid,
+                celular="+573333333333",
+                email="u@test.com",
+                ciudad="Cartagena",
+            )
+        )
         cliente = ClienteRepositorySA.obtener_por_id(cid)
         assert cliente["celular"] == "+573333333333"
         assert cliente["email"] == "u@test.com"
@@ -369,34 +446,62 @@ class TestClienteRepositorySA:
     def test_buscar_por_celular(self):
         """buscar() finds clients by cell number."""
         d = _next_doc()
-        ClienteRepositorySA.insertar(ClienteCreate(
-            tipo_doc="Cédula", no_doc=d, nombres="T", apellidos="C",
-            nombre_completo="T C", celular="+573111111111", estado="Activo",
-        ))
+        ClienteRepositorySA.insertar(
+            ClienteCreate(
+                tipo_doc="Cédula",
+                no_doc=d,
+                nombres="T",
+                apellidos="C",
+                nombre_completo="T C",
+                celular="+573111111111",
+                estado="Activo",
+            )
+        )
         results = ClienteRepositorySA.buscar("3111111111")
         assert any(c["no_doc"] == d for c in results)
 
     def test_buscar_por_email(self):
         """buscar() finds clients by email."""
         d = _next_doc()
-        ClienteRepositorySA.insertar(ClienteCreate(
-            tipo_doc="Cédula", no_doc=d, nombres="T", apellidos="C",
-            nombre_completo="T C", email="test@test.com", estado="Activo",
-        ))
+        ClienteRepositorySA.insertar(
+            ClienteCreate(
+                tipo_doc="Cédula",
+                no_doc=d,
+                nombres="T",
+                apellidos="C",
+                nombre_completo="T C",
+                email="test@test.com",
+                estado="Activo",
+            )
+        )
         results = ClienteRepositorySA.buscar("test@test.com")
         assert len(results) >= 1
 
     def test_obtener_valores_unicos(self):
         """obtener_valores_unicos() returns distinct values for a field."""
         d1, d2 = _next_doc(), _next_doc()
-        ClienteRepositorySA.insertar(ClienteCreate(
-            tipo_doc="Cédula", no_doc=d1, nombres="A", apellidos="B",
-            nombre_completo="A B", pais="Colombia", estado="Activo",
-        ))
-        ClienteRepositorySA.insertar(ClienteCreate(
-            tipo_doc="Cédula", no_doc=d2, nombres="C", apellidos="D",
-            nombre_completo="C D", pais="Colombia", estado="Activo",
-        ))
+        ClienteRepositorySA.insertar(
+            ClienteCreate(
+                tipo_doc="Cédula",
+                no_doc=d1,
+                nombres="A",
+                apellidos="B",
+                nombre_completo="A B",
+                pais="Colombia",
+                estado="Activo",
+            )
+        )
+        ClienteRepositorySA.insertar(
+            ClienteCreate(
+                tipo_doc="Cédula",
+                no_doc=d2,
+                nombres="C",
+                apellidos="D",
+                nombre_completo="C D",
+                pais="Colombia",
+                estado="Activo",
+            )
+        )
         paises = ClienteRepositorySA.obtener_valores_unicos("pais")
         assert "Colombia" in paises
         assert paises.count("Colombia") == 1  # distinct
@@ -408,22 +513,37 @@ class TestClienteRepositorySA:
     def test_obtener_regiones_por_pais(self):
         """obtener_regiones_por_pais() returns distinct regions."""
         d = _next_doc()
-        ClienteRepositorySA.insertar(ClienteCreate(
-            tipo_doc="Cédula", no_doc=d, nombres="T", apellidos="C",
-            nombre_completo="T C", pais="Colombia", estado_region="Cundinamarca",
-            estado="Activo",
-        ))
+        ClienteRepositorySA.insertar(
+            ClienteCreate(
+                tipo_doc="Cédula",
+                no_doc=d,
+                nombres="T",
+                apellidos="C",
+                nombre_completo="T C",
+                pais="Colombia",
+                estado_region="Cundinamarca",
+                estado="Activo",
+            )
+        )
         regiones = ClienteRepositorySA.obtener_regiones_por_pais("Colombia")
         assert "Cundinamarca" in regiones
 
     def test_obtener_ciudades_por_region(self):
         """obtener_ciudades_por_region() returns distinct cities."""
         d = _next_doc()
-        ClienteRepositorySA.insertar(ClienteCreate(
-            tipo_doc="Cédula", no_doc=d, nombres="T", apellidos="C",
-            nombre_completo="T C", pais="Colombia", estado_region="Cundinamarca",
-            ciudad="Bogotá", estado="Activo",
-        ))
+        ClienteRepositorySA.insertar(
+            ClienteCreate(
+                tipo_doc="Cédula",
+                no_doc=d,
+                nombres="T",
+                apellidos="C",
+                nombre_completo="T C",
+                pais="Colombia",
+                estado_region="Cundinamarca",
+                ciudad="Bogotá",
+                estado="Activo",
+            )
+        )
         ciudades = ClienteRepositorySA.obtener_ciudades_por_region("Colombia", "Cundinamarca")
         assert "Bogotá" in ciudades
 
@@ -432,8 +552,8 @@ class TestClienteRepositorySA:
 # RentaRepositorySA Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestRentaRepositorySA:
 
+class TestRentaRepositorySA:
     def _make_renta(self, placa: str, **kwargs) -> RentaCreate:
         today = date.today()
         defaults = dict(
@@ -478,7 +598,9 @@ class TestRentaRepositorySA:
 
         id1 = RentaRepositorySA.insertar(self._make_renta(p1))
         # Second rental is Finalizado (not Activo)
-        RentaRepositorySA.insertar(self._make_renta(p2, nombre_cliente="Closed", estado="Finalizado"))
+        RentaRepositorySA.insertar(
+            self._make_renta(p2, nombre_cliente="Closed", estado="Finalizado")
+        )
 
         activas = RentaRepositorySA.obtener_activas()
         ids = [r["id"] for r in activas]
@@ -491,13 +613,16 @@ class TestRentaRepositorySA:
         _raw_insert_auto(p)
         rid = RentaRepositorySA.insertar(self._make_renta(p))
 
-        RentaRepositorySA.cerrar_renta(rid, RentaCierre(
-            fecha_devolucion_real=date.today(),
-            hora_devolucion_real=time(14, 30),
-            km_final="10500",
-            tanque_final="Lleno",
-            nota_cierre="Devolución en buen estado",
-        ))
+        RentaRepositorySA.cerrar_renta(
+            rid,
+            RentaCierre(
+                fecha_devolucion_real=date.today(),
+                hora_devolucion_real=time(14, 30),
+                km_final="10500",
+                tanque_final="Lleno",
+                nota_cierre="Devolución en buen estado",
+            ),
+        )
         result = RentaRepositorySA.obtener_por_id(rid)
         assert result["estado"] == "Finalizado"
         assert result["km_final"] == "10500"
@@ -509,11 +634,14 @@ class TestRentaRepositorySA:
         _raw_insert_auto(p)
         rid = RentaRepositorySA.insertar(self._make_renta(p))
 
-        RentaRepositorySA.cerrar_renta(rid, RentaCierre(
-            fecha_devolucion_real=date.today(),
-            hora_devolucion_real=time(14, 0),
-            otros_cobros=Decimal("50000"),
-        ))
+        RentaRepositorySA.cerrar_renta(
+            rid,
+            RentaCierre(
+                fecha_devolucion_real=date.today(),
+                hora_devolucion_real=time(14, 0),
+                otros_cobros=Decimal("50000"),
+            ),
+        )
         result = RentaRepositorySA.obtener_por_id(rid)
         assert result["total"] == 350000.0  # 300000 + 50000
         assert result["saldo_pendiente"] == 300000.0  # 350000 - 50000
@@ -521,10 +649,13 @@ class TestRentaRepositorySA:
     def test_cerrar_renta_no_existe(self):
         """cerrar_renta() raises RegistroNoEncontrado."""
         with pytest.raises(RegistroNoEncontrado, match="99999"):
-            RentaRepositorySA.cerrar_renta(99999, RentaCierre(
-                fecha_devolucion_real=date.today(),
-                hora_devolucion_real=time(14, 0),
-            ))
+            RentaRepositorySA.cerrar_renta(
+                99999,
+                RentaCierre(
+                    fecha_devolucion_real=date.today(),
+                    hora_devolucion_real=time(14, 0),
+                ),
+            )
 
     def test_extender(self):
         """extender() updates return date and totals."""
@@ -532,7 +663,8 @@ class TestRentaRepositorySA:
         _raw_insert_auto(p)
         rid = RentaRepositorySA.insertar(self._make_renta(p))
 
-        RentaRepositorySA.extender(rid,
+        RentaRepositorySA.extender(
+            rid,
             nueva_fecha=date.today() + datetime.timedelta(days=5),
             nueva_hora=time(12, 0),
             nuevos_dias=5,
@@ -573,10 +705,13 @@ class TestRentaRepositorySA:
         p = _next_placa("RR")
         _raw_insert_auto(p)
         today = date.today()
-        RentaRepositorySA.insertar(self._make_renta(p,
-            fecha_recogida=today - datetime.timedelta(days=2),
-            fecha_retorno=today,
-        ))
+        RentaRepositorySA.insertar(
+            self._make_renta(
+                p,
+                fecha_recogida=today - datetime.timedelta(days=2),
+                fecha_retorno=today,
+            )
+        )
         filtradas = RentaRepositorySA.obtener_activas_filtradas("Vencen Hoy")
         assert len(filtradas) >= 1
         assert all(r["estado"] == "Activo" for r in filtradas)
@@ -594,8 +729,8 @@ class TestRentaRepositorySA:
 # PagoRepositorySA Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class TestPagoRepositorySA:
 
+class TestPagoRepositorySA:
     def _create_renta(self, placa: str = None, total: Decimal = None) -> int:
         """Create a rental in DB and return its ID."""
         p = placa or _next_placa("RP")
@@ -603,12 +738,17 @@ class TestPagoRepositorySA:
         session = SessionLocal()
         try:
             renta = Renta(
-                placa=p, nombre_cliente="Pago Test",
-                fecha_recogida=date.today(), hora_recogida=time(10, 0),
+                placa=p,
+                nombre_cliente="Pago Test",
+                fecha_recogida=date.today(),
+                hora_recogida=time(10, 0),
                 fecha_retorno=date.today() + datetime.timedelta(days=3),
-                hora_retorno=time(10, 0), dias_calculados=3,
-                total=float(total or 300000), abono=0.0,
-                saldo_pendiente=float(total or 300000), estado="Activo",
+                hora_retorno=time(10, 0),
+                dias_calculados=3,
+                total=float(total or 300000),
+                abono=0.0,
+                saldo_pendiente=float(total or 300000),
+                estado="Activo",
             )
             session.add(renta)
             session.flush()
@@ -621,9 +761,14 @@ class TestPagoRepositorySA:
     def test_insertar_y_obtener_por_renta(self):
         """insertar() creates a payment; obtener_por_renta() retrieves it."""
         rid = self._create_renta()
-        pid = PagoRepositorySA.insertar(PagoCreate(
-            id_renta=rid, monto=Decimal("100000"), metodo_pago="Efectivo", concepto="Abono",
-        ))
+        pid = PagoRepositorySA.insertar(
+            PagoCreate(
+                id_renta=rid,
+                monto=Decimal("100000"),
+                metodo_pago="Efectivo",
+                concepto="Abono",
+            )
+        )
         assert isinstance(pid, int) and pid > 0
 
         pagos = PagoRepositorySA.obtener_por_renta(rid)
@@ -634,12 +779,22 @@ class TestPagoRepositorySA:
     def test_obtener_por_renta_orden(self):
         """obtener_por_renta() returns payments ordered by date descending."""
         rid = self._create_renta()
-        PagoRepositorySA.insertar(PagoCreate(
-            id_renta=rid, monto=Decimal("50000"), metodo_pago="Efectivo", concepto="P1",
-        ))
-        PagoRepositorySA.insertar(PagoCreate(
-            id_renta=rid, monto=Decimal("100000"), metodo_pago="Tarjeta", concepto="P2",
-        ))
+        PagoRepositorySA.insertar(
+            PagoCreate(
+                id_renta=rid,
+                monto=Decimal("50000"),
+                metodo_pago="Efectivo",
+                concepto="P1",
+            )
+        )
+        PagoRepositorySA.insertar(
+            PagoCreate(
+                id_renta=rid,
+                monto=Decimal("100000"),
+                metodo_pago="Tarjeta",
+                concepto="P2",
+            )
+        )
         assert len(PagoRepositorySA.obtener_por_renta(rid)) == 2
 
     def test_obtener_por_renta_vacia(self):
@@ -649,12 +804,22 @@ class TestPagoRepositorySA:
     def test_actualizar_abono_renta(self):
         """actualizar_abono_renta() recalculates abono and saldo_pendiente."""
         rid = self._create_renta(total=Decimal("300000"))
-        PagoRepositorySA.insertar(PagoCreate(
-            id_renta=rid, monto=Decimal("100000"), metodo_pago="Efectivo", concepto="A",
-        ))
-        PagoRepositorySA.insertar(PagoCreate(
-            id_renta=rid, monto=Decimal("50000"), metodo_pago="Transferencia", concepto="B",
-        ))
+        PagoRepositorySA.insertar(
+            PagoCreate(
+                id_renta=rid,
+                monto=Decimal("100000"),
+                metodo_pago="Efectivo",
+                concepto="A",
+            )
+        )
+        PagoRepositorySA.insertar(
+            PagoCreate(
+                id_renta=rid,
+                monto=Decimal("50000"),
+                metodo_pago="Transferencia",
+                concepto="B",
+            )
+        )
         PagoRepositorySA.actualizar_abono_renta(rid)
 
         session = SessionLocal()
@@ -681,9 +846,15 @@ class TestPagoRepositorySA:
     def test_uso_de_session_externa(self, db_session):
         """PagoRepo methods accept an external session."""
         rid = self._create_renta()
-        pid = PagoRepositorySA.insertar(PagoCreate(
-            id_renta=rid, monto=Decimal("75000"), metodo_pago="Efectivo", concepto="Abono",
-        ), session=db_session)
+        pid = PagoRepositorySA.insertar(
+            PagoCreate(
+                id_renta=rid,
+                monto=Decimal("75000"),
+                metodo_pago="Efectivo",
+                concepto="Abono",
+            ),
+            session=db_session,
+        )
         PagoRepositorySA.actualizar_abono_renta(rid, session=db_session)
 
         pagos = PagoRepositorySA.obtener_por_renta(rid, session=db_session)
@@ -693,10 +864,24 @@ class TestPagoRepositorySA:
     def test_to_dict_fields(self):
         """_to_dict() returns all expected payment fields."""
         rid = self._create_renta()
-        PagoRepositorySA.insertar(PagoCreate(
-            id_renta=rid, monto=Decimal("50000"), metodo_pago="Efectivo", concepto="A",
-        ))
+        PagoRepositorySA.insertar(
+            PagoCreate(
+                id_renta=rid,
+                monto=Decimal("50000"),
+                metodo_pago="Efectivo",
+                concepto="A",
+            )
+        )
         pagos = PagoRepositorySA.obtener_por_renta(rid)
-        expected = {"id", "id_renta", "fecha", "monto", "metodo_pago",
-                    "concepto", "observaciones", "usuario", "updated_at"}
+        expected = {
+            "id",
+            "id_renta",
+            "fecha",
+            "monto",
+            "metodo_pago",
+            "concepto",
+            "observaciones",
+            "usuario",
+            "updated_at",
+        }
         assert expected.issubset(pagos[0].keys())

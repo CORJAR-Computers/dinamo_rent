@@ -12,7 +12,6 @@ audit = get_audit_logger()
 
 
 class ReservaService:
-
     @staticmethod
     def listar() -> List[Dict]:
         return ReservaRepositorySA.obtener_todas()

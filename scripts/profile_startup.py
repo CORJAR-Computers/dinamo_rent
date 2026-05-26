@@ -52,7 +52,7 @@ t0 = time.perf_counter()
 for mod_name in modules_to_test:
     __import__(mod_name)
 total_import_time = time.perf_counter() - t0
-print(f"  Total import time (all modules): {total_import_time*1000:.2f}ms")
+print(f"  Total import time (all modules): {total_import_time * 1000:.2f}ms")
 
 # Individual measurements
 print()
@@ -64,11 +64,11 @@ for mod_name in modules_to_test:
     now = time.perf_counter()
     elapsed = now - last
     last = now
-    print(f"    {mod_name:40s}  {elapsed*1000:8.2f}ms")
+    print(f"    {mod_name:40s}  {elapsed * 1000:8.2f}ms")
 
 total_import_time2 = time.perf_counter() - t0
-print(f"\n  Total import time (re-import from cache): {total_import_time2*1000:.2f}ms")
-print(f"  (Second pass - all modules already cached)")
+print(f"\n  Total import time (re-import from cache): {total_import_time2 * 1000:.2f}ms")
+print("  (Second pass - all modules already cached)")
 
 print()
 print(SEP)
@@ -76,7 +76,7 @@ print("PHASE 2: Qt APPLICATION + WIDGET INIT")
 print(SEP)
 
 # Now initialize Qt
-from PySide6.QtWidgets import QApplication, QWidget
+from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QTimer
 
 # Also import the theme manager
@@ -88,7 +88,7 @@ app.setStyle("Fusion")
 # Apply theme (as done in main_qt.py)
 apply_theme()
 app_create_time = time.perf_counter() - t0
-print(f"  QApplication create + theme apply: {app_create_time*1000:.2f}ms")
+print(f"  QApplication create + theme apply: {app_create_time * 1000:.2f}ms")
 
 # Import widget classes
 from views.dashboard_view import DashboardWidget
@@ -129,11 +129,11 @@ for name, cls in widget_classes:
         elapsed = time.perf_counter() - t0
         total_widget_time += elapsed
         widget_times.append((name, elapsed, "OK"))
-        print(f"  + {name:30s}  {elapsed*1000:8.2f}ms")
+        print(f"  + {name:30s}  {elapsed * 1000:8.2f}ms")
     except Exception as e:
         elapsed = time.perf_counter() - t0
         widget_times.append((name, elapsed, f"FAILED: {e}"))
-        print(f"  ! {name:30s}  {elapsed*1000:8.2f}ms  FAILED: {str(e)[:60]}")
+        print(f"  ! {name:30s}  {elapsed * 1000:8.2f}ms  FAILED: {str(e)[:60]}")
 
 # Process pending events to let deferred QTimer callbacks fire
 t0 = time.perf_counter()
@@ -147,12 +147,12 @@ print()
 print(SEP)
 print("FINAL SUMMARY")
 print(SEP)
-print(f"  Module imports:            {total_import_time*1000:8.2f}ms")
-print(f"  QApp creation + theme:     {app_create_time*1000:8.2f}ms")
-print(f"  Widget initializations:    {total_widget_time*1000:8.2f}ms")
-print(f"  Deferred events processed: {process_time*1000:8.2f}ms")
-print(f"  ---")
-print(f"  Total (imports + widgets): {(total_import_time + total_widget_time)*1000:8.2f}ms")
+print(f"  Module imports:            {total_import_time * 1000:8.2f}ms")
+print(f"  QApp creation + theme:     {app_create_time * 1000:8.2f}ms")
+print(f"  Widget initializations:    {total_widget_time * 1000:8.2f}ms")
+print(f"  Deferred events processed: {process_time * 1000:8.2f}ms")
+print("  ---")
+print(f"  Total (imports + widgets): {(total_import_time + total_widget_time) * 1000:8.2f}ms")
 print()
 print("Note: Excludes splash screen rendering, login dialog, and DB init.")
 

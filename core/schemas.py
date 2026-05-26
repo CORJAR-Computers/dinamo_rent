@@ -18,19 +18,22 @@ F1C Changes applied:
 Usage:
     from core.schemas import UsuarioCreate, AutoSchema, RentaCreate, etc.
 """
+
 from datetime import date, time, datetime
 from typing import Optional
 from decimal import Decimal
 
-from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
+from pydantic import BaseModel, Field, model_validator, ConfigDict
 
 
 # =====================================================================
 # COMMON TYPES & VALIDATORS
 # =====================================================================
 
+
 class BaseSchema(BaseModel):
     """Base schema with common configuration."""
+
     model_config = ConfigDict(str_strip_whitespace=True, use_enum_values=True)
 
 
@@ -38,8 +41,9 @@ class BaseSchema(BaseModel):
 # USUARIOS
 # =====================================================================
 
+
 class UsuarioBase(BaseSchema):
-    username: str = Field(..., min_length=3, max_length=50, pattern=r'^[a-zA-Z0-9_]+$')
+    username: str = Field(..., min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_]+$")
     nombre: Optional[str] = Field(None, max_length=100)
     rol: Optional[str] = Field(None, max_length=50)
     email: Optional[str] = Field(None, max_length=100)
@@ -51,7 +55,7 @@ class UsuarioCreate(UsuarioBase):
 
 
 class UsuarioUpdate(BaseSchema):
-    username: str = Field(..., min_length=3, max_length=50, pattern=r'^[a-zA-Z0-9_]+$')
+    username: str = Field(..., min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_]+$")
     nombre: Optional[str] = Field(None, max_length=100)
     rol: Optional[str] = Field(None, max_length=50)
     email: Optional[str] = Field(None, max_length=100)
@@ -73,8 +77,9 @@ class UsuarioResponse(UsuarioBase):
 # AUTOS
 # =====================================================================
 
+
 class AutoBase(BaseSchema):
-    placa: str = Field(..., min_length=6, max_length=20, pattern=r'^[A-Z0-9]+$')
+    placa: str = Field(..., min_length=6, max_length=20, pattern=r"^[A-Z0-9]+$")
     marca: Optional[str] = Field(None, max_length=80)
     modelo: Optional[str] = Field(None, max_length=80)
     version: Optional[str] = Field(None, max_length=80)
@@ -86,8 +91,8 @@ class AutoBase(BaseSchema):
     no_motor: Optional[str] = Field(None, max_length=80)
     no_chasis: Optional[str] = Field(None, max_length=80)
     propietario: Optional[str] = Field(None, max_length=150)
-    estado: str = Field(default='Disponible', max_length=30)
-    costo_fijo_mensual: Decimal = Field(default=Decimal('0.00'), ge=0)
+    estado: str = Field(default="Disponible", max_length=30)
+    costo_fijo_mensual: Decimal = Field(default=Decimal("0.00"), ge=0)
     kilometraje: float = Field(default=0.0, ge=0)
     ubicacion: Optional[str] = Field(None, max_length=150)
     tipo_adquisicion: Optional[str] = Field(None, max_length=30)
@@ -106,7 +111,7 @@ class AutoCreate(AutoBase):
 
 
 class AutoUpdate(BaseSchema):
-    placa: str = Field(..., min_length=6, max_length=20, pattern=r'^[A-Z0-9]+$')
+    placa: str = Field(..., min_length=6, max_length=20, pattern=r"^[A-Z0-9]+$")
     marca: Optional[str] = Field(None, max_length=80)
     modelo: Optional[str] = Field(None, max_length=80)
     version: Optional[str] = Field(None, max_length=80)
@@ -143,12 +148,13 @@ class AutoResponse(AutoBase):
 # CLIENTES
 # =====================================================================
 
+
 class ClienteBase(BaseSchema):
     tipo_doc: Optional[str] = Field(None, max_length=30)
     no_doc: Optional[str] = Field(None, max_length=30)
     nombres: Optional[str] = Field(None, max_length=100)
     apellidos: Optional[str] = Field(None, max_length=100)
-    nombre_completo: str = Field(default='', max_length=200)
+    nombre_completo: str = Field(default="", max_length=200)
     celular: Optional[str] = Field(None, max_length=20)
     celular2: Optional[str] = Field(None, max_length=20)
     email: Optional[str] = Field(None, max_length=150)
@@ -163,13 +169,13 @@ class ClienteBase(BaseSchema):
     no_licencia: Optional[str] = Field(None, max_length=50)
     tipo_licencia: Optional[str] = Field(None, max_length=50)
     vencimiento_licencia: Optional[date] = None
-    estado: str = Field(default='Activo', max_length=30)
+    estado: str = Field(default="Activo", max_length=30)
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def generar_nombre_completo(self):
         if not self.nombre_completo and self.nombres:
-            nombres = self.nombres or ''
-            apellidos = self.apellidos or ''
+            nombres = self.nombres or ""
+            apellidos = self.apellidos or ""
             self.nombre_completo = f"{nombres} {apellidos}".strip()
         return self
 
@@ -214,6 +220,7 @@ class ClienteResponse(ClienteBase):
 # RENTAS
 # =====================================================================
 
+
 class RentaBase(BaseSchema):
     placa: str = Field(..., min_length=6, max_length=20)
     id_cliente: Optional[int] = Field(None, gt=0)
@@ -222,31 +229,31 @@ class RentaBase(BaseSchema):
     nacionalidad: Optional[str] = Field(None, max_length=80)
     fecha_recogida: date
     hora_recogida: time
-    ubicacion_recogida: Optional[str] = Field('Oficina', max_length=200)
+    ubicacion_recogida: Optional[str] = Field("Oficina", max_length=200)
     fecha_retorno: date
     hora_retorno: time
-    ubicacion_retorno: Optional[str] = Field('Oficina', max_length=200)
+    ubicacion_retorno: Optional[str] = Field("Oficina", max_length=200)
     dias_calculados: Optional[int] = Field(default=0, ge=0)
     horas_extras: Optional[int] = Field(default=0, ge=0)
-    valor_dia: Decimal = Field(default=Decimal('0.00'), ge=0)
-    valor_hora_extra: Decimal = Field(default=Decimal('0.00'), ge=0)
-    valor_dia_extra: Decimal = Field(default=Decimal('0.00'), ge=0)
-    costo_lavado: Decimal = Field(default=Decimal('0.00'), ge=0)
-    costo_silla: Decimal = Field(default=Decimal('0.00'), ge=0)
-    costo_retorno: Decimal = Field(default=Decimal('0.00'), ge=0)
-    costo_domicilio: Decimal = Field(default=Decimal('0.00'), ge=0)
-    costo_cables: Decimal = Field(default=Decimal('0.00'), ge=0)
-    costo_inversor: Decimal = Field(default=Decimal('0.00'), ge=0)
-    descuento: Decimal = Field(default=Decimal('0.00'), ge=0)
-    subtotal: Decimal = Field(default=Decimal('0.00'), ge=0)
-    impuestos: Decimal = Field(default=Decimal('0.00'), ge=0)
-    total: Decimal = Field(default=Decimal('0.00'), ge=0)
-    abono: Decimal = Field(default=Decimal('0.00'), ge=0)
-    saldo_pendiente: Decimal = Field(default=Decimal('0.00'), ge=0)
-    estado: str = Field(default='Activo', max_length=30)
+    valor_dia: Decimal = Field(default=Decimal("0.00"), ge=0)
+    valor_hora_extra: Decimal = Field(default=Decimal("0.00"), ge=0)
+    valor_dia_extra: Decimal = Field(default=Decimal("0.00"), ge=0)
+    costo_lavado: Decimal = Field(default=Decimal("0.00"), ge=0)
+    costo_silla: Decimal = Field(default=Decimal("0.00"), ge=0)
+    costo_retorno: Decimal = Field(default=Decimal("0.00"), ge=0)
+    costo_domicilio: Decimal = Field(default=Decimal("0.00"), ge=0)
+    costo_cables: Decimal = Field(default=Decimal("0.00"), ge=0)
+    costo_inversor: Decimal = Field(default=Decimal("0.00"), ge=0)
+    descuento: Decimal = Field(default=Decimal("0.00"), ge=0)
+    subtotal: Decimal = Field(default=Decimal("0.00"), ge=0)
+    impuestos: Decimal = Field(default=Decimal("0.00"), ge=0)
+    total: Decimal = Field(default=Decimal("0.00"), ge=0)
+    abono: Decimal = Field(default=Decimal("0.00"), ge=0)
+    saldo_pendiente: Decimal = Field(default=Decimal("0.00"), ge=0)
+    estado: str = Field(default="Activo", max_length=30)
     observaciones: Optional[str] = None
     km_salida: Optional[float] = Field(default=0.0, ge=0)
-    tanque_salida: Optional[str] = Field(default='Lleno', max_length=20)
+    tanque_salida: Optional[str] = Field(default="Lleno", max_length=20)
     id_reserva: Optional[int] = None
 
 
@@ -259,8 +266,8 @@ class RentaCierre(BaseSchema):
     hora_devolucion_real: time
     km_final: Optional[str] = None
     tanque_final: Optional[str] = Field(None, max_length=20)
-    nota_cierre: str = Field(default='', max_length=500)
-    otros_cobros: Decimal = Field(default=Decimal('0.00'), ge=0)
+    nota_cierre: str = Field(default="", max_length=500)
+    otros_cobros: Decimal = Field(default=Decimal("0.00"), ge=0)
 
 
 class RentaUpdate(BaseSchema):
@@ -283,6 +290,7 @@ class RentaResponse(RentaBase):
 # RESERVAS
 # =====================================================================
 
+
 class ReservaBase(BaseSchema):
     id_cliente: Optional[int] = Field(None, gt=0)
     nombre_cliente: Optional[str] = Field(None, max_length=200)
@@ -291,18 +299,18 @@ class ReservaBase(BaseSchema):
     placa_asignada: Optional[str] = Field(None, min_length=6, max_length=20)
     fecha_recogida: date
     hora_recogida: time
-    ubicacion_recogida: Optional[str] = Field('Oficina', max_length=200)
+    ubicacion_recogida: Optional[str] = Field("Oficina", max_length=200)
     fecha_retorno: date
     hora_retorno: time
-    ubicacion_retorno: Optional[str] = Field('Oficina', max_length=200)
+    ubicacion_retorno: Optional[str] = Field("Oficina", max_length=200)
     dias_calculados: Optional[int] = Field(default=0, ge=0)
     horas_extras: Optional[int] = Field(default=0, ge=0)
-    valor_dia: Decimal = Field(default=Decimal('0.00'), ge=0)
-    valor_hora_adic: Decimal = Field(default=Decimal('0.00'), ge=0)
-    abono: Decimal = Field(default=Decimal('0.00'), ge=0)
-    total: Decimal = Field(default=Decimal('0.00'), ge=0)
+    valor_dia: Decimal = Field(default=Decimal("0.00"), ge=0)
+    valor_hora_adic: Decimal = Field(default=Decimal("0.00"), ge=0)
+    abono: Decimal = Field(default=Decimal("0.00"), ge=0)
+    total: Decimal = Field(default=Decimal("0.00"), ge=0)
     observaciones: Optional[str] = None
-    estado: str = Field(default='Confirmada', max_length=30)
+    estado: str = Field(default="Confirmada", max_length=30)
 
 
 class ReservaCreate(ReservaBase):
@@ -311,6 +319,7 @@ class ReservaCreate(ReservaBase):
 
 class ReservaUpdate(BaseSchema):
     """Schema para actualizacion parcial de reservas."""
+
     id_cliente: Optional[int] = Field(None, gt=0)
     nombre_cliente: Optional[str] = Field(None, max_length=200)
     nacionalidad: Optional[str] = Field(None, max_length=80)
@@ -344,15 +353,16 @@ class ReservaResponse(ReservaBase):
 # MANTENIMIENTO
 # =====================================================================
 
+
 class MantenimientoBase(BaseSchema):
     placa: str = Field(..., min_length=6, max_length=20)
     pieza_varias_tipo: Optional[str] = Field(None, max_length=80)
     pieza_varias_fecha: Optional[date] = None
     pieza_varias_desc: Optional[str] = Field(None, max_length=250)
     pieza_varias_obs: Optional[str] = None
-    cost_varios: Decimal = Field(default=Decimal('0.00'), ge=0)
+    cost_varios: Decimal = Field(default=Decimal("0.00"), ge=0)
     km_proximo_cambio_aceite: Optional[int] = Field(default=0, ge=0)
-    total_mantenimiento: Decimal = Field(default=Decimal('0.00'), ge=0)
+    total_mantenimiento: Decimal = Field(default=Decimal("0.00"), ge=0)
 
 
 class MantenimientoCreate(MantenimientoBase):
@@ -371,6 +381,7 @@ class MantenimientoResponse(MantenimientoBase):
 # COMPARENDOS
 # =====================================================================
 
+
 class ComparendoBase(BaseSchema):
     placa: str = Field(..., min_length=6, max_length=20)
     fecha_infraccion: date
@@ -378,7 +389,7 @@ class ComparendoBase(BaseSchema):
     monto: Decimal = Field(..., ge=0)
     id_renta: Optional[int] = None
     id_cliente: Optional[int] = None
-    estado: str = Field(default='Pendiente', max_length=20)
+    estado: str = Field(default="Pendiente", max_length=20)
     observaciones: Optional[str] = None
 
 
@@ -402,6 +413,7 @@ class ComparendoResponse(ComparendoBase):
 # =====================================================================
 # PAGOS
 # =====================================================================
+
 
 class PagoBase(BaseSchema):
     id_renta: int = Field(..., gt=0)
@@ -428,6 +440,7 @@ class PagoResponse(PagoBase):
 # GASTOS
 # =====================================================================
 
+
 class GastoBase(BaseSchema):
     placa: Optional[str] = Field(None, min_length=6, max_length=20)
     fecha: date
@@ -435,7 +448,7 @@ class GastoBase(BaseSchema):
     descripcion: str = Field(..., max_length=200)
     monto: Decimal = Field(..., gt=0)
     comprobante: Optional[str] = Field(None, max_length=50)
-    usuario: Optional[str] = Field('Sistema', max_length=50)
+    usuario: Optional[str] = Field("Sistema", max_length=50)
 
 
 class GastoCreate(GastoBase):
@@ -454,12 +467,13 @@ class GastoResponse(GastoBase):
 # INSPECCIONES
 # =====================================================================
 
+
 class InspeccionBase(BaseSchema):
     id_renta: int = Field(..., gt=0)
     tipo: str = Field(..., max_length=30)
     kilometraje: float = Field(..., ge=0)
     nivel_gasolina: str = Field(..., max_length=20)
-    limpieza: Optional[str] = Field('Limpio', max_length=50)
+    limpieza: Optional[str] = Field("Limpio", max_length=50)
     tiene_repuesto: Optional[bool] = True
     tiene_gato_cruceta: Optional[bool] = True
     tiene_kit_carretera: Optional[bool] = True
@@ -483,6 +497,7 @@ class InspeccionResponse(InspeccionBase):
 # LOGIN & AUTH
 # =====================================================================
 
+
 class LoginRequest(BaseSchema):
     username: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=1, max_length=100)
@@ -504,8 +519,10 @@ class LoginResponse(BaseSchema):
 # propios. Estos son para Dashboard, Financial, RentaDocumento y
 # ComparendoRegistro que retornan estructuras compuestas.
 
+
 class RentaDetalleResponse(RentaBase):
     """Respuesta extendida de Renta con campos de cierre."""
+
     id: int
     fecha_devolucion_real: Optional[date] = None
     hora_devolucion_real: Optional[time] = None
@@ -531,6 +548,7 @@ class RentaDetalleResponse(RentaBase):
 
 class KpiGlobalesResponse(BaseSchema):
     """Respuesta de KPIs globales del Dashboard."""
+
     rentas_activas: int = 0
     autos_disponibles: int = 0
     autos_rentados: int = 0
@@ -543,6 +561,7 @@ class KpiGlobalesResponse(BaseSchema):
 
 class ResumenFinancieroResponse(BaseSchema):
     """Respuesta del resumen financiero mensual."""
+
     mes: str
     ingresos_mes: float = 0.0
     egresos_taller_mes: float = 0.0
@@ -552,6 +571,7 @@ class ResumenFinancieroResponse(BaseSchema):
 
 class RoiVehiculoResponse(BaseSchema):
     """Respuesta del ROI de un vehículo individual."""
+
     placa: str
     vehiculo: str
     ingresos: float = 0.0
@@ -565,6 +585,7 @@ class RoiVehiculoResponse(BaseSchema):
 
 class BalanceMensualItemResponse(BaseSchema):
     """Respuesta de un item del balance mensual."""
+
     mes: str
     ingresos: float = 0.0
     taller: float = 0.0
@@ -574,6 +595,7 @@ class BalanceMensualItemResponse(BaseSchema):
 
 class AlertaClienteResponse(BaseSchema):
     """Respuesta de alerta para clientes (rentas por vencer)."""
+
     titulo: str
     cliente: str
     celular: Optional[str] = None
@@ -583,6 +605,7 @@ class AlertaClienteResponse(BaseSchema):
 
 class AlertaInternaResponse(BaseSchema):
     """Respuesta de alerta interna (documentos, mantenimiento)."""
+
     titulo: str
     nivel: str = "Advertencia"
     descripcion: str
@@ -590,13 +613,15 @@ class AlertaInternaResponse(BaseSchema):
 
 class AlertasResponse(BaseSchema):
     """Respuesta consolidada de todas las alertas."""
+
     clientes: list[AlertaClienteResponse] = []
     internas: list[AlertaInternaResponse] = []
 
 
 class CalendarioItemResponse(BaseSchema):
     """Respuesta de item del calendario (renta o reserva)."""
-    tipo: str                          # 'renta' o 'reserva'
+
+    tipo: str  # 'renta' o 'reserva'
     id: int
     placa: Optional[str] = None
     cliente: Optional[str] = None
@@ -607,6 +632,7 @@ class CalendarioItemResponse(BaseSchema):
 
 class ComparendoRegistroResponse(BaseSchema):
     """Respuesta del registro de comparendo con vinculación automática."""
+
     id_comparendo: int
     vinculado: bool
     id_renta: Optional[int] = None
