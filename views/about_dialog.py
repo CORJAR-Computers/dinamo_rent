@@ -29,7 +29,7 @@ from core.logger import get_logger
 
 log = get_logger(__name__)
 
-_COPYRIGHT = "(C) 2024 Dinamo Rent a Car"
+_COPYRIGHT = "(C) 2024 Corjar Computers"
 _DESCRIPTION = (
     "Sistema de Gestion de Flota para renta de vehiculos.\n"
     "Administracion integral: flota, clientes, rentas,\n"

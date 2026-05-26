@@ -1,6 +1,6 @@
-# 🚗 Dinamo Rent ERP - Sistema de Gestión de Flota
+# 🖥️ Dinamo Rent ERP - Sistema de Gestión de Flota
 
-> Sistema de gestión de flota vehicular para Dinamo Rent a Car - Sincelejo, Colombia
+> Sistema de gestión de flota para renta de vehículos. Administración integral: flota, clientes, rentas, reservas, finanzas, taller y más.
 
 [![CI — Ruff + Pytest](https://github.com/aleksei-corom/dinamo_rent/actions/workflows/ruff-lint.yml/badge.svg?branch=main)](https://github.com/aleksei-corom/dinamo_rent/actions/workflows/ruff-lint.yml) [![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)](tests/)
 

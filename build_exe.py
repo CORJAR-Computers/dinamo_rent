@@ -456,9 +456,9 @@ def _make_spec_manual(dist_path: Path, onefile: bool):
     lines.append("")
     lines.append("    # Metadatos (Windows)")
     lines.append(f"    version='{APP_VERSION}',")
-    lines.append("    company_name='Dinamo Rent a Car',")
+    lines.append("    company_name='Corjar Computers',")
     lines.append("    file_description='Dinamo Rent ERP - Sistema de Gestion de Flota',")
-    lines.append("    legal_copyright='(c) Dinamo Rent a Car',")
+    lines.append("    legal_copyright='(c) Corjar Computers',")
     lines.append(f"    product_name='{APP_NAME}',")
     lines.append(")")
 

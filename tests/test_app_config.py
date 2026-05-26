@@ -610,7 +610,7 @@ class TestFallbackValues:
         e = cfg.get_email_config()
         assert e["enabled"] is False  # fallback
         assert e["smtp_server"] == "smtp.gmail.com"  # fallback
-        assert e["from_name"] == "Dinamo Rent"  # fallback
+        assert e["from_name"] == "Corjar Computers"  # fallback
 
     def test_reports_config_fallbacks(self, ini_file_minimal):
         """get_reports_config uses fallbacks for missing keys."""

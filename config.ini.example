@@ -77,7 +77,7 @@ audit_retention_days = 30
 [application]
 name = Dinamo Rent ERP
 version = 3.2.0
-author = Dinamo Rent a Car
+author = Corjar Computers
 language = es
 timezone = America/Bogota
 
@@ -154,7 +154,7 @@ use_tls = true
 username = 
 password = 
 from_email = 
-from_name = Dinamo Rent
+from_name = Corjar Computers
 
 ; ─────────────────────────────────────────────────────────────────────
 ; [whatsapp] — Configuración de WhatsApp
