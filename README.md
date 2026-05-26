@@ -2,7 +2,7 @@
 
 > Sistema de gestión de flota vehicular para Dinamo Rent a Car - Sincelejo, Colombia
 
-[![CI — Ruff + Pytest](https://github.com/aleksei-corom/dinamo_rent/actions/workflows/ruff-lint.yml/badge.svg?branch=master)](https://github.com/aleksei-corom/dinamo_rent/actions/workflows/ruff-lint.yml)
+[![CI — Ruff + Pytest](https://github.com/aleksei-corom/dinamo_rent/actions/workflows/ruff-lint.yml/badge.svg?branch=main)](https://github.com/aleksei-corom/dinamo_rent/actions/workflows/ruff-lint.yml)
 
 ---
 
