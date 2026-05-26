@@ -81,7 +81,7 @@ class _Config:
         "application": {
             "name": "Dinamo Rent ERP",
             "version": "3.2.0",
-            "author": "Dinamo Rent a Car",
+            "author": "Corjar Computers",
             "language": "es",
             "timezone": "America/Bogota",
             "production_mode": "false",
@@ -143,7 +143,7 @@ class _Config:
             "username": "",
             "password": "",
             "from_email": "",
-            "from_name": "Dinamo Rent",
+            "from_name": "Corjar Computers",
         },
         "whatsapp": {
             "enabled": "true",
@@ -328,7 +328,7 @@ KM_ALERTA_ACEITE_PREV = _cfg.getint("business", "km_alert_aceite", 500)
 # ─── App ──────────────────────────────────────────────────────────────────────
 APP_NAME = _cfg.get("application", "name", "Dinamo Rent ERP")
 APP_VERSION = _cfg.get("application", "version", "3.2.0")
-APP_AUTHOR = _cfg.get("application", "author", "Dinamo Rent a Car")
+APP_AUTHOR = _cfg.get("application", "author", "Corjar Computers")
 APP_LANGUAGE = _cfg.get("application", "language", "es")
 APP_TIMEZONE = _cfg.get("application", "timezone", "America/Bogota")
 PRODUCTION_MODE = _cfg.getbool("application", "production_mode", False)
@@ -399,7 +399,7 @@ EMAIL_USE_TLS = _cfg.getbool("email", "use_tls", True)
 EMAIL_USER = _cfg.get("email", "username", "")
 EMAIL_PASSWORD = _cfg.get("email", "password", "")
 EMAIL_FROM = _cfg.get("email", "from_email", "")
-EMAIL_FROM_NAME = _cfg.get("email", "from_name", "Dinamo Rent")
+EMAIL_FROM_NAME = _cfg.get("email", "from_name", "Corjar Computers")
 
 # ─── WhatsApp ─────────────────────────────────────────────────────────────────
 WHATSAPP_ENABLED = _cfg.getbool("whatsapp", "enabled", True)

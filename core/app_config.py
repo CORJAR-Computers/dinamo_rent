@@ -200,7 +200,7 @@ class AppConfig:
         return {
             "name": self.get("application", "name", "Dinamo Rent ERP"),
             "version": self.get("application", "version", "3.2.0"),
-            "author": self.get("application", "author", "Dinamo Rent a Car"),
+            "author": self.get("application", "author", "Corjar Computers"),
             "language": self.get("application", "language", "es"),
             "timezone": self.get("application", "timezone", "America/Bogota"),
         }
@@ -258,7 +258,7 @@ class AppConfig:
             "username": self.get("email", "username", ""),
             "password": self.get("email", "password", ""),
             "from_email": self.get("email", "from_email", ""),
-            "from_name": self.get("email", "from_name", "Dinamo Rent"),
+            "from_name": self.get("email", "from_name", "Corjar Computers"),
         }
 
     def get_reports_config(self) -> dict:

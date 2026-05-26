@@ -179,7 +179,7 @@ class PreferencesSetupPage(QWizardPage):
         layout = QVBoxLayout(self)
         form = QFormLayout()
 
-        self.txt_empresa = QLineEdit("Dinamo Rent")
+        self.txt_empresa = QLineEdit("Corjar Computers")
         self.txt_direccion = QLineEdit()
         self.txt_telefono = QLineEdit()
         self.cmb_moneda = QComboBox()
