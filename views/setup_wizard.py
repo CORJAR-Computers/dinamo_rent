@@ -286,7 +286,7 @@ class SetupWizard(QWizard):
             "company_phone": self.field("pref_telefono"),
             "currency_symbol": self.field("pref_moneda"),
         }
-        guardar_configuracion("app", app_config)
+        guardar_configuracion("application", app_config)
 
         backup_config = {
             "encryption_enabled": "true" if self.field("pref_encrypt") else "false",

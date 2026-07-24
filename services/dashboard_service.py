@@ -12,7 +12,6 @@ from core.schemas import (
 from repositories.repositories_sa import (
     AutoRepositorySA,
     RentaRepositorySA,
-    InformeRepositorySA,
     AlertaRepositorySA,
 )
 
@@ -21,7 +20,13 @@ log = get_logger(__name__)
 
 class DashboardService:
     @staticmethod
-    def kpi_globales() -> KpiGlobalesResponse:
+    def kpi_y_financiero() -> Dict:
+        """Obtiene KPIs de flota + resumen financiero del mes en una sola pasada."""
+        from sqlalchemy import text
+        from core.database_sa import get_session
+        from core.config import DB_ENGINE
+
+        # ── Flota y rentas ────────────────────────────────────────────
         autos = AutoRepositorySA.obtener_todos()
         rentas_activas = RentaRepositorySA.obtener_activas()
 
@@ -29,32 +34,71 @@ class DashboardService:
         rentados = sum(1 for a in autos if a.get("estado") == "Rentado")
         en_mantenimiento = sum(1 for a in autos if a.get("estado") == "Mantenimiento")
         total_flota = len(autos)
+        activos_flota = sum(1 for a in autos if a.get("estado") not in ["Vendido", "Baja"])
+        ocupacion = round((rentados / activos_flota) * 100, 1) if activos_flota > 0 else 0.0
 
-        ocupacion = 0.0
-        if total_flota > 0:
-            activos = sum(1 for a in autos if a.get("estado") not in ["Vendido", "Baja"])
-            ocupacion = round((rentados / activos) * 100, 1) if activos > 0 else 0.0
-
+        # ── Financiero del mes actual: una sola query con filtro WHERE ──
         mes_actual = date.today().strftime("%Y-%m")
-        balance = InformeRepositorySA.obtener_balance_consolidado()
-        ingresos_mes = 0.0
-        for b in balance:
-            if str(b.get("mes", "")) == mes_actual:
-                ingresos_mes = float(b.get("ingresos", 0) or 0)
-                break
 
-        pagos_pendientes = sum(float(r.get("saldo_pendiente", 0) or 0) for r in rentas_activas)
+        if DB_ENGINE == "mysql":
+            date_expr_fecha = "DATE_FORMAT(fecha, '%%Y-%%m')"
+            date_expr_pieza = "DATE_FORMAT(pieza_varias_fecha, '%%Y-%%m')"
+        else:
+            date_expr_fecha = "strftime('%Y-%m', fecha)"
+            date_expr_pieza = "strftime('%Y-%m', pieza_varias_fecha)"
+
+        sql_mes = text(f"""
+            SELECT
+                COALESCE(SUM(ingreso), 0) as ingresos,
+                COALESCE(SUM(taller), 0) as egresos_taller,
+                COALESCE(SUM(caja),   0) as gastos_caja
+            FROM (
+                SELECT fecha, monto        as ingreso, 0                    as taller, 0     as caja
+                FROM pagos
+                WHERE {date_expr_fecha} = :mes
+
+                UNION ALL
+
+                SELECT pieza_varias_fecha as fecha,
+                       0 as ingreso, total_mantenimiento as taller, 0 as caja
+                FROM mantenimiento_vehiculos
+                WHERE {date_expr_pieza} = :mes
+
+                UNION ALL
+
+                SELECT fecha, 0 as ingreso, 0 as taller, monto as caja
+                FROM gastos
+                WHERE {date_expr_fecha} = :mes
+            ) t
+            WHERE fecha IS NOT NULL
+        """)
+
+        with get_session() as session:
+            row = session.execute(sql_mes, {"mes": mes_actual}).fetchone()
+
+        ingresos = float(row[0] or 0) if row else 0.0
+        egresos_taller = float(row[1] or 0) if row else 0.0
+        gastos_caja = float(row[2] or 0) if row else 0.0
 
         return {
+            # KPIs de flota
             "rentas_activas": len(rentas_activas),
             "autos_disponibles": disponibles,
             "autos_rentados": rentados,
             "autos_mantenimiento": en_mantenimiento,
             "total_flota": total_flota,
             "ocupacion_flota": ocupacion,
-            "ingresos_mes": ingresos_mes,
-            "pagos_pendientes": pagos_pendientes,
+            # Financiero mes actual
+            "ingresos_mes": ingresos,
+            "egresos_taller_mes": egresos_taller,
+            "gastos_caja_mes": gastos_caja,
+            "utilidad_mes": ingresos - egresos_taller - gastos_caja,
         }
+
+    @staticmethod
+    def kpi_globales() -> KpiGlobalesResponse:
+        """Delegado a kpi_y_financiero para compatibilidad con código existente."""
+        return DashboardService.kpi_y_financiero()
 
     @staticmethod
     def obtener_activas() -> List[Dict]:
@@ -67,7 +111,6 @@ class DashboardService:
     @staticmethod
     def obtener_alertas() -> AlertasResponse:
         from services.alerta_service import AlertaService
-
         return AlertaService.obtener_todas_las_alertas()
 
     @staticmethod
@@ -84,26 +127,12 @@ class DashboardService:
 
     @staticmethod
     def obtener_resumen_financiero() -> ResumenFinancieroResponse:
-        mes_actual = date.today().strftime("%Y-%m")
-        balance = InformeRepositorySA.obtener_balance_consolidado()
-
-        for b in balance:
-            if str(b.get("mes", "")) == mes_actual:
-                ingresos = float(b.get("ingresos", 0) or 0)
-                taller = float(b.get("egresos_taller", 0) or 0)
-                caja = float(b.get("gastos_caja", 0) or 0)
-                return {
-                    "mes": mes_actual,
-                    "ingresos_mes": ingresos,
-                    "egresos_taller_mes": taller,
-                    "gastos_caja_mes": caja,
-                    "utilidad_mes": ingresos - taller - caja,
-                }
-
+        """Compatibilidad: extrae solo el resumen financiero del resultado unificado."""
+        data = DashboardService.kpi_y_financiero()
         return {
-            "mes": mes_actual,
-            "ingresos_mes": 0.0,
-            "egresos_taller_mes": 0.0,
-            "gastos_caja_mes": 0.0,
-            "utilidad_mes": 0.0,
+            "mes": date.today().strftime("%Y-%m"),
+            "ingresos_mes": data["ingresos_mes"],
+            "egresos_taller_mes": data["egresos_taller_mes"],
+            "gastos_caja_mes": data["gastos_caja_mes"],
+            "utilidad_mes": data["utilidad_mes"],
         }

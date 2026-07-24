@@ -79,10 +79,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install "pytest>=8,<9"
+          pip install "pytest>=8,<9" pytest-cov
 
       - name: Copy config.ini.example
         run: cp config.ini.example config.ini
 
-      - name: Run tests
-        run: xvfb-run python -m pytest tests/ -v --tb=short -q
+      - name: Run tests with coverage
+        run: xvfb-run python -m pytest tests/ --cov=. --cov-report=term --cov-report=xml -v --tb=short -q
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
