@@ -34,11 +34,13 @@ ENV/
 config.ini
 !config.ini.example
 
-# ── Base de datos local (SQLite) ───────────────────────────────────
+# ── Base de datos local (SQLite / Firebird) ───────────────────────────
 *.db
 *.db-journal
 *.db-wal
 *.db-shm
+*.fdb
+Firebird-*/
 
 # ── Backups ────────────────────────────────────────────────────────
 Backups/

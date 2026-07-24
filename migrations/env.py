@@ -38,23 +38,13 @@ target_metadata = Base.metadata
 # ... etc.
 
 
+from core.database_sa import _get_database_url
+
 def get_database_url():
     """
-    Generate database URL based on project configuration.
-    Supports both MySQL and SQLite.
+    Generate database URL using the centralized project configuration.
     """
-    if DB_ENGINE == "mysql":
-        # Build MySQL URL
-        mysql_config = DB_MYSQL
-        password = f":{mysql_config['password']}" if mysql_config["password"] else ""
-        return (
-            f"mysql+pymysql://{mysql_config['user']}{password}"
-            f"@{mysql_config['host']}:{mysql_config['port']}"
-            f"/{mysql_config['database']}"
-        )
-    else:
-        # Build SQLite URL
-        return f"sqlite:///{DB_PATH}"
+    return _get_database_url()
 
 
 def run_migrations_offline() -> None:
@@ -101,7 +91,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         # Enable foreign keys for SQLite
-        if DB_ENGINE != "mysql":
+        if DB_ENGINE == "sqlite" or (DB_ENGINE != "mysql" and DB_ENGINE != "firebird"):
             from sqlalchemy import text
 
             connection.execute(text("PRAGMA foreign_keys = ON"))

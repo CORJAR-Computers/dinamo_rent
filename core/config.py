@@ -39,13 +39,13 @@ class _Config:
     # Valores por defecto (usados si config.ini no existe o falta la clave)
     _DEFAULTS = {
         "database": {
-            "engine": "mysql",
+            "engine": "firebird",
             "host": "localhost",
-            "port": "3306",
-            "user": "root",
-            "password": "",
+            "port": "3050",
+            "user": "sysdba",
+            "password": "masterkey",
             "database": "dinamo_rent",
-            "path": "dinamo_rent_v3.db",
+            "path": "dinamo_rent_v3.fdb",
             "timeout": "10",
             "pool_size": "10",
             "pool_max_overflow": "20",
@@ -254,9 +254,9 @@ BACKUP_DIR.mkdir(exist_ok=True)
 
 # ─── Base de datos ────────────────────────────────────────────────────────────
 # Variables de entorno tienen prioridad absoluta (para Docker/VPS)
-DB_ENGINE = os.getenv("DINAMO_DB_ENGINE", _cfg.get("database", "engine", "mysql"))
+DB_ENGINE = os.getenv("DINAMO_DB_ENGINE", _cfg.get("database", "engine", "firebird"))
 
-DB_NAME = _cfg.get("database", "path", "dinamo_rent_v3.db")
+DB_NAME = _cfg.get("database", "path", "dinamo_rent_v3.fdb")
 DB_PATH = str(BASE_DIR / DB_NAME)
 DB_TIMEOUT = _cfg.getint("database", "timeout", 10)
 

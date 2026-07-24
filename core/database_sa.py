@@ -23,6 +23,7 @@ from core.config import (
     DB_POOL_SIZE,
     DB_POOL_MAX_OVERFLOW,
     DB_POOL_PRE_PING,
+    BASE_DIR,
 )
 from core.logger import get_logger
 
@@ -34,6 +35,17 @@ log = get_logger(__name__)
 _engine = None
 _SessionMaker = None
 
+if DB_ENGINE == "firebird":
+    from firebird.driver import driver_config
+    import os
+    
+    # Buscamos fbclient.dll en la carpeta de Firebird descargada o en la ruta de ejecución
+    fb_path = BASE_DIR / "Firebird-4.0.7.3271" / "fbclient.dll"
+    if fb_path.exists():
+        driver_config.fb_client_library.value = str(fb_path)
+    else:
+        log.warning("No se encontró fbclient.dll en la ruta esperada de Firebird Embedded.")
+
 
 def _get_database_url() -> str:
     if DB_ENGINE == "mysql":
@@ -44,6 +56,13 @@ def _get_database_url() -> str:
             f"@{cfg['host']}:{cfg['port']}/{cfg['database']}"
             f"?charset=utf8mb4"
         )
+    elif DB_ENGINE == "firebird":
+        # Reutilizamos DB_MYSQL para los defaults de usuario/password (sysdba/masterkey)
+        cfg = DB_MYSQL
+        password_part = f":{cfg['password']}" if cfg["password"] else ""
+        # Firebird Embedded requiere ruta absoluta y barras limpias
+        abs_path = DB_PATH.replace("\\", "/")
+        return f"firebird+firebird://{cfg['user']}{password_part}@/{abs_path}?charset=UTF8"
     return f"sqlite:///{DB_PATH}"
 
 
@@ -59,6 +78,13 @@ def _create_engine_instance():
             pool_timeout=30,
             pool_recycle=3600,
             pool_pre_ping=DB_POOL_PRE_PING,
+            echo=False,
+        )
+    elif DB_ENGINE == "firebird":
+        from sqlalchemy.pool import NullPool
+        engine = create_engine(
+            url,
+            poolclass=NullPool,
             echo=False,
         )
     else:
@@ -166,6 +192,10 @@ _MIGRATIONS_INDEXES = [
 
 
 def _apply_migrations() -> None:
+    if DB_ENGINE != "mysql":
+        log.info(f"Omitiendo _apply_migrations manuales para {DB_ENGINE} (gestionado por SQLAlchemy/Alembic)")
+        return
+
     eng = get_engine()
     applied = 0
     skipped = 0
@@ -210,7 +240,8 @@ def _apply_migrations() -> None:
 
 def init_db(drop: bool = False) -> None:
     """Initialize database — imports models lazily."""
-    from core.models import Base
+    from core.models import Base, Usuario
+    from core.security import SecurityManager
 
     eng = get_engine()
 
@@ -222,6 +253,24 @@ def init_db(drop: bool = False) -> None:
     log.info("Database tables created successfully")
     _apply_migrations()
 
+    # Seed default admin user if no users exist
+    try:
+        with get_session() as session:
+            count = session.query(Usuario).count()
+            if count == 0:
+                admin_user = Usuario(
+                    username="admin",
+                    password=SecurityManager.hash_password("admin123"),
+                    nombre="Administrador Principal",
+                    rol="Administrador",
+                    activo=1,
+                    debe_cambiar_password=0,
+                )
+                session.add(admin_user)
+                log.info("Usuario 'admin' creado por defecto (password: admin123)")
+    except Exception as e:
+        log.warning(f"No se pudo verificar o crear el usuario admin por defecto: {e}")
+
 
 def check_connection() -> tuple[bool, str]:
     try:
@@ -230,6 +279,10 @@ def check_connection() -> tuple[bool, str]:
                 result = session.execute(text("SELECT VERSION() as version"))
                 version = result.scalar()
                 return True, f"MySQL {version} - Connection successful"
+            elif DB_ENGINE == "firebird":
+                result = session.execute(text("SELECT CURRENT_USER FROM RDB$DATABASE"))
+                user = result.scalar()
+                return True, f"Firebird ({user}) - Connection successful"
             else:
                 result = session.execute(text("SELECT sqlite_version()"))
                 version = result.scalar()
