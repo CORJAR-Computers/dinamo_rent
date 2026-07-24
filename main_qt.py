@@ -795,6 +795,8 @@ class MainWindow(QMainWindow):
         for _ in range(len(self._vistas_classes)):
             self.stack.addWidget(QWidget())
 
+        self._first_load_done = False
+        
         # Cargar la vista inicial
         self._cambiar_vista(0)
 
@@ -803,9 +805,11 @@ class MainWindow(QMainWindow):
             self._cerrar_sesion()
             return
 
-        # ── Si es el mismo índice, ignorar ──────────────────────────────────
-        if self.stack.currentIndex() == idx:
+        # ── Si es el mismo índice, ignorar (excepto en el primer arranque) ──
+        if self.stack.currentIndex() == idx and self._first_load_done:
             return
+
+        self._first_load_done = True
 
         # ── Guarda anti-re-entrada mientras la animación está en curso ──────
         if getattr(self, "_page_animating", False):
