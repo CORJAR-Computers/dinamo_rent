@@ -59,7 +59,7 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Install system dependencies (Qt + xvfb + WeasyPrint)
+      - name: Install system dependencies (Qt + xvfb)
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq \
@@ -76,16 +76,12 @@ jobs:
             libxkbcommon-x11-0 \
             libegl1 \
             libgl1 \
-            libpango-1.0-0 \
-            libpangocairo-1.0-0 \
-            libcairo2 \
-            libffi-dev \
             xvfb
 
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          grep -vi weasyprint requirements.txt | pip install -r /dev/stdin
           pip install "pytest>=8,<9" pytest-cov
 
       - name: Copy config.ini.example
