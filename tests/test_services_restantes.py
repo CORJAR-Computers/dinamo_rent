@@ -739,8 +739,8 @@ class TestBackupService:
                 assert success is True, f"Backup failed: {msg}"
                 assert "Backup" in msg or "copia" in msg.lower()
 
-                # Verify the backup file was created
-                backup_files = [f for f in os.listdir(tmpdir) if f.endswith(".db")]
+                # Verify the backup file was created (plain .db or encrypted .db.enc)
+                backup_files = [f for f in os.listdir(tmpdir) if f.endswith((".db", ".enc"))]
                 assert len(backup_files) >= 1
             finally:
                 cfg.DB_PATH = original_db_path
