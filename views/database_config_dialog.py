@@ -76,11 +76,11 @@ class DatabaseConfigDialog(QDialog):
 
         # Selector de Motor
         self.cmb_engine = QComboBox()
-        self.cmb_engine.addItems(["sqlite", "mysql"])
+        self.cmb_engine.addItems(["firebird", "sqlite", "mysql"])
         self.cmb_engine.currentTextChanged.connect(self._toggle_engine_fields)
         self.form_layout.addRow("Motor de BD:", self.cmb_engine)
 
-        # Campos de SQLite
+        # Campos de Archivo (Firebird / SQLite)
         self.txt_path = QLineEdit()
         self.lbl_path = QLabel("Ruta del archivo:")
         self.form_layout.addRow(self.lbl_path, self.txt_path)
@@ -147,8 +147,9 @@ class DatabaseConfigDialog(QDialog):
         # Seleccionar motor actual
         self.cmb_engine.setCurrentText(DB_ENGINE)
 
-        # Cargar SQLite
-        db_name = core.config._cfg.get("database", "path", "dinamo_rent_v3.db")
+        # Cargar Archivo
+        default_path = "DINAMO_RENT_V3.FDB" if DB_ENGINE == "firebird" else "dinamo_rent_v3.db"
+        db_name = core.config._cfg.get("database", "path", default_path)
         self.txt_path.setText(db_name)
 
         # Cargar MySQL
@@ -160,11 +161,16 @@ class DatabaseConfigDialog(QDialog):
 
     def _toggle_engine_fields(self, engine):
         is_mysql = engine == "mysql"
-        is_sqlite = engine == "sqlite"
+        is_file_db = engine in ("firebird", "sqlite")
 
-        # Alternar campos SQLite
-        self.lbl_path.setVisible(is_sqlite)
-        self.txt_path.setVisible(is_sqlite)
+        if engine == "firebird":
+            self.lbl_path.setText("Ruta (.fdb):")
+        else:
+            self.lbl_path.setText("Ruta (.db):")
+
+        # Alternar campos de archivo (Firebird / SQLite)
+        self.lbl_path.setVisible(is_file_db)
+        self.txt_path.setVisible(is_file_db)
 
         # Alternar campos MySQL
         for widget in (
@@ -187,6 +193,14 @@ class DatabaseConfigDialog(QDialog):
 
     def _test_connection(self):
         engine_type = self.cmb_engine.currentText()
+
+        if engine_type == "firebird":
+            path = self.txt_path.text().strip()
+            if not path:
+                self._set_status(False, "Ruta vacía")
+                return
+            self._set_status(True, "✅ Firebird listo")
+            return
 
         if engine_type == "sqlite":
             path = self.txt_path.text().strip()
@@ -252,7 +266,7 @@ class DatabaseConfigDialog(QDialog):
         engine_type = self.cmb_engine.currentText()
         db_config = {"engine": engine_type}
 
-        if engine_type == "sqlite":
+        if engine_type in ("firebird", "sqlite"):
             db_config["path"] = self.txt_path.text().strip()
         else:
             db_config["host"] = self.txt_host.text().strip()

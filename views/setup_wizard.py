@@ -37,7 +37,7 @@ class DbSetupPage(QWizardPage):
         form = QFormLayout()
 
         self.cmb_engine = QComboBox()
-        self.cmb_engine.addItems(["sqlite", "mysql"])
+        self.cmb_engine.addItems(["firebird", "sqlite", "mysql"])
         self.cmb_engine.currentTextChanged.connect(self._toggle_mysql_fields)
         form.addRow("Motor:", self.cmb_engine)
 
