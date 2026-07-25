@@ -29,7 +29,6 @@
 # ── Git / CI files (always LF) ──
 .gitignore      text eol=lf
 .gitattributes  text eol=lf
-*.yml           text eol=lf
 
 # ── Shell scripts (always LF, even on Windows) ──
 *.sh        text eol=lf
