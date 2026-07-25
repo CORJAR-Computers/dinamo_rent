@@ -275,12 +275,15 @@ class TestCierreRentaDialogRecalcular:
     @patch("views.cierre_renta_view.RentaService.obtener", return_value=FAKE_RENTA)
     def test_recalcular_con_otros_cobros(self, mock_obtener, qapp):
         """Adding 'otros' cobros increases total."""
+        from PySide6.QtCore import QDate
         from views.cierre_renta_view import CierreRentaDialog
 
         dlg = CierreRentaDialog(parent=None, id_renta=1)
         try:
             _process_events()
 
+            # Set date to pactada so there's no mora
+            dlg.date_retorno.setDate(QDate(2026, 5, 25))
             dlg.sp_otros.setValue(50000.0)
             dlg._recalcular()
 
