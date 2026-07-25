@@ -81,9 +81,9 @@ class TestDashboardWidget:
             dashcards = widget.findChildren(QFrame)
             matching = [f for f in dashcards if f.property("dashcard") == "true"]
             # 5 KPIs + 4 mini-cards = 9 cards
-            assert (
-                len(matching) >= 9
-            ), f"Expected at least 9 dashboard cards (5 KPI + 4 minicard), found {len(matching)}"
+            assert len(matching) >= 9, (
+                f"Expected at least 9 dashboard cards (5 KPI + 4 minicard), found {len(matching)}"
+            )
         finally:
             widget.close()
             widget.deleteLater()
@@ -107,9 +107,9 @@ class TestDashboardWidget:
         widget = DashboardWidget()
         try:
             tables = widget.findChildren(QTableWidget)
-            assert (
-                len(tables) >= 2
-            ), f"Expected at least 2 tables (alertas + rentas), found {len(tables)}"
+            assert len(tables) >= 2, (
+                f"Expected at least 2 tables (alertas + rentas), found {len(tables)}"
+            )
         finally:
             widget.close()
             widget.deleteLater()
@@ -137,9 +137,9 @@ class TestDashboardWidget:
 
         widget = DashboardWidget()
         try:
-            assert (
-                widget._loading_overlay is not None
-            ), "DashboardWidget should initialize a LoadingOverlay"
+            assert widget._loading_overlay is not None, (
+                "DashboardWidget should initialize a LoadingOverlay"
+            )
         finally:
             widget.close()
             widget.deleteLater()

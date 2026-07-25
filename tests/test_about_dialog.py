@@ -71,9 +71,9 @@ class TestAboutDialog:
             labels = dlg.findChildren(QLabel)
             texts = [lbl.text() for lbl in labels]
             version_str = f"v{APP_VERSION}"
-            assert any(
-                version_str in t for t in texts
-            ), f"Expected version '{version_str}' in dialog labels, found: {texts}"
+            assert any(version_str in t for t in texts), (
+                f"Expected version '{version_str}' in dialog labels, found: {texts}"
+            )
         finally:
             dlg.close()
 
@@ -87,9 +87,9 @@ class TestAboutDialog:
             labels = dlg.findChildren(QLabel)
             texts = [lbl.text() for lbl in labels]
             expected = "Produccion" if PRODUCTION_MODE else "Desarrollo"
-            assert any(
-                expected in t for t in texts
-            ), f"Expected mode '{expected}' in dialog labels, found: {texts}"
+            assert any(expected in t for t in texts), (
+                f"Expected mode '{expected}' in dialog labels, found: {texts}"
+            )
         finally:
             dlg.close()
 
@@ -102,9 +102,9 @@ class TestAboutDialog:
         try:
             labels = dlg.findChildren(QLabel)
             texts = [lbl.text() for lbl in labels]
-            assert any(
-                APP_AUTHOR in t for t in texts
-            ), f"Expected author '{APP_AUTHOR}' in dialog labels, found: {texts}"
+            assert any(APP_AUTHOR in t for t in texts), (
+                f"Expected author '{APP_AUTHOR}' in dialog labels, found: {texts}"
+            )
         finally:
             dlg.close()
 
@@ -116,9 +116,9 @@ class TestAboutDialog:
         try:
             labels = dlg.findChildren(QLabel)
             texts = [lbl.text() for lbl in labels]
-            assert any(
-                "2024" in t and "Corjar" in t for t in texts
-            ), f"Expected copyright with '2024 Corjar' in dialog labels, found: {texts}"
+            assert any("2024" in t and "Corjar" in t for t in texts), (
+                f"Expected copyright with '2024 Corjar' in dialog labels, found: {texts}"
+            )
         finally:
             dlg.close()
 
@@ -130,9 +130,9 @@ class TestAboutDialog:
         try:
             labels = dlg.findChildren(QLabel)
             texts = [lbl.text() for lbl in labels]
-            assert any(
-                "Python" in t for t in texts
-            ), f"Expected build info with 'Python' in dialog labels, found: {texts}"
+            assert any("Python" in t for t in texts), (
+                f"Expected build info with 'Python' in dialog labels, found: {texts}"
+            )
         finally:
             dlg.close()
 
@@ -147,13 +147,13 @@ class TestAboutDialog:
         from core.config import DB_ENGINE
 
         if DB_ENGINE in ("sqlite", "sqlite3"):
-            assert (
-                "SQLite" in info
-            ), f"Expected 'SQLite' in DB info for engine={DB_ENGINE}, got: {info}"
+            assert "SQLite" in info, (
+                f"Expected 'SQLite' in DB info for engine={DB_ENGINE}, got: {info}"
+            )
         else:
-            assert (
-                "MySQL" in info or "SQLite" in info
-            ), f"Expected 'MySQL' or 'SQLite' in DB info, got: {info}"
+            assert "MySQL" in info or "SQLite" in info, (
+                f"Expected 'MySQL' or 'SQLite' in DB info, got: {info}"
+            )
 
     # ── Logo handling ──────────────────────────────────────────────────────
 

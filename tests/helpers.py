@@ -411,22 +411,22 @@ class LoaderTestMixin:
         from PySide6.QtWidgets import QWidget
 
         header = dlg.findChild(QWidget, "dlg_header")
-        assert (
-            header is not None
-        ), f"{type(dlg).__name__}: missing dlg_header widget (build_dialog_header)"
+        assert header is not None, (
+            f"{type(dlg).__name__}: missing dlg_header widget (build_dialog_header)"
+        )
         assert not header.isHidden(), f"{type(dlg).__name__}: dlg_header is hidden"
 
         body = dlg.findChild(QWidget, "dlg_body")
-        assert (
-            body is not None
-        ), f"{type(dlg).__name__}: missing dlg_body widget (dialog_body_style)"
+        assert body is not None, (
+            f"{type(dlg).__name__}: missing dlg_body widget (dialog_body_style)"
+        )
         assert not body.isHidden(), f"{type(dlg).__name__}: dlg_body is hidden"
 
         root_layout = dlg.layout()
         assert root_layout is not None, f"{type(dlg).__name__}: no root layout"
-        assert (
-            root_layout.count() >= 2
-        ), f"{type(dlg).__name__}: expected >= 2 items in root layout, got {root_layout.count()}"
+        assert root_layout.count() >= 2, (
+            f"{type(dlg).__name__}: expected >= 2 items in root layout, got {root_layout.count()}"
+        )
 
     @staticmethod
     def assert_expected_widgets(
@@ -483,9 +483,9 @@ class LoaderTestMixin:
     @staticmethod
     def assert_overlay_exists(dlg: LoaderTestDialog) -> None:
         """Verify the LoadingOverlay was created."""
-        assert (
-            dlg._loading_overlay is not None
-        ), f"{type(dlg).__name__} should have created a LoadingOverlay"
+        assert dlg._loading_overlay is not None, (
+            f"{type(dlg).__name__} should have created a LoadingOverlay"
+        )
 
     @staticmethod
     def assert_callback_executed(dlg: LoaderTestDialog) -> None:
@@ -501,9 +501,9 @@ class LoaderTestMixin:
 
         Only works with LoaderTestDialog subclasses that set overlay_hidden.
         """
-        assert (
-            dlg.overlay_hidden
-        ), f"Overlay of {type(dlg).__name__} was not hidden in finally block"
+        assert dlg.overlay_hidden, (
+            f"Overlay of {type(dlg).__name__} was not hidden in finally block"
+        )
 
     # ── Complete test scenarios ─────────────────────────────────────────────
 
@@ -610,9 +610,9 @@ class LoaderTestMixin:
             if expected_widgets is not None:
                 self.assert_expected_widgets(dlg, expected_widgets)
 
-            assert (
-                not dlg.callback_executed
-            ), f"{type(dlg).__name__}: callback should NOT have run yet"
+            assert not dlg.callback_executed, (
+                f"{type(dlg).__name__}: callback should NOT have run yet"
+            )
 
             self.process_events()
 
@@ -751,9 +751,9 @@ class BaseWidgetTestMixin:
         assert isinstance(widget, QWidget), f"Expected QWidget, got {type(widget).__name__}"
         assert widget.layout() is not None, f"{type(widget).__name__}: widget has no layout"
         for attr in ("_init_loading_overlay", "_deferred_call", "mostrar_error", "ejecutar_seguro"):
-            assert hasattr(
-                widget, attr
-            ), f"{type(widget).__name__}: missing required BaseWidget method '{attr}'"
+            assert hasattr(widget, attr), (
+                f"{type(widget).__name__}: missing required BaseWidget method '{attr}'"
+            )
 
     @staticmethod
     def assert_has_banner(widget: QWidget) -> None:
@@ -819,9 +819,9 @@ class BaseWidgetTestMixin:
     @staticmethod
     def assert_overlay_hidden_after(w: BaseWidgetTestHelper) -> None:
         """Verify overlay was hidden after _deferred_call."""
-        assert (
-            w._loading_overlay is None or not w._loading_overlay.isVisible()
-        ), f"{type(w).__name__}: overlay should be hidden after deferred call"
+        assert w._loading_overlay is None or not w._loading_overlay.isVisible(), (
+            f"{type(w).__name__}: overlay should be hidden after deferred call"
+        )
 
     # ── Complete test scenarios ─────────────────────────────────────────────
 
@@ -914,9 +914,9 @@ class BaseWidgetTestMixin:
                 # Should suppress RuntimeError and propagate others
                 if isinstance(exception, RuntimeError):
                     w._deferred_call(w.cargar_datos)
-                    assert (
-                        not w.callback_executed
-                    ), "Callback should NOT have completed due to RuntimeError"
+                    assert not w.callback_executed, (
+                        "Callback should NOT have completed due to RuntimeError"
+                    )
                 else:
                     import pytest
 

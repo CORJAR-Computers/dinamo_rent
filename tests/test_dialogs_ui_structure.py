@@ -258,9 +258,9 @@ class TestCierreRentaDialog:
             from PySide6.QtWidgets import QLabel
 
             labels = dlg.findChildren(QLabel)
-            assert any(
-                "ABC123" in lbl.text() for lbl in labels
-            ), "Expected placa to appear in a label"
+            assert any("ABC123" in lbl.text() for lbl in labels), (
+                "Expected placa to appear in a label"
+            )
         finally:
             dlg.close()
 
@@ -285,9 +285,9 @@ class TestPagosDialog:
 
             labels = dlg.findChildren(QLabel)
             # Expected format: "Total Renta:\n$ 500,000" or similar
-            assert any(
-                "500" in lbl.text().replace(",", "") for lbl in labels
-            ), "Expected total amount to appear in a label"
+            assert any("500" in lbl.text().replace(",", "") for lbl in labels), (
+                "Expected total amount to appear in a label"
+            )
         finally:
             dlg.close()
 
