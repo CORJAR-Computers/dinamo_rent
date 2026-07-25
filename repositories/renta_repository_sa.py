@@ -235,28 +235,36 @@ class RentaRepositorySA:
     @staticmethod
     def obtener_para_calendario(mes: int, anio: int, session: Session = None) -> List[Dict]:
         """Obtiene rentas activas y reservas para mostrar en el calendario del mes dado."""
+        import calendar as cal
+        from datetime import date
+
+        # Rango completo del mes solicitado
+        primer_dia = date(anio, mes, 1)
+        ultimo_dia = date(anio, mes, cal.monthrange(anio, mes)[1])
+
         with session_scope(session) as s:
-            # Rentas activas del mes
+            # Rentas activas que se solapan con el mes
+            # (la renta empieza antes del fin del mes Y termina después del inicio del mes)
             rentas = (
                 s.query(Renta)
                 .filter(
                     and_(
                         Renta.estado == "Activo",
-                        extract('month', Renta.fecha_recogida) == mes,
-                        extract('year', Renta.fecha_recogida) == anio,
+                        Renta.fecha_recogida <= ultimo_dia,
+                        Renta.fecha_retorno >= primer_dia,
                     )
                 )
                 .all()
             )
 
-            # Reservas confirmadas del mes
+            # Reservas confirmadas que se solapan con el mes
             reservas = (
                 s.query(Reserva)
                 .filter(
                     and_(
                         Reserva.estado == "Confirmada",
-                        extract('month', Reserva.fecha_recogida) == mes,
-                        extract('year', Reserva.fecha_recogida) == anio,
+                        Reserva.fecha_recogida <= ultimo_dia,
+                        Reserva.fecha_retorno >= primer_dia,
                     )
                 )
                 .all()
@@ -289,6 +297,7 @@ class RentaRepositorySA:
                 )
 
             return resultado
+
 
     @staticmethod
     def _to_dict(renta: Renta) -> Dict:

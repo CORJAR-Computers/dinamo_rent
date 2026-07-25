@@ -272,22 +272,19 @@ class CalendarioWidget(BaseWidget):
 
                 if f_ini <= fecha_dia <= f_fin:
                     tipo = ev.get("tipo", "").lower()
-                    if "renta" in tipo:
-                        return "rentado"
-                    elif "reserva" in tipo:
+                    if tipo == "reserva":
                         return "reservado"
-                    else:
+                    else:  # "renta" u otro
                         return "rentado"
-            except ValueError:
+            except (ValueError, TypeError):
                 continue
 
-        # Si no hay evento, verificar si el auto está en Mantenimiento.
-        # Asumimos que bloquea desde hoy hacia el futuro.
+        # Si el auto está en Mantenimiento, todo el mes se marca como taller
         if auto.get("estado") == "Mantenimiento":
-            if fecha_dia >= date.today():
-                return "taller"
+            return "taller"
 
         return "disponible"
+
 
     def _obtener_autos(self) -> list[dict] | None:
         try:
