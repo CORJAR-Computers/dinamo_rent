@@ -1,10 +1,8 @@
-from views.components import ModernMessageBox
-
 """
 views/calendario_view.py — Calendario de Disponibilidad
 
-Colores: Azul claro=Disponible, Verde=Rentado, Amarillo=Reservado
-Herencia: BaseWidget. Estilos via QSS class-based.
+Colores: Azul=Disponible, Verde=Rentado, Amarillo=Reservado, Rojo=Taller
+Herencia: BaseWidget. Pintura via QStyledItemDelegate (no QSS).
 """
 import calendar
 from datetime import date, datetime
@@ -20,15 +18,18 @@ from PySide6.QtWidgets import (
     QAbstractItemView,
     QWidget,
     QFrame,
+    QStyledItemDelegate,
+    QStyleOptionViewItem,
 )
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QColor, QFont
+from PySide6.QtCore import Qt, QTimer, QRect, QSize
+from PySide6.QtGui import QColor, QFont, QPainter, QPen
 
 from core.exceptions import DinamoBaseError
 from services.auto_service import AutoService
 from services.renta_service import RentaService
 from services.dashboard_service import DashboardService
 from views.base_widget import BaseWidget
+from views.components import ModernMessageBox
 
 # ── Paleta centralizada (CODE-02) ───────────────────────────────────
 from views.theme_colors import (
@@ -38,6 +39,58 @@ from views.theme_colors import (
 from core.logger import get_logger
 
 log = get_logger(__name__)
+
+# Rol personalizado para guardar el estado de cada celda del calendario
+_ROL_ESTADO = Qt.ItemDataRole.UserRole + 1
+
+# Paleta de colores del calendario
+_COLORES = {
+    "disponible": QColor("#3b82f6"),   # Azul
+    "rentado":    QColor("#22c55e"),   # Verde
+    "reservado":  QColor("#eab308"),   # Amarillo
+    "taller":     QColor("#ef4444"),   # Rojo
+}
+_COLORES_TEXTO = {
+    "disponible": QColor("#ffffff"),
+    "rentado":    QColor("#ffffff"),
+    "reservado":  QColor("#1a1a1a"),
+    "taller":     QColor("#ffffff"),
+}
+
+
+class CalendarioCeldaDelegate(QStyledItemDelegate):
+    """Delegado que pinta el fondo de cada celda del calendario
+    directamente con QPainter, ignorando el QSS global de la app."""
+
+    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index):
+        estado = index.data(_ROL_ESTADO)
+        if not estado:
+            # Columna de vehículo u otro item sin estado
+            super().paint(painter, option, index)
+            return
+
+        color_fondo = _COLORES.get(estado, QColor("#3b82f6"))
+        color_texto = _COLORES_TEXTO.get(estado, QColor("#ffffff"))
+
+        painter.save()
+
+        # Fondo sólido con leve relleno interior para que se vea la grilla
+        rect = option.rect.adjusted(1, 1, -1, -1)
+        painter.fillRect(rect, color_fondo)
+
+        # Texto centrado (día actual, negrita de fin de semana, etc.)
+        texto = index.data(Qt.ItemDataRole.DisplayRole) or ""
+        if texto:
+            fnt = index.data(Qt.ItemDataRole.FontRole)
+            if fnt:
+                painter.setFont(fnt)
+            painter.setPen(QPen(color_texto))
+            painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, texto)
+
+        painter.restore()
+
+    def sizeHint(self, option, index) -> QSize:
+        return QSize(44, 42)
 
 
 class CalendarioWidget(BaseWidget):
@@ -143,18 +196,20 @@ class CalendarioWidget(BaseWidget):
         ley_lay = QHBoxLayout()
         ley_lay.setSpacing(10)
 
-        for texto, emoji, legend_class in (
-            ("Disponible", "🔵", "legend-available"),
-            ("Rentado", "🟢", "legend-rented"),
-            ("Reservado", "🟡", "legend-reserved"),
-            ("En Taller", "🟠", "legend-warning"),
+        for texto, color_hex, texto_hex in (
+            ("Disponible",  "#3b82f6", "#ffffff"),
+            ("Rentado",     "#22c55e", "#ffffff"),
+            ("Reservado",   "#eab308", "#1a1a1a"),
+            ("En Taller",   "#ef4444", "#ffffff"),
         ):
-            pill = QLabel(f" {emoji}  {texto} ")
-            pill.setProperty("class", legend_class)
+            pill = QLabel(f"  {texto}  ")
+            pill.setStyleSheet(
+                f"QLabel {{ background: {color_hex}; color: {texto_hex}; "
+                f"border-radius: 8px; padding: 3px 10px; font-weight: 600; font-size: 11px; }}"
+            )
             ley_lay.addWidget(pill)
 
-        # Leyenda de fin de semana
-        pill_fe = QLabel(" 🗓  Fin de semana (negrita) ")
+        pill_fe = QLabel("  Fin de semana (negrita)  ")
         pill_fe.setProperty("class", "badge")
         ley_lay.addWidget(pill_fe)
         ley_lay.addStretch()
@@ -169,7 +224,14 @@ class CalendarioWidget(BaseWidget):
         self.tabla.horizontalHeader().setMinimumSectionSize(30)
         self.tabla.setShowGrid(True)
         self.tabla.verticalHeader().setDefaultSectionSize(42)
+
+        # Usar delegado propio para pintar los colores (evita que QSS los sobreescriba)
+        self._delegate = CalendarioCeldaDelegate(self.tabla)
+        self.tabla.setItemDelegate(self._delegate)
+
         c_lay.addWidget(self.tabla)
+
+
 
     def mes_anterior(self):
         if self.mes_vista == 1:
@@ -206,12 +268,6 @@ class CalendarioWidget(BaseWidget):
             return
 
         self.tabla.setRowCount(0)
-        color_disp = QColor("#dbeafe")  # Azul claro
-        color_rent = QColor("#dcfce7")  # Verde claro
-        color_resv = QColor("#fef08a")  # Amarillo pastel
-        color_tall = QColor("#ffedd5")  # Naranja claro
-
-        # Color de resaltado para el día actual
         hoy = date.today()
 
         for i, auto in enumerate(autos):
@@ -236,29 +292,24 @@ class CalendarioWidget(BaseWidget):
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
                 estado_dia = self._estado_dia(fecha_dia, eventos_auto, auto)
-                if estado_dia == "rentado":
-                    item.setBackground(color_rent)
-                elif estado_dia == "reservado":
-                    item.setBackground(color_resv)
-                elif estado_dia == "taller":
-                    item.setBackground(color_tall)
-                else:
-                    item.setBackground(color_disp)
+                # Guardar estado en rol personalizado — el delegado lo pintará
+                item.setData(_ROL_ESTADO, estado_dia)
 
-                # Marcar el día actual con un punto sobre el color de estado
+                # Marcar el día actual con un punto
                 if fecha_dia == hoy:
                     item.setText("●")
-                    item.setForeground(QColor("#0f172a"))  # Punto oscuro para buen contraste
 
+                # Fin de semana → fuente negrita
                 dia_semana = calendar.weekday(self.anio_vista, self.mes_vista, dia)
                 if dia_semana >= 5:
-                    fnt_we = QFont(item.font())
+                    fnt_we = QFont("Segoe UI", 9)
                     fnt_we.setBold(True)
                     item.setFont(fnt_we)
 
                 self.tabla.setItem(i, dia, item)
 
             self.tabla.setRowHeight(i, 42)
+
 
     def _estado_dia(self, fecha_dia: date, eventos: list[dict], auto: dict) -> str:
         for ev in eventos:
