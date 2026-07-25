@@ -1,0 +1,160 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# release.yml — CI + Release automático para Dinamo Rent ERP
+# ─────────────────────────────────────────────────────────────────────────────
+# Se activa cuando se crea un tag v*.*.* (ej: v3.2.1).
+# Pipeline:
+#   1. lint  → ruff check + ruff format
+#   2. tests → pytest con xvfb (SQLite para CI)
+#   3. release → crea GitHub Release con notas extraídas del CHANGELOG.md
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: CI + Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag de release (ej: v3.2.1)"
+        required: false
+
+env:
+  DINAMO_DB_ENGINE: sqlite
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  # ── 1. Lint ────────────────────────────────────────────────────────────────
+  lint:
+    name: "Ruff lint + format"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+
+      - name: Install ruff
+        run: pip install "ruff>=0.16,<1.0"
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Format check
+        run: ruff format --check .
+
+  # ── 2. Tests ───────────────────────────────────────────────────────────────
+  tests:
+    name: "Pytest (SQLite + xvfb)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: lint
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+
+      - name: Install system dependencies (Qt + xvfb)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            libxcb-cursor0 libxcb-icccm4 libxcb-image0 \
+            libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 \
+            libxcb-shape0 libxcb-xfixes0 libxcb-xinerama0 \
+            libxcb-xkb1 libxkbcommon-x11-0 libegl1 libgl1 xvfb
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          grep -vi weasyprint requirements.txt | pip install -r /dev/stdin
+          pip install "pytest>=8,<9" pytest-cov pytest-qt
+
+      - name: Copy config
+        run: cp config.ini.example config.ini
+
+      - name: Run tests
+        run: |
+          xvfb-run python -m pytest tests/ \
+            --cov=. \
+            --cov-report=term \
+            --cov-report=xml \
+            -v --tb=short -q
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-${{ github.ref_name }}
+          path: coverage.xml
+
+  # ── 3. GitHub Release ──────────────────────────────────────────────────────
+  release:
+    name: "GitHub Release"
+    runs-on: ubuntu-latest
+    needs: [lint, tests]
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Release: $TAG ($VERSION)"
+
+      - name: Extract release notes from CHANGELOG.md
+        id: notes
+        run: |
+          python - <<'PYEOF'
+          import re, sys, os
+
+          changelog = open("CHANGELOG.md", encoding="utf-8").read()
+          version   = os.environ["VERSION"]
+
+          pattern = rf"## \[{re.escape(version)}\][^\n]*\n(.*?)(?=\n---|\n## \[|\Z)"
+          m = re.search(pattern, changelog, re.DOTALL)
+          if not m:
+              print(f"Warning: section [{version}] not found in CHANGELOG.md", file=sys.stderr)
+              notes = f"Release {version}"
+          else:
+              notes = m.group(1).strip()
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              escaped = notes.replace("%", "%25").replace("\n", "%0A").replace("\r", "%0D")
+              f.write(f"body={escaped}\n")
+          PYEOF
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "Dinamo Rent ERP v${{ steps.version.outputs.version }}"
+          body: ${{ steps.notes.outputs.body }}
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

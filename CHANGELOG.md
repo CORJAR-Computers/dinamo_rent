@@ -9,38 +9,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Login → Interfaz principal**: Corregido crash silencioso (exit code 1) al transicionar de
+  `LoginWindow` a `MainWindow`. Causa raíz: `AuthService.login()` corría en un `QRunnable`
+  (hilo secundario) y Qt terminaba la app al crear widgets desde ese hilo. Solución: login
+  ejecutado en el hilo principal vía `QTimer.singleShot(0, ...)`.
+- **Diálogo "¿Salir?" falso positivo**: Eliminado el diálogo de confirmación de salida que
+  aparecía inmediatamente al ingresar, causado por `showMaximized()` dentro del `__init__` de
+  `MainWindow` (antes de configurar `setCentralWidget`). Se agregaron flags `_login_successful`
+  y `_closing_to_login` para distinguir cierres programáticos de cierres manuales.
+- **Ciclo de vida de la aplicación** (`main_qt.py`): Eliminadas todas las llamadas a
+  `setQuitOnLastWindowClosed(True)` dentro de transiciones de ventana. Se usa
+  `setQuitOnLastWindowClosed(False)` globalmente y `app.quit()` explícito en `closeEvent`.
+- **Calendario — colores ausentes** (`calendario_view.py`): `setBackground()` en
+  `QTableWidgetItem` era sobreescrito por el QSS global de la app. Reemplazado por un
+  `QStyledItemDelegate` personalizado (`CalendarioCeldaDelegate`) que pinta con `QPainter`
+  directamente, ignorando el QSS. Colores: 🔵 Disponible, 🟢 Rentado, 🟡 Reservado, 🔴 Taller.
+- **Calendario — SQL Firebird** (`renta_repository_sa.py`): Reemplazado `extract('month', ...)`
+  / `extract('year', ...)` por comparación de rango de fechas (`fecha <= ultimo_dia AND fecha >=
+  primer_dia`) compatible con Firebird y SQLite. Ahora también incluye rentas que se solapan con
+  el mes (no solo las que empiezan en él).
 - **Tests**: Fixed 15 pre-existing test failures across 9 files:
-  - `test_about_dialog.py`: Updated copyright assertion from 'Dinamo' to 'Corjar' to match `_COPYRIGHT`
-  - `test_config.py`: Changed default engine from 'mysql' to 'firebird' (2 places)
-  - `test_validators.py`: Adapted 4 `TestSanitizeForSql` tests to match `sanitizar()` behavior (strip-only, no SQL escaping per SEC-05)
-  - `test_database_sa.py`: Added `DB_ENGINE='mysql'` monkeypatch so migrations actually run in tests
+  - `test_about_dialog.py`: Updated copyright assertion from 'Dinamo' to 'Corjar'
+  - `test_config.py`: Changed default engine from 'mysql' to 'firebird'
+  - `test_validators.py`: Adapted `TestSanitizeForSql` tests to match `sanitizar()` behavior
+  - `test_database_sa.py`: Added `DB_ENGINE='mysql'` monkeypatch for migrations in tests
   - `test_services.py`: Updated KPI keys to match actual `kpi_y_financiero()` output
-  - `test_services_restantes.py`: Updated KPI keys and changed `test_obtener_resumen_financiero_sin_datos` to test structure/types instead of exact values (shared DB)
-  - `test_cierre_renta_dialog.py`: Set date to pactada before calculating `otros` to avoid incorrect mora
-- **Security**: Fixed `unlock_account()` in `auth_service.py` to properly clear `_lockout_until` via `reset_attempts()` in `core/security.py`
-- **CI/CD**: Enabled GitHub Actions on every push (was only on PRs) and added `workflow_dispatch` for manual triggers
+  - `test_services_restantes.py`: Updated KPI keys; test structure/types instead of exact values
+  - `test_cierre_renta_dialog.py`: Set date to pactada before calculating `otros`
+- **Security**: Fixed `unlock_account()` in `auth_service.py` to properly clear `_lockout_until`
+- **CI/CD**: Enabled GitHub Actions on every push and added `workflow_dispatch`
 
 ### Added
 
-- **Documentation**: Created comprehensive `docs/DEPLOYMENT_PLAN.md` with:
-  - Step-by-step installation guide for production
-  - Database configuration (Firebird, MySQL, SQLite)
-  - Alembic migration instructions
-  - Security checklist (encryption key, backups, RBAC)
-  - Troubleshooting table for common issues
-  - Critical warning about `db_encryption_key` rotation
+- **CI — Release automático** (`.github/workflows/release.yml`): Workflow que se activa al
+  crear un tag `v*.*.*`, ejecuta lint + tests, y publica automáticamente un GitHub Release con
+  notas del CHANGELOG.
+- **Documentation**: Created comprehensive `docs/DEPLOYMENT_PLAN.md`
 
 ### Security
 
-- **Git History**: Cleaned `.env` file and old `db_encryption_key` from entire git history using `git-filter-repo`
+- **Git History**: Cleaned `.env` file and old `db_encryption_key` from entire git history
 - **Git Tracking**: Added `.env`, `config.ini`, and `*.fdb` to `.gitignore`
-- **Branch Cleanup**: Removed `backup-before-cleanup` branch that contained compromised credentials
-- **Force Push**: Synchronized clean history to remote repository
 
 ### Changed
 
-- **core/security.py**: `reset_attempts()` now includes `self._lockout_until.pop(identifier, None)` to centralize lockout cleanup
-- **services/auth_service.py**: `unlock_account()` simplified to use `reset_attempts()` without accessing private attributes directly
+- **core/security.py**: `reset_attempts()` now includes `self._lockout_until.pop(identifier, None)`
+- **services/auth_service.py**: `unlock_account()` simplified to use `reset_attempts()`
 
 ---
 
