@@ -47,13 +47,13 @@ class TestSanitizeForSql:
         """Sanitizes a clean string without changes."""
         assert sanitize_for_sql("Hola mundo") == "Hola mundo"
 
-    def test_escapa_comilla_simple(self):
-        """Single quotes are escaped (doubled)."""
-        assert sanitize_for_sql("O'Brien") == "O''Brien"
+    def test_solo_hace_strip(self):
+        """sanitize_for_sql now delegates to sanitizar() — only strips whitespace."""
+        assert sanitize_for_sql("O'Brien") == "O'Brien"
 
-    def test_elimina_caracteres_control(self):
-        """Control characters are removed."""
-        assert sanitize_for_sql("Hola\x00Mundo\x1f") == "HolaMundo"
+    def test_no_elimina_caracteres_control(self):
+        """sanitize_for_sql delegates to sanitizar() which does not remove control chars."""
+        assert sanitize_for_sql("Hola\x00Mundo\x1f") == "Hola\x00Mundo"
 
     def test_strip_trim(self):
         """Whitespace is stripped."""
@@ -67,14 +67,14 @@ class TestSanitizeForSql:
         """None returns empty string."""
         assert sanitize_for_sql(None) == ""
 
-    def test_sql_injection_clasico(self):
-        """Classic SQL injection attempt is sanitized."""
+    def test_no_escapa_comillas_sql(self):
+        """sanitize_for_sql no longer escapes single quotes (SEC-05: delegated to sanitizar)."""
         result = sanitize_for_sql("' OR '1'='1")
-        assert result == "'' OR ''1''=''1"
+        assert result == "' OR '1'='1"
 
-    def test_multiples_comillas(self):
-        """Multiple single quotes are all escaped."""
-        assert sanitize_for_sql("a'b'c") == "a''b''c"
+    def test_no_duplica_comillas(self):
+        """sanitize_for_sql no longer doubles single quotes."""
+        assert sanitize_for_sql("a'b'c") == "a'b'c"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

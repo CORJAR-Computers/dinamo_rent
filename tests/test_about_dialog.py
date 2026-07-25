@@ -117,8 +117,8 @@ class TestAboutDialog:
             labels = dlg.findChildren(QLabel)
             texts = [lbl.text() for lbl in labels]
             assert any(
-                "2024" in t and "Dinamo" in t for t in texts
-            ), f"Expected copyright with '2024 Dinamo' in dialog labels, found: {texts}"
+                "2024" in t and "Corjar" in t for t in texts
+            ), f"Expected copyright with '2024 Corjar' in dialog labels, found: {texts}"
         finally:
             dlg.close()
 

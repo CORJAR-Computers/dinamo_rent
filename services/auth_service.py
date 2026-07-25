@@ -224,10 +224,10 @@ class AuthService:
             if user:
                 user.intentos_fallidos = 0
 
-        if login_tracker.is_locked(username):
-            # SEC-03: Persistir el desbloqueo en la BD
-            login_tracker.reset_attempts(username)
+        was_locked = login_tracker.is_locked(username)
+        login_tracker.reset_attempts(username)
+
+        if was_locked:
             audit.info("CUENTA DESBLOQUEADA: usuario=%s por administrador", username)
             log.info("Cuenta desbloqueada manualmente: %s", username)
-            return True
-        return False
+        return was_locked

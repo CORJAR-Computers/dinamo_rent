@@ -16,7 +16,9 @@ def test_kpi_globales_estructura(db_session):
         "total_flota",
         "ocupacion_flota",
         "ingresos_mes",
-        "pagos_pendientes",
+        "egresos_taller_mes",
+        "gastos_caja_mes",
+        "utilidad_mes",
     ]
     for key in expected_keys:
         assert key in kpi, f"Missing key: {key}"

@@ -105,7 +105,7 @@ def temp_ini_path(tmp_path):
 class TestInit:
     def test_defaults_sin_archivo(self, fresh_config):
         """_Config loads defaults even without a config.ini file."""
-        assert fresh_config.get("database", "engine") == "mysql"
+        assert fresh_config.get("database", "engine") == "firebird"
         assert fresh_config.get("application", "name") == "Dinamo Rent ERP"
 
     def test_lee_desde_archivo(self, temp_ini_path, monkeypatch):
@@ -189,7 +189,7 @@ class TestGet:
         """get() returns value as stored (whitespace preserved by configparser)."""
         result = fresh_config.get("database", "engine")
         # configparser strips values by default
-        assert result == "mysql"
+        assert result == "firebird"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

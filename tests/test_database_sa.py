@@ -660,9 +660,10 @@ class TestApplyMigrationsSuccess:
         _apply_migrations()
 
     def test_all_migrations_use_engine_connect(self, monkeypatch):
-        """Each migration calls engine.connect()."""
+        """Each migration calls engine.connect() (only for MySQL engine)."""
         fake_engine = _FakeEngine()
         monkeypatch.setattr("core.database_sa.get_engine", lambda: fake_engine)
+        monkeypatch.setattr("core.database_sa.DB_ENGINE", "mysql")
 
         from core.database_sa import _apply_migrations, _MIGRATIONS_F1A, _MIGRATIONS_INDEXES
 

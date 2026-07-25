@@ -518,14 +518,16 @@ class TestDashboardService:
             "total_flota",
             "ocupacion_flota",
             "ingresos_mes",
-            "pagos_pendientes",
+            "egresos_taller_mes",
+            "gastos_caja_mes",
+            "utilidad_mes",
         }
         assert expected_keys.issubset(kpi.keys())
         assert isinstance(kpi["rentas_activas"], int)
         assert isinstance(kpi["autos_disponibles"], int)
         assert isinstance(kpi["total_flota"], int)
         assert isinstance(kpi["ingresos_mes"], (int, float))
-        assert isinstance(kpi["pagos_pendientes"], (int, float))
+        assert isinstance(kpi["utilidad_mes"], (int, float))
         assert kpi["rentas_activas"] >= 0
         assert kpi["total_flota"] >= 0
 

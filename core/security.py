@@ -149,6 +149,7 @@ class LoginAttemptTracker:
         """Reinicia los intentos tras login exitoso."""
         self._failed_attempts[identifier] = 0
         self._login_timestamps[identifier] = []
+        self._lockout_until.pop(identifier, None)
         self._persist_failed_count(identifier)
 
     def check_rate_limit(self, identifier: str, ip: str = None) -> bool:
