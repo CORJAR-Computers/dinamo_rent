@@ -21,7 +21,7 @@ class InformeRepositorySA:
             if DB_ENGINE == "mysql":
                 date_func = "DATE_FORMAT(fecha, '%%Y-%%m')"
             elif DB_ENGINE == "firebird":
-                date_func = "EXTRACT(YEAR FROM fecha) || '-' || LPAD(EXTRACT(MONTH FROM fecha), 2, '0')"
+                date_func = "SUBSTRING(CAST(CAST(fecha AS DATE) AS VARCHAR(10)) FROM 1 FOR 7)"
             else:
                 date_func = "strftime('%%Y-%%m', fecha)"
             sql = text(f"""
@@ -31,22 +31,22 @@ class InformeRepositorySA:
                     SUM(taller) as egresos_taller,
                     SUM(caja) as gastos_caja
                 FROM (
-                    SELECT fecha, monto as ingreso, 0 as taller, 0 as caja
+                    SELECT CAST(fecha AS DATE) as fecha, monto as ingreso, 0 as taller, 0 as caja
                     FROM pagos
 
                     UNION ALL
 
-                    SELECT pieza_varias_fecha as fecha, 0 as ingreso, total_mantenimiento as taller, 0 as caja
+                    SELECT CAST(pieza_varias_fecha AS DATE) as fecha, 0 as ingreso, total_mantenimiento as taller, 0 as caja
                     FROM mantenimiento_vehiculos
 
                     UNION ALL
 
-                    SELECT fecha, 0 as ingreso, 0 as taller, monto as caja
+                    SELECT CAST(fecha AS DATE) as fecha, 0 as ingreso, 0 as taller, monto as caja
                     FROM gastos
                 ) t
                 WHERE fecha IS NOT NULL
-                GROUP BY mes
-                ORDER BY mes DESC
+                GROUP BY 1
+                ORDER BY 1 DESC
             """)
 
             result = session.execute(sql)

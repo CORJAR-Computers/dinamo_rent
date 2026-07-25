@@ -44,8 +44,8 @@ class DashboardService:
             date_expr_fecha = "DATE_FORMAT(fecha, '%Y-%m')"
             date_expr_pieza = "DATE_FORMAT(pieza_varias_fecha, '%Y-%m')"
         elif DB_ENGINE == "firebird":
-            date_expr_fecha = "EXTRACT(YEAR FROM fecha) || '-' || LPAD(EXTRACT(MONTH FROM fecha), 2, '0')"
-            date_expr_pieza = "EXTRACT(YEAR FROM pieza_varias_fecha) || '-' || LPAD(EXTRACT(MONTH FROM pieza_varias_fecha), 2, '0')"
+            date_expr_fecha = "SUBSTRING(CAST(CAST(fecha AS DATE) AS VARCHAR(10)) FROM 1 FOR 7)"
+            date_expr_pieza = "SUBSTRING(CAST(CAST(pieza_varias_fecha AS DATE) AS VARCHAR(10)) FROM 1 FOR 7)"
         else:
             date_expr_fecha = "strftime('%Y-%m', fecha)"
             date_expr_pieza = "strftime('%Y-%m', pieza_varias_fecha)"
