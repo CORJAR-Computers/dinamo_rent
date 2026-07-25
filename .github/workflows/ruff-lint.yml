@@ -8,8 +8,11 @@
 name: CI — Ruff + Pytest
 
 on:
+  push:
+    branches: [master, main]
   pull_request:
     branches: [master, main]
+  workflow_dispatch:
 
 env:
   DINAMO_DB_ENGINE: sqlite
