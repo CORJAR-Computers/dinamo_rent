@@ -88,7 +88,7 @@ jobs:
         run: cp config.ini.example config.ini
 
       - name: Run tests with coverage
-        run: xvfb-run python -m pytest tests/ --cov=. --cov-report=term --cov-report=xml -v --tb=short -q
+        run: xvfb-run python -m pytest tests/ --cov=. --cov-report=term --cov-report=xml --cov-fail-under=80 -v --tb=short -q
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
