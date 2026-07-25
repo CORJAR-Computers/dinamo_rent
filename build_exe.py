@@ -1,5 +1,5 @@
 """
-build_exe.py -- Script de compilacion para Dinamo Rent ERP v3.2.0
+build_exe.py -- Script de compilacion para Dinamo Rent ERP v3.2.1
 Genera un ejecutable unico con PyInstaller.
 
 Uso:
