@@ -58,8 +58,8 @@ Cada card tiene:
 ```python
 def _make_card(title: str, parent, icon: str = "") -> tuple[QFrame, QGridLayout]:
     ...
-    layout.setColumnStretch(0, 0)   # etiquetas: ancho fijo
-    layout.setColumnStretch(1, 1)   # inputs: se expanden
+    layout.setColumnStretch(0, 0)  # etiquetas: ancho fijo
+    layout.setColumnStretch(1, 1)  # inputs: se expanden
 ```
 
 ### Labels con campo obligatorio
@@ -148,10 +148,10 @@ Cada tarjeta KPI ahora tiene tres zonas:
 3. **Ícono decorativo derecho** — círculo de 44px con fondo semitransparente del color del KPI.
 
 ```python
-_KpiCard("Disponibles",     "🟢", COLOR_EXITO,   "#22c55e")
-_KpiCard("Rentas Activas",  "🚗", COLOR_PRIMARIO, "#2563eb")
-_KpiCard("En Taller",       "🔧", COLOR_ALERTA,  "#f59e0b")
-_KpiCard("Alertas Críticas","⚠️", COLOR_PELIGRO, "#ef4444")
+_KpiCard("Disponibles", "🟢", COLOR_EXITO, "#22c55e")
+_KpiCard("Rentas Activas", "🚗", COLOR_PRIMARIO, "#2563eb")
+_KpiCard("En Taller", "🔧", COLOR_ALERTA, "#f59e0b")
+_KpiCard("Alertas Críticas", "⚠️", COLOR_PELIGRO, "#ef4444")
 ```
 
 ### `_section_header()` — helper de encabezados

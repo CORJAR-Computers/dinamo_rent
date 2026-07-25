@@ -69,57 +69,105 @@ Inferir el tema según el tipo de negocio descrito. Si no es claro, preguntar o 
 
 ```python
 THEME_SAAS = {
-    'primary': '#6366f1', 'primary_hover': '#4f46e5',
-    'primary_light': 'rgba(99,102,241,0.12)',
-    'bg': '#0f172a', 'bg_card': '#1e293b', 'bg_input': '#334155',
-    'fg': '#f1f5f9', 'fg_muted': '#94a3b8', 'border': '#334155',
-    'accent': '#22d3ee', 'success': '#34d399', 'warning': '#fbbf24',
-    'danger': '#f87171', 'danger_hover': '#ef4444',
+    "primary": "#6366f1",
+    "primary_hover": "#4f46e5",
+    "primary_light": "rgba(99,102,241,0.12)",
+    "bg": "#0f172a",
+    "bg_card": "#1e293b",
+    "bg_input": "#334155",
+    "fg": "#f1f5f9",
+    "fg_muted": "#94a3b8",
+    "border": "#334155",
+    "accent": "#22d3ee",
+    "success": "#34d399",
+    "warning": "#fbbf24",
+    "danger": "#f87171",
+    "danger_hover": "#ef4444",
 }
 
 THEME_CLINICA = {
-    'primary': '#0ea5e9', 'primary_hover': '#0284c7',
-    'primary_light': 'rgba(14,165,233,0.12)',
-    'bg': '#f0f9ff', 'bg_card': '#ffffff', 'bg_input': '#f8fafc',
-    'fg': '#0c4a6e', 'fg_muted': '#64748b', 'border': '#e2e8f0',
-    'accent': '#06b6d4', 'success': '#10b981', 'warning': '#f59e0b',
-    'danger': '#ef4444', 'danger_hover': '#dc2626',
+    "primary": "#0ea5e9",
+    "primary_hover": "#0284c7",
+    "primary_light": "rgba(14,165,233,0.12)",
+    "bg": "#f0f9ff",
+    "bg_card": "#ffffff",
+    "bg_input": "#f8fafc",
+    "fg": "#0c4a6e",
+    "fg_muted": "#64748b",
+    "border": "#e2e8f0",
+    "accent": "#06b6d4",
+    "success": "#10b981",
+    "warning": "#f59e0b",
+    "danger": "#ef4444",
+    "danger_hover": "#dc2626",
 }
 
 THEME_FINTECH = {
-    'primary': '#059669', 'primary_hover': '#047857',
-    'primary_light': 'rgba(5,150,105,0.12)',
-    'bg': '#022c22', 'bg_card': '#064e3b', 'bg_input': '#065f46',
-    'fg': '#ecfdf5', 'fg_muted': '#6ee7b7', 'border': '#065f46',
-    'accent': '#34d399', 'success': '#34d399', 'warning': '#fbbf24',
-    'danger': '#fb7185', 'danger_hover': '#e11d48',
+    "primary": "#059669",
+    "primary_hover": "#047857",
+    "primary_light": "rgba(5,150,105,0.12)",
+    "bg": "#022c22",
+    "bg_card": "#064e3b",
+    "bg_input": "#065f46",
+    "fg": "#ecfdf5",
+    "fg_muted": "#6ee7b7",
+    "border": "#065f46",
+    "accent": "#34d399",
+    "success": "#34d399",
+    "warning": "#fbbf24",
+    "danger": "#fb7185",
+    "danger_hover": "#e11d48",
 }
 
 THEME_RETAIL = {
-    'primary': '#e11d48', 'primary_hover': '#be123c',
-    'primary_light': 'rgba(225,29,72,0.10)',
-    'bg': '#ffffff', 'bg_card': '#fef2f2', 'bg_input': '#fff1f2',
-    'fg': '#1c1917', 'fg_muted': '#78716c', 'border': '#fecdd3',
-    'accent': '#f97316', 'success': '#22c55e', 'warning': '#eab308',
-    'danger': '#ef4444', 'danger_hover': '#dc2626',
+    "primary": "#e11d48",
+    "primary_hover": "#be123c",
+    "primary_light": "rgba(225,29,72,0.10)",
+    "bg": "#ffffff",
+    "bg_card": "#fef2f2",
+    "bg_input": "#fff1f2",
+    "fg": "#1c1917",
+    "fg_muted": "#78716c",
+    "border": "#fecdd3",
+    "accent": "#f97316",
+    "success": "#22c55e",
+    "warning": "#eab308",
+    "danger": "#ef4444",
+    "danger_hover": "#dc2626",
 }
 
 THEME_EDUCATIVO = {
-    'primary': '#8b5cf6', 'primary_hover': '#7c3aed',
-    'primary_light': 'rgba(139,92,246,0.12)',
-    'bg': '#faf5ff', 'bg_card': '#ffffff', 'bg_input': '#f5f3ff',
-    'fg': '#3b0764', 'fg_muted': '#7c7c8a', 'border': '#e9d5ff',
-    'accent': '#a78bfa', 'success': '#34d399', 'warning': '#fbbf24',
-    'danger': '#fb7185', 'danger_hover': '#e11d48',
+    "primary": "#8b5cf6",
+    "primary_hover": "#7c3aed",
+    "primary_light": "rgba(139,92,246,0.12)",
+    "bg": "#faf5ff",
+    "bg_card": "#ffffff",
+    "bg_input": "#f5f3ff",
+    "fg": "#3b0764",
+    "fg_muted": "#7c7c8a",
+    "border": "#e9d5ff",
+    "accent": "#a78bfa",
+    "success": "#34d399",
+    "warning": "#fbbf24",
+    "danger": "#fb7185",
+    "danger_hover": "#e11d48",
 }
 
 THEME_INDUSTRIAL = {
-    'primary': '#d97706', 'primary_hover': '#b45309',
-    'primary_light': 'rgba(217,119,6,0.12)',
-    'bg': '#1c1917', 'bg_card': '#292524', 'bg_input': '#44403c',
-    'fg': '#fef3c7', 'fg_muted': '#a8a29e', 'border': '#44403c',
-    'accent': '#fbbf24', 'success': '#4ade80', 'warning': '#facc15',
-    'danger': '#f87171', 'danger_hover': '#ef4444',
+    "primary": "#d97706",
+    "primary_hover": "#b45309",
+    "primary_light": "rgba(217,119,6,0.12)",
+    "bg": "#1c1917",
+    "bg_card": "#292524",
+    "bg_input": "#44403c",
+    "fg": "#fef3c7",
+    "fg_muted": "#a8a29e",
+    "border": "#44403c",
+    "accent": "#fbbf24",
+    "success": "#4ade80",
+    "warning": "#facc15",
+    "danger": "#f87171",
+    "danger_hover": "#ef4444",
 }
 ```
 
@@ -460,20 +508,20 @@ def build_stylesheet(theme: dict) -> str:
     """
 
     replacements = {
-        '{{bg}}': theme.get('bg', '#0f172a'),
-        '{{bg_card}}': theme.get('bg_card', '#1e293b'),
-        '{{bg_input}}': theme.get('bg_input', '#334155'),
-        '{{fg}}': theme.get('fg', '#f1f5f9'),
-        '{{fg_muted}}': theme.get('fg_muted', '#94a3b8'),
-        '{{primary}}': theme.get('primary', '#6366f1'),
-        '{{primary_hover}}': theme.get('primary_hover', '#4f46e5'),
-        '{{primary_light}}': theme.get('primary_light', 'rgba(99,102,241,0.12)'),
-        '{{border}}': theme.get('border', '#334155'),
-        '{{accent}}': theme.get('accent', '#22d3ee'),
-        '{{success}}': theme.get('success', '#34d399'),
-        '{{warning}}': theme.get('warning', '#fbbf24'),
-        '{{danger}}': theme.get('danger', '#f87171'),
-        '{{danger_hover}}': theme.get('danger_hover', '#ef4444'),
+        "{{bg}}": theme.get("bg", "#0f172a"),
+        "{{bg_card}}": theme.get("bg_card", "#1e293b"),
+        "{{bg_input}}": theme.get("bg_input", "#334155"),
+        "{{fg}}": theme.get("fg", "#f1f5f9"),
+        "{{fg_muted}}": theme.get("fg_muted", "#94a3b8"),
+        "{{primary}}": theme.get("primary", "#6366f1"),
+        "{{primary_hover}}": theme.get("primary_hover", "#4f46e5"),
+        "{{primary_light}}": theme.get("primary_light", "rgba(99,102,241,0.12)"),
+        "{{border}}": theme.get("border", "#334155"),
+        "{{accent}}": theme.get("accent", "#22d3ee"),
+        "{{success}}": theme.get("success", "#34d399"),
+        "{{warning}}": theme.get("warning", "#fbbf24"),
+        "{{danger}}": theme.get("danger", "#f87171"),
+        "{{danger_hover}}": theme.get("danger_hover", "#ef4444"),
     }
     for key, val in replacements.items():
         base = base.replace(key, val)
@@ -492,25 +540,32 @@ from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushBu
 from PySide6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QPixmap, QPainter, QColor
 
+
 class ModernMessageBox(QDialog):
     TYPES = {
-        'info':     {'color': '#3b82f6', 'bg': 'rgba(59,130,246,0.10)'},
-        'success':  {'color': '#22c55e', 'bg': 'rgba(34,197,94,0.10)'},
-        'warning':  {'color': '#f59e0b', 'bg': 'rgba(245,158,11,0.10)'},
-        'error':    {'color': '#ef4444', 'bg': 'rgba(239,68,68,0.10)'},
-        'question': {'color': '#8b5cf6', 'bg': 'rgba(139,92,246,0.10)'},
+        "info": {"color": "#3b82f6", "bg": "rgba(59,130,246,0.10)"},
+        "success": {"color": "#22c55e", "bg": "rgba(34,197,94,0.10)"},
+        "warning": {"color": "#f59e0b", "bg": "rgba(245,158,11,0.10)"},
+        "error": {"color": "#ef4444", "bg": "rgba(239,68,68,0.10)"},
+        "question": {"color": "#8b5cf6", "bg": "rgba(139,92,246,0.10)"},
     }
 
-    def __init__(self, parent=None, title="", message="", msg_type="info",
-                 buttons=None, detailed_text=None):
+    def __init__(
+        self, parent=None, title="", message="", msg_type="info", buttons=None, detailed_text=None
+    ):
         super().__init__(parent)
         self.msg_type = msg_type
-        self.config = self.TYPES.get(msg_type, self.TYPES['info'])
+        self.config = self.TYPES.get(msg_type, self.TYPES["info"])
         self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setMinimumWidth(440)
         self._result_code = QDialog.Rejected
-        self._build_ui(title, message, buttons or [{'text': 'Aceptar', 'role': 'accept', 'class': 'primary'}], detailed_text)
+        self._build_ui(
+            title,
+            message,
+            buttons or [{"text": "Aceptar", "role": "accept", "class": "primary"}],
+            detailed_text,
+        )
         self._apply_styles()
         self._animate_open()
 
@@ -518,7 +573,7 @@ class ModernMessageBox(QDialog):
         outer = QFrame(self)
         outer.setObjectName("msgOuter")
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(0,0,0,0)
+        main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.addWidget(outer)
 
         layout = QVBoxLayout(outer)
@@ -553,11 +608,11 @@ class ModernMessageBox(QDialog):
         btn_row = QHBoxLayout()
         btn_row.addStretch()
         for btn_cfg in buttons:
-            btn = QPushButton(btn_cfg['text'])
-            btn.setProperty("class", btn_cfg.get('class', 'secondary'))
+            btn = QPushButton(btn_cfg["text"])
+            btn.setProperty("class", btn_cfg.get("class", "secondary"))
             btn.setFixedHeight(38)
             btn.setMinimumWidth(100)
-            if btn_cfg.get('role') == 'accept':
+            if btn_cfg.get("role") == "accept":
                 btn.clicked.connect(self._on_accept)
             else:
                 btn.clicked.connect(self._on_reject)
@@ -565,8 +620,8 @@ class ModernMessageBox(QDialog):
         layout.addLayout(btn_row)
 
     def _draw_icon(self, label):
-        c = self.config['color']
-        bg_hex = self.config['bg']
+        c = self.config["color"]
+        bg_hex = self.config["bg"]
         pixmap = QPixmap(44, 44)
         pixmap.fill(Qt.transparent)
         painter = QPainter(pixmap)
@@ -577,26 +632,36 @@ class ModernMessageBox(QDialog):
         color = QColor(c)
         painter.setBrush(color)
         cx, cy = 22, 22
-        if self.msg_type in ('info', 'question'):
-            painter.drawEllipse(cx-4, cy-12, 8, 8)
-            painter.drawRoundedRect(cx-2, cy-1, 4, 14, 2, 2)
-        elif self.msg_type == 'success':
+        if self.msg_type in ("info", "question"):
+            painter.drawEllipse(cx - 4, cy - 12, 8, 8)
+            painter.drawRoundedRect(cx - 2, cy - 1, 4, 14, 2, 2)
+        elif self.msg_type == "success":
             from PySide6.QtGui import QPen, QPainterPath
+
             pen = QPen(color, 3, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
-            painter.setPen(pen); painter.setBrush(Qt.NoBrush)
+            painter.setPen(pen)
+            painter.setBrush(Qt.NoBrush)
             path = QPainterPath()
-            path.moveTo(10, 23); path.lineTo(18, 31); path.lineTo(34, 15)
+            path.moveTo(10, 23)
+            path.lineTo(18, 31)
+            path.lineTo(34, 15)
             painter.drawPath(path)
-        elif self.msg_type == 'warning':
+        elif self.msg_type == "warning":
             from PySide6.QtGui import QPen
+
             pen = QPen(color, 3, Qt.SolidLine, Qt.RoundCap)
-            painter.setPen(pen); painter.setBrush(Qt.NoBrush)
-            painter.drawLine(22, 12, 22, 24); painter.drawPoint(22, 30)
-        elif self.msg_type == 'error':
+            painter.setPen(pen)
+            painter.setBrush(Qt.NoBrush)
+            painter.drawLine(22, 12, 22, 24)
+            painter.drawPoint(22, 30)
+        elif self.msg_type == "error":
             from PySide6.QtGui import QPen
+
             pen = QPen(color, 3, Qt.SolidLine, Qt.RoundCap)
-            painter.setPen(pen); painter.setBrush(Qt.NoBrush)
-            painter.drawLine(14, 14, 30, 30); painter.drawLine(30, 14, 14, 30)
+            painter.setPen(pen)
+            painter.setBrush(Qt.NoBrush)
+            painter.drawLine(14, 14, 30, 30)
+            painter.drawLine(30, 14, 14, 30)
         painter.end()
         label.setPixmap(pixmap)
 
@@ -609,7 +674,7 @@ class ModernMessageBox(QDialog):
         self._animate_close()
 
     def _apply_styles(self):
-        c = self.config['color']
+        c = self.config["color"]
         self.setStyleSheet(f"""
             #msgOuter {{ background-color: #1e293b; border: 1px solid #334155; border-radius: 16px; }}
             #msgTitle {{ font-size: 16px; font-weight: 700; color: #f1f5f9; }}
@@ -633,44 +698,65 @@ class ModernMessageBox(QDialog):
     def _animate_open(self):
         self.setWindowOpacity(0)
         anim = QPropertyAnimation(self, b"windowOpacity", self)
-        anim.setDuration(200); anim.setStartValue(0); anim.setEndValue(1)
+        anim.setDuration(200)
+        anim.setStartValue(0)
+        anim.setEndValue(1)
         anim.setEasingCurve(QEasingCurve.Type.OutCubic)
-        anim.start(); self._open_anim = anim
+        anim.start()
+        self._open_anim = anim
 
     def _animate_close(self):
         anim = QPropertyAnimation(self, b"windowOpacity", self)
-        anim.setDuration(150); anim.setStartValue(1); anim.setEndValue(0)
+        anim.setDuration(150)
+        anim.setStartValue(1)
+        anim.setEndValue(0)
         anim.setEasingCurve(QEasingCurve.Type.InCubic)
         anim.finished.connect(lambda: super(ModernMessageBox, self).done(self._result_code))
-        anim.start(); self._close_anim = anim
+        anim.start()
+        self._close_anim = anim
 
     # API estática (igual a QMessageBox)
     @staticmethod
     def information(parent, title, message):
-        d = ModernMessageBox(parent, title, message, 'info'); d.exec(); return d._result_code
+        d = ModernMessageBox(parent, title, message, "info")
+        d.exec()
+        return d._result_code
 
     @staticmethod
     def success(parent, title, message):
-        d = ModernMessageBox(parent, title, message, 'success'); d.exec(); return d._result_code
+        d = ModernMessageBox(parent, title, message, "success")
+        d.exec()
+        return d._result_code
 
     @staticmethod
     def warning(parent, title, message):
-        btns = [{'text':'Cancelar','role':'reject','class':'secondary'},
-                {'text':'Continuar','role':'accept','class':'primary'}]
-        d = ModernMessageBox(parent, title, message, 'warning', btns); d.exec(); return d._result_code
+        btns = [
+            {"text": "Cancelar", "role": "reject", "class": "secondary"},
+            {"text": "Continuar", "role": "accept", "class": "primary"},
+        ]
+        d = ModernMessageBox(parent, title, message, "warning", btns)
+        d.exec()
+        return d._result_code
 
     @staticmethod
     def error(parent, title, message, detailed_text=None):
-        btns = [{'text':'Cerrar','role':'reject','class':'secondary'},
-                {'text':'Reintentar','role':'accept','class':'primary'}]
-        d = ModernMessageBox(parent, title, message, 'error', btns, detailed_text)
-        d.exec(); return d._result_code
+        btns = [
+            {"text": "Cerrar", "role": "reject", "class": "secondary"},
+            {"text": "Reintentar", "role": "accept", "class": "primary"},
+        ]
+        d = ModernMessageBox(parent, title, message, "error", btns, detailed_text)
+        d.exec()
+        return d._result_code
 
     @staticmethod
     def question(parent, title, message):
-        btns = [{'text':'No','role':'reject','class':'secondary'},
-                {'text':'Sí','role':'accept','class':'primary'}]
-        d = ModernMessageBox(parent, title, message, 'question', btns); d.exec(); return d._result_code
+        btns = [
+            {"text": "No", "role": "reject", "class": "secondary"},
+            {"text": "Sí", "role": "accept", "class": "primary"},
+        ]
+        d = ModernMessageBox(parent, title, message, "question", btns)
+        d.exec()
+        return d._result_code
 ```
 
 ### 4.2 CardWidget
@@ -683,16 +769,23 @@ class CardWidget(QFrame):
         self._layout.setContentsMargins(padding, padding, padding, padding)
         self._layout.setSpacing(12)
         if title:
-            t = QLabel(title); t.setProperty("class", "title"); self._layout.addWidget(t)
+            t = QLabel(title)
+            t.setProperty("class", "title")
+            self._layout.addWidget(t)
         if subtitle:
-            s = QLabel(subtitle); s.setProperty("class", "subtitle"); self._layout.addWidget(s)
+            s = QLabel(subtitle)
+            s.setProperty("class", "subtitle")
+            self._layout.addWidget(s)
         self.content_layout = QVBoxLayout()
         self.content_layout.setSpacing(10)
         self._layout.addLayout(self.content_layout)
         self._layout.addStretch()
 
-    def add_widget(self, w): self.content_layout.addWidget(w)
-    def add_layout(self, l): self.content_layout.addLayout(l)
+    def add_widget(self, w):
+        self.content_layout.addWidget(w)
+
+    def add_layout(self, l):
+        self.content_layout.addLayout(l)
 ```
 
 ### 4.3 IconButton
@@ -702,6 +795,7 @@ class IconButton(QPushButton):
         super().__init__(icon_str, parent)
         self.setFixedSize(size, size)
         from PySide6.QtCore import Qt
+
         self.setCursor(Qt.PointingHandCursor)
         self.setToolTip(tooltip)
         self.setProperty("class", "icon-btn")
@@ -720,11 +814,13 @@ class IconButton(QPushButton):
 ```python
 class StatusBadge(QLabel):
     """status: 'success' | 'warning' | 'danger' | 'info'"""
+
     def __init__(self, text, status="success", parent=None):
         super().__init__(text, parent)
         self.setProperty("class", f"badge-{status}")
         self.setFixedHeight(28)
         from PySide6.QtCore import Qt
+
         self.setAlignment(Qt.AlignCenter)
 ```
 
@@ -735,12 +831,13 @@ class AvatarWidget(QLabel):
         super().__init__(parent)
         self.setFixedSize(size, size)
         from PySide6.QtCore import Qt
+
         self.setAlignment(Qt.AlignCenter)
         bg = color or "#6366f1"
         self.setStyleSheet(f"""
             background-color: {bg}; color: #ffffff;
-            border-radius: {size//2}px;
-            font-weight: 700; font-size: {size//3}px;
+            border-radius: {size // 2}px;
+            font-weight: 700; font-size: {size // 3}px;
         """)
         self.setText(initials.upper()[:2])
 ```
@@ -750,6 +847,7 @@ class AvatarWidget(QLabel):
 from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Qt, QTimer, QRectF
 from PySide6.QtGui import QPainter, QColor, QPen
+
 
 class LoadingSpinner(QWidget):
     def __init__(self, size=40, color="#6366f1", parent=None):
@@ -768,16 +866,21 @@ class LoadingSpinner(QWidget):
     def paintEvent(self, event):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
-        p.translate(self.width()/2, self.height()/2)
+        p.translate(self.width() / 2, self.height() / 2)
         p.rotate(self._angle)
         pen = QPen(self._color, 3, Qt.SolidLine, Qt.RoundCap)
         p.setPen(pen)
-        r = self.width()/2 - 4
-        p.drawArc(QRectF(-r, -r, r*2, r*2), 0*16, 270*16)
+        r = self.width() / 2 - 4
+        p.drawArc(QRectF(-r, -r, r * 2, r * 2), 0 * 16, 270 * 16)
         p.end()
 
-    def stop(self): self._timer.stop(); self.hide()
-    def start(self): self._timer.start(16); self.show()
+    def stop(self):
+        self._timer.stop()
+        self.hide()
+
+    def start(self):
+        self._timer.start(16)
+        self.show()
 ```
 
 ---
@@ -831,9 +934,13 @@ def create_page_header(title: str, subtitle="", actions=None):
     header = QHBoxLayout()
     left = QVBoxLayout()
     left.setSpacing(4)
-    t = QLabel(title); t.setProperty("class", "title"); left.addWidget(t)
+    t = QLabel(title)
+    t.setProperty("class", "title")
+    left.addWidget(t)
     if subtitle:
-        s = QLabel(subtitle); s.setProperty("class", "subtitle"); left.addWidget(s)
+        s = QLabel(subtitle)
+        s.setProperty("class", "subtitle")
+        left.addWidget(s)
     header.addLayout(left)
     header.addStretch()
     if actions:
@@ -851,9 +958,9 @@ def create_stats_grid(stats: list[dict]) -> QHBoxLayout:
     row = QHBoxLayout()
     row.setSpacing(16)
     for s in stats:
-        card = CardWidget(title=s['value'], subtitle=s['label'], padding=20)
-        if s.get('badge'):
-            card.add_widget(StatusBadge(s['badge'], s.get('status', 'info')))
+        card = CardWidget(title=s["value"], subtitle=s["label"], padding=20)
+        if s.get("badge"):
+            card.add_widget(StatusBadge(s["badge"], s.get("status", "info")))
         row.addWidget(card)
     return row
 ```
@@ -935,17 +1042,28 @@ class ClienteView(QWidget):
         root.setContentsMargins(24, 24, 24, 24)
         root.setSpacing(24)
 
-        root.addLayout(create_page_header(
-            "Clientes",
-            "Gestión de clientes registrados",
-            actions=[QPushButton("Nuevo cliente")]
-        ))
+        root.addLayout(
+            create_page_header(
+                "Clientes",
+                "Gestión de clientes registrados",
+                actions=[QPushButton("Nuevo cliente")],
+            )
+        )
 
-        root.addLayout(create_stats_grid([
-            {'label': 'Total clientes', 'value': '1,248', 'badge': 'Activo', 'status': 'success'},
-            {'label': 'Nuevos hoy',     'value': '12',    'badge': '+8%',    'status': 'success'},
-            {'label': 'Inactivos',      'value': '43',    'badge': 'Alerta', 'status': 'warning'},
-        ]))
+        root.addLayout(
+            create_stats_grid(
+                [
+                    {
+                        "label": "Total clientes",
+                        "value": "1,248",
+                        "badge": "Activo",
+                        "status": "success",
+                    },
+                    {"label": "Nuevos hoy", "value": "12", "badge": "+8%", "status": "success"},
+                    {"label": "Inactivos", "value": "43", "badge": "Alerta", "status": "warning"},
+                ]
+            )
+        )
 
         search = QLineEdit()
         search.setPlaceholderText("🔍  Buscar cliente...")
@@ -970,8 +1088,9 @@ class ClienteView(QWidget):
 
     def _on_delete(self):
         result = ModernMessageBox.question(
-            self, "Confirmar eliminación",
-            "¿Deseas eliminar los clientes seleccionados? Esta acción no se puede deshacer."
+            self,
+            "Confirmar eliminación",
+            "¿Deseas eliminar los clientes seleccionados? Esta acción no se puede deshacer.",
         )
         if result == QDialog.Accepted:
             # lógica de eliminación aquí

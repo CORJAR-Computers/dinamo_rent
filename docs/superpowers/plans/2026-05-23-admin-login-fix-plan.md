@@ -17,42 +17,44 @@ from core.security import SecurityManager
 from core.database_sa import get_session, Base, engine
 import main_qt
 
+
 def test_inicializar_base_datos_dev_mode(db_session, monkeypatch):
     """En modo desarrollo (PRODUCTION_MODE = False), el admin debe tener la contraseña Admin123!"""
     monkeypatch.setattr(main_qt, "PRODUCTION_MODE", False)
-    
+
     # 1. Ejecutar inicialización
     main_qt.inicializar_base_datos()
-    
+
     # 2. Verificar que se creó y que la contraseña es "Admin123!"
     with get_session() as session:
-        admin = session.query(Usuario).filter(Usuario.username == 'admin').first()
+        admin = session.query(Usuario).filter(Usuario.username == "admin").first()
         assert admin is not None
         assert admin.activo == 1
         assert SecurityManager.verify_password(admin.password, "Admin123!")
 
+
 def test_inicializar_base_datos_dev_mode_restablece_existente(db_session, monkeypatch):
     """En modo desarrollo, si el admin ya existe con otra contraseña, debe restablecerse a Admin123!"""
     monkeypatch.setattr(main_qt, "PRODUCTION_MODE", False)
-    
+
     # 1. Crear usuario admin previamente con contraseña aleatoria/diferente
     with get_session() as session:
         existing_admin = Usuario(
-            username='admin',
+            username="admin",
             password=SecurityManager.hash_password("ContrasenaVieja123!"),
-            nombre='Admin',
-            rol='Administrador',
-            activo=0  # inactivo para probar que lo activa
+            nombre="Admin",
+            rol="Administrador",
+            activo=0,  # inactivo para probar que lo activa
         )
         session.add(existing_admin)
         session.commit()
-    
+
     # 2. Ejecutar inicialización
     main_qt.inicializar_base_datos()
-    
+
     # 3. Verificar que se restableció
     with get_session() as session:
-        admin = session.query(Usuario).filter(Usuario.username == 'admin').first()
+        admin = session.query(Usuario).filter(Usuario.username == "admin").first()
         assert admin is not None
         assert admin.activo == 1
         assert SecurityManager.verify_password(admin.password, "Admin123!")
@@ -95,44 +97,50 @@ def inicializar_base_datos(force_dialog=False):
     from core.database_sa import get_session
 
     with get_session() as session:
-        admin = session.query(Usuario).filter(Usuario.username == 'admin').first()
-        
+        admin = session.query(Usuario).filter(Usuario.username == "admin").first()
+
         dev_password = "Admin123!"
-        
+
         if not PRODUCTION_MODE:
             if not admin:
                 admin = Usuario(
-                    username='admin',
+                    username="admin",
                     password=SecurityManager.hash_password(dev_password),
-                    nombre='Administrador Principal',
-                    rol='Administrador',
+                    nombre="Administrador Principal",
+                    rol="Administrador",
                     activo=1,
-                    debe_cambiar_password=1
+                    debe_cambiar_password=1,
                 )
                 session.add(admin)
                 log.info("Usuario admin creado con contraseña de desarrollo: Admin123!")
             else:
                 admin.password = SecurityManager.hash_password(dev_password)
                 admin.activo = 1
-                log.info("Usuario admin verificado. Contraseña restablecida a la contraseña de desarrollo: Admin123!")
+                log.info(
+                    "Usuario admin verificado. Contraseña restablecida a la contraseña de desarrollo: Admin123!"
+                )
             return
 
         if admin:
             return
 
         import secrets
+
         new_password = secrets.token_urlsafe(12)
         admin = Usuario(
-            username='admin',
+            username="admin",
             password=SecurityManager.hash_password(new_password),
-            nombre='Administrador Principal',
-            rol='Administrador',
+            nombre="Administrador Principal",
+            rol="Administrador",
             activo=1,
-            debe_cambiar_password=1
+            debe_cambiar_password=1,
         )
         session.add(admin)
         log.info("Usuario admin creado con contraseña aleatoria de producción")
-        log.warning("Contraseña temporal generada: %s (no almacenar, cambiarla en primer inicio)", new_password)
+        log.warning(
+            "Contraseña temporal generada: %s (no almacenar, cambiarla en primer inicio)",
+            new_password,
+        )
 ```
 
 ---

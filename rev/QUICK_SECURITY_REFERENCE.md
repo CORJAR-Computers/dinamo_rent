@@ -40,7 +40,7 @@ success, msg = BackupService.crear(encrypt=True)
 success, msg = BackupService.decrypt_file(
     encrypted_path="Backups/backup.sql.enc",
     output_path="Backups/backup.sql",
-    password="mi_password"
+    password="mi_password",
 )
 ```
 
@@ -72,17 +72,11 @@ if PermissionChecker.can_manage_users(session_id):
 from core.security_utils import FileEncryptor
 
 # Encriptar
-FileEncryptor.encrypt_file(
-    file_path=".env",
-    password="mi_password_seguro",
-    output_path=".env.enc"
-)
+FileEncryptor.encrypt_file(file_path=".env", password="mi_password_seguro", output_path=".env.enc")
 
 # Desencriptar
 FileEncryptor.decrypt_file(
-    encrypted_path=".env.enc",
-    password="mi_password_seguro",
-    output_path=".env"
+    encrypted_path=".env.enc", password="mi_password_seguro", output_path=".env"
 )
 ```
 
@@ -109,10 +103,10 @@ SecureEnvManager.secure_delete_file("archivo_sensible.db", passes=3)
 
 ### Rate Limiting (config.py)
 ```python
-MAX_LOGIN_ATTEMPTS = 5              # Intentos antes de bloqueo
-ACCOUNT_LOCKOUT_DURATION = 1800     # 30 minutos
-LOGIN_RATE_LIMIT_WINDOW = 300       # 5 minutos ventana
-MAX_LOGIN_ATTEMPTS_IN_WINDOW = 10   # Máx en ventana
+MAX_LOGIN_ATTEMPTS = 5  # Intentos antes de bloqueo
+ACCOUNT_LOCKOUT_DURATION = 1800  # 30 minutos
+LOGIN_RATE_LIMIT_WINDOW = 300  # 5 minutos ventana
+MAX_LOGIN_ATTEMPTS_IN_WINDOW = 10  # Máx en ventana
 ```
 
 ### Roles con Acceso (config.py)
@@ -141,6 +135,7 @@ pip install cryptography>=41.0.0
 ### Validar Contraseña de MySQL
 ```python
 from core.security_utils import SecureEnvManager
+
 issues = SecureEnvManager.validate_env_security()
 # Buscar: "Contraseña vacía" o "Contraseña muy corta"
 ```

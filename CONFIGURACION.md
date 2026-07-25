@@ -135,16 +135,16 @@ La aplicación leerá automáticamente la configuración al iniciar.
 from core.app_config import config
 
 # Obtener valor como string
-db_host = config.get('database', 'host')
+db_host = config.get("database", "host")
 
 # Obtener como entero
-db_port = config.getint('database', 'port')
+db_port = config.getint("database", "port")
 
 # Obtener como booleano
-audit_enabled = config.getboolean('logging', 'audit_enabled')
+audit_enabled = config.getboolean("logging", "audit_enabled")
 
 # Obtener lista separada por comas
-roles = config.getlist('business', 'roles_con_informes')
+roles = config.getlist("business", "roles_con_informes")
 ```
 
 ### Accesos Directos (Recomendado)
@@ -153,24 +153,24 @@ from core.app_config import config
 
 # Configuración de base de datos
 db_config = config.get_database_config()
-print(db_config['host'])
-print(db_config['port'])
+print(db_config["host"])
+print(db_config["port"])
 
 # Configuración de seguridad
 sec_config = config.get_security_config()
-print(sec_config['max_login_attempts'])
+print(sec_config["max_login_attempts"])
 
 # Configuración de backups
 backup_config = config.get_backup_config()
-print(backup_config['encryption_enabled'])
+print(backup_config["encryption_enabled"])
 
 # Configuración de UI
 ui_config = config.get_ui_config()
-print(ui_config['color_primario'])
+print(ui_config["color_primario"])
 
 # Configuración de negocio
 business_config = config.get_business_config()
-print(business_config['alert_soat_days'])
+print(business_config["alert_soat_days"])
 ```
 
 ### Modificar Configuración en Runtime
@@ -178,7 +178,7 @@ print(business_config['alert_soat_days'])
 from core.app_config import config
 
 # Cambiar valor
-config.set('database', 'host', '192.168.1.100')
+config.set("database", "host", "192.168.1.100")
 
 # Recargar desde archivo
 config.reload()
@@ -310,6 +310,7 @@ Verificar que existan las secciones obligatorias:
 ```python
 # Recargar configuración en runtime
 from core.app_config import reload_config
+
 reload_config()
 ```
 

@@ -195,6 +195,7 @@ alembic current
 
 ```python
 from cryptography.fernet import Fernet
+
 key = Fernet.generate_key().decode()
 print(f"db_encryption_key = {key}")
 ```
@@ -380,9 +381,7 @@ from services.backup_service import BackupService
 
 # Desencriptar si estaba encriptado
 success, msg = BackupService.decrypt_file(
-    "Backups/backup_2026-07-25.enc",
-    "Backups/backup_2026-07-25.db",
-    "contraseña_backups"
+    "Backups/backup_2026-07-25.enc", "Backups/backup_2026-07-25.db", "contraseña_backups"
 )
 ```
 

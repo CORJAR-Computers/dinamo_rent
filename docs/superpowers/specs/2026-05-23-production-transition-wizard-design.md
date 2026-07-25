@@ -78,7 +78,7 @@ Modificaremos `PreferencesSetupPage` para añadir campos de texto de dirección 
        "company_name": self.field("pref_empresa"),
        "company_address": self.field("pref_direccion"),
        "company_phone": self.field("pref_telefono"),
-       "currency_symbol": self.field("pref_moneda")
+       "currency_symbol": self.field("pref_moneda"),
    }
    guardar_configuracion("app", app_config)
    ```

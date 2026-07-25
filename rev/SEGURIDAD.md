@@ -81,9 +81,7 @@ BackupService.crear(encrypt=True, encryption_password="mi_password")
 
 # Desencriptar backup
 BackupService.decrypt_file(
-    encrypted_path="backup.sql.enc",
-    output_path="backup.sql",
-    password="mi_password"
+    encrypted_path="backup.sql.enc", output_path="backup.sql", password="mi_password"
 )
 ```
 
@@ -96,17 +94,11 @@ Encriptar archivos .env, configuraciones, etc.:
 from core.security_utils import FileEncryptor
 
 # Encriptar
-FileEncryptor.encrypt_file(
-    file_path=".env",
-    password="password_seguro",
-    output_path=".env.enc"
-)
+FileEncryptor.encrypt_file(file_path=".env", password="password_seguro", output_path=".env.enc")
 
 # Desencriptar
 FileEncryptor.decrypt_file(
-    encrypted_path=".env.enc",
-    password="password_seguro",
-    output_path=".env"
+    encrypted_path=".env.enc", password="password_seguro", output_path=".env"
 )
 ```
 
@@ -180,6 +172,7 @@ python security_audit.py
 3. **Validar regularmente**:
    ```python
    from core.security_utils import SecureEnvManager
+
    issues = SecureEnvManager.validate_env_security()
    ```
 
@@ -283,8 +276,7 @@ from services.backup_service import BackupService
 
 # Backup con encriptación
 success, msg = BackupService.crear(
-    encrypt=True,
-    encryption_password=f"Backup_{datetime.now().strftime('%Y%m')}"
+    encrypt=True, encryption_password=f"Backup_{datetime.now().strftime('%Y%m')}"
 )
 ```
 

@@ -63,12 +63,14 @@ services/
 ```python
 # ANTES:
 from services.services import RentaService
-balance = RentaService.balance_mensual()      # ← YA NO EXISTE
-roi = RentaService.roi_flota()                # ← YA NO EXISTE
-kpi = RentaService.kpi_globales()             # ← YA NO EXISTE
+
+balance = RentaService.balance_mensual()  # ← YA NO EXISTE
+roi = RentaService.roi_flota()  # ← YA NO EXISTE
+kpi = RentaService.kpi_globales()  # ← YA NO EXISTE
 
 # DESPUÉS:
 from services import InformeService, FinancialService, DashboardService
+
 balance = InformeService.balance_mensual_real()
 roi = FinancialService.roi_flota()
 kpi = DashboardService.kpi_globales()

@@ -139,14 +139,15 @@ El campo `placa` en gastos es **OPCIONAL** (nullable=True). Los gastos existente
 ### Sobre el __table_args__ de Renta
 Antes tenías DOS definiciones de `__table_args__` en la clase Renta:
 ```python
-__table_args__ = {'mysql_collate': 'utf8mb4_unicode_ci'}  # Se PERDÍA
-__table_args__ = (Index(...), Index(...))                   # Esta ganaba
+__table_args__ = {"mysql_collate": "utf8mb4_unicode_ci"}  # Se PERDÍA
+__table_args__ = (Index(...), Index(...))  # Esta ganaba
 ```
 Ahora están combinadas correctamente:
 ```python
 __table_args__ = (
-    Index(...), Index(...),
-    {'mysql_collate': 'utf8mb4_unicode_ci'},
+    Index(...),
+    Index(...),
+    {"mysql_collate": "utf8mb4_unicode_ci"},
 )
 ```
 

@@ -43,15 +43,15 @@ color_primario = #004aad
 ### 2. **Tipos de Datos Nativos**
 ```python
 # Automáticamente convierte a tipo correcto
-port = config.getint('database', 'port')        # int
-enabled = config.getboolean('email', 'enabled') # bool
-roles = config.getlist('business', 'roles')     # list
+port = config.getint("database", "port")  # int
+enabled = config.getboolean("email", "enabled")  # bool
+roles = config.getlist("business", "roles")  # list
 ```
 
 ### 3. **Valores por Defecto**
 ```python
 # Si no existe, usa el fallback
-port = config.getint('database', 'port', 3306)
+port = config.getint("database", "port", 3306)
 ```
 
 ### 4. **Accesos Directos**
@@ -91,11 +91,11 @@ from core.app_config import config
 
 # Método 1: Acceso directo (recomendado)
 db_config = config.get_database_config()
-print(db_config['host'])
+print(db_config["host"])
 
 # Método 2: Acceso manual
-host = config.get('database', 'host')
-port = config.getint('database', 'port')
+host = config.get("database", "host")
+port = config.getint("database", "port")
 
 # Método 3: Usar variables existentes (compatibilidad)
 from core.config import DB_MYSQL, HASH_ALGORITHM
@@ -221,7 +221,7 @@ reload_config()
 from core.app_config import config
 
 # Cambiar valor
-config.set('database', 'host', 'nuevo-servidor')
+config.set("database", "host", "nuevo-servidor")
 
 # Guardar al archivo
 config.save()
@@ -231,9 +231,9 @@ config.save()
 ```python
 from core.app_config import config
 
-if config.has_section('email'):
+if config.has_section("email"):
     email_config = config.get_email_config()
-    if email_config['enabled']:
+    if email_config["enabled"]:
         # Enviar email
         pass
 ```
@@ -351,7 +351,7 @@ Posibles adiciones al sistema:
 2. **Variables de entorno como fallback**
    ```python
    # Si no existe en .ini, leer de .env
-   password = config.get('database', 'password') or os.getenv('DB_PASSWORD')
+   password = config.get("database", "password") or os.getenv("DB_PASSWORD")
    ```
 
 3. **Múltiples perfiles**
@@ -364,7 +364,7 @@ Posibles adiciones al sistema:
 4. **Encriptación de config.ini**
    ```python
    # Encriptar contraseñas dentro del .ini
-   password = ENC[AES256@...]
+   password = ENC[AES256 @ ...]
    ```
 
 ---

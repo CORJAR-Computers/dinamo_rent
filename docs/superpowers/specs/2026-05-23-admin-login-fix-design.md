@@ -20,7 +20,7 @@ En el archivo `main_qt.py`, la función `inicializar_base_datos` inicializa la b
 3. Debido a esto, el usuario/desarrollador no tiene forma de conocer la contraseña y no puede iniciar sesión con la cuenta `admin`.
 4. Adicionalmente, si el usuario `admin` ya existe en la base de datos (con una contraseña aleatoria olvidada de una ejecución anterior), ejecuciones consecutivas simplemente retornan sin actualizar la contraseña:
    ```python
-   admin = session.query(Usuario).filter(Usuario.username == 'admin').first()
+   admin = session.query(Usuario).filter(Usuario.username == "admin").first()
    if admin:
        return
    ```

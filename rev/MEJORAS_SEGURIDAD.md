@@ -34,11 +34,11 @@ Las contraseñas se almacenaban en texto plano en `_credentials`, lo que podría
 
 ```python
 # Antes (inseguro)
-cls._credentials[service] = {'username': u, 'password': pwd}
+cls._credentials[service] = {"username": u, "password": pwd}
 
 # Ahora (mejorado)
 encoded = base64.b64encode(password.encode())
-cls._credentials[service] = {'username': u, 'password': encoded.decode(), '_encrypted': True}
+cls._credentials[service] = {"username": u, "password": encoded.decode(), "_encrypted": True}
 ```
 
 **Nota**: Esto no es encriptación robusta, pero dificulta la lectura directa. Para producción, se recomienda usar un vault de secretos.

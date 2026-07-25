@@ -717,7 +717,7 @@ def collect_code_metrics() -> dict:
 
         # Top 10 largest files
         file_sizes.sort(key=lambda x: x[1], reverse=True)
-        metrics["largest_files"] = [f"{str(f)}: {s/1024:.1f}KB" for f, s in file_sizes[:10]]
+        metrics["largest_files"] = [f"{str(f)}: {s / 1024:.1f}KB" for f, s in file_sizes[:10]]
 
     except Exception:
         pass

@@ -72,11 +72,13 @@ else:
 ```python
 from core.rbac import require_role, PermissionChecker
 
+
 # Usando decorador
-@require_role('Administrador', 'Supervisor')
+@require_role("Administrador", "Supervisor")
 def generar_informe(session_id=None):
     # Solo accesible para Admin y Supervisor
     pass
+
 
 # Verificación programática
 if PermissionChecker.can_access_informes(session_id):
@@ -106,16 +108,13 @@ if PermissionChecker.can_access_informes(session_id):
 from services.backup_service import BackupService
 
 # Crear backup encriptado
-success, msg = BackupService.crear(
-    encrypt=True,
-    encryption_password="PasswordSeguro123!"
-)
+success, msg = BackupService.crear(encrypt=True, encryption_password="PasswordSeguro123!")
 
 # Desencriptar backup
 success, msg = BackupService.decrypt_file(
     encrypted_path="Backups/backup.sql.enc",
     output_path="Backups/backup.sql",
-    password="PasswordSeguro123!"
+    password="PasswordSeguro123!",
 )
 ```
 
