@@ -334,6 +334,7 @@ class SplashScreen(QWidget):
 class LoginWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self._login_successful = False  # Flag: True cuando cerramos por login exitoso
         self.setWindowTitle(f"Acceso — {APP_NAME}")
         self.setFixedSize(450, 600)
 
@@ -467,7 +468,8 @@ class LoginWindow(QMainWindow):
         # Crear y mostrar la ventana principal desde el hilo principal
         global _active_main_window
         _active_main_window = MainWindow(session)
-        _active_main_window.show()
+        _active_main_window.showMaximized()
+        self._login_successful = True  # Evitar que closeEvent llame a app.quit()
         self.close()
 
 
@@ -489,9 +491,11 @@ class LoginWindow(QMainWindow):
         dlg.exec()
 
     def closeEvent(self, event):
-        """Al cerrar la ventana de login, terminar la aplicación."""
+        """Al cerrar la ventana de login manualmente (X), terminar la aplicación."""
         event.accept()
-        QApplication.instance().quit()
+        if not self._login_successful:
+            # Solo salir si el usuario cerró el login sin autenticarse
+            QApplication.instance().quit()
 
 
 # =============================================================================
@@ -631,9 +635,9 @@ class MainWindow(QMainWindow):
     def __init__(self, session: dict):
         super().__init__()
         self._session = session
+        self._closing_to_login = False  # Flag: True cuando cerramos para volver al login
         self.setWindowTitle(f"{APP_NAME} — {session['nombre']}")
         self.resize(1366, 768)
-        self.showMaximized()
 
         ico = str(ASSETS_DIR / "LogoDinamo.ico")
         if os.path.exists(ico):
@@ -959,11 +963,17 @@ class MainWindow(QMainWindow):
             duracion,
         )
         global _active_login_window
+        self._closing_to_login = True  # Suprimir el diálogo de salida
         _active_login_window = LoginWindow()
         _active_login_window.show()
         self.close()
 
     def closeEvent(self, event):
+        # Si es un cierre programático para volver al login, no pedir confirmación
+        if self._closing_to_login:
+            event.accept()
+            return
+
         from views.components import ModernMessageBox
         from PySide6.QtWidgets import QDialog
 
