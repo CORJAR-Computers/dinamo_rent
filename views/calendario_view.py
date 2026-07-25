@@ -35,6 +35,9 @@ from views.theme_colors import (
     NAV as _NAV, BLUE as _BLUE, BG as _BG, SURF as _SURF,
     BORD as _BORD, TEXT as _TEXT, MUTED as _MUTED,
 )
+from core.logger import get_logger
+
+log = get_logger(__name__)
 
 
 class CalendarioWidget(BaseWidget):
@@ -302,27 +305,27 @@ class CalendarioWidget(BaseWidget):
         try:
             resultado = RentaService.obtener_para_calendario(self.mes_vista, self.anio_vista)
             return resultado if resultado else []
-        except AttributeError:
-            pass
-        except DinamoBaseError:
-            pass
-        except Exception:
-            pass
+        except AttributeError as err:
+            log.debug("RentaService.obtener_para_calendario no implementado o atributo faltante: %s", err)
+        except DinamoBaseError as err:
+            log.warning("Error de negocio obteniendo datos para calendario: %s", err)
+        except Exception as err:
+            log.warning("Error inesperado obteniendo rentas para calendario: %s", err)
 
         try:
             resultado = DashboardService.obtener_activas()
             return resultado if resultado else []
-        except AttributeError:
-            pass
-        except Exception:
-            pass
+        except AttributeError as err:
+            log.debug("DashboardService.obtener_activas no disponible: %s", err)
+        except Exception as err:
+            log.warning("Error en fallback 1 (DashboardService.obtener_activas): %s", err)
 
         try:
             resultado = RentaService.obtener_activas()
             return resultado if resultado else []
-        except AttributeError:
-            pass
-        except Exception:
-            pass
+        except AttributeError as err:
+            log.debug("RentaService.obtener_activas no disponible: %s", err)
+        except Exception as err:
+            log.warning("Error en fallback 2 (RentaService.obtener_activas): %s", err)
 
         return []

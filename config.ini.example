@@ -14,8 +14,11 @@
 ; [database] — Configuración de la Base de Datos
 ; ─────────────────────────────────────────────────────────────────────
 [database]
-# Motor de base de datos: mysql o sqlite
-engine = mysql
+# Motor de base de datos: firebird, mysql o sqlite
+engine = firebird
+
+# Configuración Firebird (Embedded o Server)
+path = DINAMO_RENT_V3.FDB
 
 # Configuración MySQL
 host = localhost
@@ -34,6 +37,9 @@ pool_pre_ping = true
 ; [security] — Configuración de Seguridad
 ; ─────────────────────────────────────────────────────────────────────
 [security]
+# Clave Fernet para cifrado de datos at-rest (32 bytes base64 url-safe). Dejar vacío para autogenerar.
+db_encryption_key = 
+
 # Hash de contraseñas
 hash_algorithm = sha256
 hash_iterations = 100000

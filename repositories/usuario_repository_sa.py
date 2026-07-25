@@ -99,13 +99,23 @@ class UsuarioRepositorySA:
                 usuario.intentos_fallidos = 0
 
     @staticmethod
+    def obtener_para_autenticacion(username: str) -> Optional[Dict]:
+        """Obtiene usuario con hash de contraseña para procesos de autenticación."""
+        with get_session() as session:
+            usuario = session.query(Usuario).filter(Usuario.username == username.strip()).first()
+            if not usuario:
+                return None
+            res = UsuarioRepositorySA._to_dict(usuario)
+            res["password"] = usuario.password
+            return res
+
+    @staticmethod
     def _to_dict(usuario: Usuario) -> Dict:
         if not usuario:
             return None
         return {
             "id": usuario.id,
             "username": usuario.username,
-            "password": usuario.password,
             "nombre": usuario.nombre,
             "rol": usuario.rol,
             "email": usuario.email,

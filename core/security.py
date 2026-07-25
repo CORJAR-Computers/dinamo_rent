@@ -12,6 +12,7 @@ Mejoras aplicadas:
 """
 
 import hashlib
+import re
 import secrets
 import time
 from typing import Optional, Dict, List

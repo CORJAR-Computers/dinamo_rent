@@ -20,19 +20,22 @@ class ClienteRepositorySA:
     def buscar(termino: str = "") -> List[Dict]:
         """Busca clientes por nombre, documento, celular o email."""
         with get_session() as session:
-            query = session.query(Cliente)
-            if termino:
-                like = f"%{termino}%"
-                query = query.filter(
-                    or_(
-                        Cliente.nombre_completo.like(like),
-                        Cliente.no_doc.like(like),
-                        Cliente.celular.like(like),
-                        Cliente.email.like(like),
-                    )
-                )
-            clientes = query.order_by(Cliente.nombre_completo).all()
-            return [ClienteRepositorySA._to_dict(c) for c in clientes]
+            clientes = session.query(Cliente).order_by(Cliente.nombre_completo).all()
+            if not termino:
+                return [ClienteRepositorySA._to_dict(c) for c in clientes]
+
+            term_lower = termino.lower()
+            filtrados = []
+            for c in clientes:
+                if (
+                    (c.nombre_completo and term_lower in c.nombre_completo.lower())
+                    or (c.no_doc and term_lower in c.no_doc.lower())
+                    or (c.celular and term_lower in c.celular.lower())
+                    or (c.email and term_lower in c.email.lower())
+                ):
+                    filtrados.append(c)
+
+            return [ClienteRepositorySA._to_dict(c) for c in filtrados]
 
     @staticmethod
     def obtener_por_id(id_cliente: int) -> Dict:
@@ -49,8 +52,22 @@ class ClienteRepositorySA:
         if not hasattr(Cliente, campo):
             return []
 
+        from core.security_crypto import EncryptedString, EncryptedText
+
         with get_session() as session:
             columna = getattr(Cliente, campo)
+            coltype = getattr(columna, "type", None)
+
+            # Para campos encriptados, desencriptar en memoria Python
+            if isinstance(coltype, (EncryptedString, EncryptedText)):
+                clientes = session.query(Cliente).all()
+                valores = set()
+                for c in clientes:
+                    val = getattr(c, campo, None)
+                    if val:
+                        valores.add(str(val).strip())
+                return sorted(list(valores))
+
             resultados = (
                 session.query(columna)
                 .filter(columna.isnot(None), columna != "")

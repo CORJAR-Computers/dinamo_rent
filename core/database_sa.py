@@ -137,17 +137,11 @@ SessionLocal = _LazySessionMaker()
 
 @contextmanager
 def get_session() -> Generator[SASession, None, None]:
-    """Context manager de sesión SQLAlchemy.
-
-    SEC-04: Solo hace commit si hay cambios pendientes en la sesión
-    (session.dirty, session.new, o session.deleted no vacíos). Esto evita
-    commits vacíos innecesarios y posibles inconsistencias.
-    """
+    """Context manager de sesión SQLAlchemy."""
     session = SessionLocal()
     try:
         yield session
-        # Solo cometer si hay cambios pendientes
-        if session.dirty or session.new or session.deleted:
+        if session.in_transaction():
             session.commit()
     except Exception:
         session.rollback()
@@ -264,7 +258,7 @@ def init_db(drop: bool = False) -> None:
                     nombre="Administrador Principal",
                     rol="Administrador",
                     activo=1,
-                    debe_cambiar_password=0,
+                    debe_cambiar_password=1,
                 )
                 session.add(admin_user)
                 log.info("Usuario 'admin' creado por defecto (password: admin123)")

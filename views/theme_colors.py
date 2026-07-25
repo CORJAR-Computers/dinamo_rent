@@ -1,4 +1,4 @@
-‘’‘
+"""
 theme_colors.py — Paleta de colores centralizada para todas las vistas.
 
 CODE-02: Evita la duplicación de constantes de color en cada vista.
@@ -6,7 +6,7 @@ Todas las vistas deben importar de aquí en vez de redefinir los colores.
 
 Uso:
     from views.theme_colors import NAV, BLUE, BG, SURF, BORD, TEXT, MUTED
-‘’‘
+"""
 
 # ─── Colores base del sistema Dinamo Pro ────────────────────────────────────
 NAV = "#1a3558"

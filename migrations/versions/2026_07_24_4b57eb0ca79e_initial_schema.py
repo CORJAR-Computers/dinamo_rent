@@ -25,9 +25,8 @@ def upgrade() -> None:
     sa.Column('accion', sa.String(length=100), nullable=True),
     sa.Column('mensaje', sa.Text(), nullable=True),
     sa.Column('ip', sa.String(length=45), nullable=True),
-    sa.Column('fecha', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('fecha', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.PrimaryKeyConstraint('id'),
-    mysql_collate='utf8mb4_unicode_ci'
     )
     with op.batch_alter_table('auditoria', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_auditoria_fecha'), ['fecha'], unique=False)
@@ -60,10 +59,9 @@ def upgrade() -> None:
     sa.Column('vencimiento_bateria', sa.Date(), nullable=True),
     sa.Column('observaciones', sa.Text(), nullable=True),
     sa.Column('fecha_ingreso', sa.Date(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.PrimaryKeyConstraint('placa'),
-    mysql_collate='utf8mb4_unicode_ci'
     )
     with op.batch_alter_table('autos', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_autos_estado'), ['estado'], unique=False)
@@ -77,25 +75,24 @@ def upgrade() -> None:
     sa.Column('nombres', sa.String(length=100), nullable=False),
     sa.Column('apellidos', sa.String(length=100), nullable=True),
     sa.Column('nombre_completo', sa.String(length=200), server_default='', nullable=False),
-    sa.Column('celular', sa.String(length=20), nullable=True),
-    sa.Column('celular2', sa.String(length=20), nullable=True),
-    sa.Column('email', sa.String(length=150), nullable=True),
+    sa.Column('celular', sa.String(length=255), nullable=True),
+    sa.Column('celular2', sa.String(length=255), nullable=True),
+    sa.Column('email', sa.String(length=255), nullable=True),
     sa.Column('ciudad', sa.String(length=100), nullable=True),
     sa.Column('estado_region', sa.String(length=100), nullable=True),
     sa.Column('pais', sa.String(length=80), nullable=True),
     sa.Column('nacionalidad', sa.String(length=80), nullable=True),
-    sa.Column('dir_residencia', sa.String(length=200), nullable=True),
-    sa.Column('dir_temporal', sa.String(length=200), nullable=True),
+    sa.Column('dir_residencia', sa.Text(), nullable=True),
+    sa.Column('dir_temporal', sa.Text(), nullable=True),
     sa.Column('hotel', sa.String(length=150), nullable=True),
     sa.Column('habitacion', sa.String(length=30), nullable=True),
-    sa.Column('no_licencia', sa.String(length=50), nullable=True),
+    sa.Column('no_licencia', sa.String(length=255), nullable=True),
     sa.Column('tipo_licencia', sa.String(length=50), nullable=True),
     sa.Column('vencimiento_licencia', sa.Date(), nullable=True),
     sa.Column('estado', sa.String(length=30), server_default='Activo', nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.PrimaryKeyConstraint('id'),
-    mysql_collate='utf8mb4_unicode_ci'
     )
     with op.batch_alter_table('clientes', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_clientes_estado'), ['estado'], unique=False)
@@ -108,7 +105,6 @@ def upgrade() -> None:
     sa.Column('valor', sa.Text(), nullable=True),
     sa.Column('tipo', sa.String(length=30), nullable=True),
     sa.PrimaryKeyConstraint('clave'),
-    mysql_collate='utf8mb4_unicode_ci'
     )
     op.create_table('usuarios',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -121,10 +117,9 @@ def upgrade() -> None:
     sa.Column('intentos_fallidos', sa.Integer(), server_default='0', nullable=False),
     sa.Column('debe_cambiar_password', sa.SmallInteger(), server_default='0', nullable=False),
     sa.Column('ultimo_acceso', sa.DateTime(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.PrimaryKeyConstraint('id'),
-    mysql_collate='utf8mb4_unicode_ci'
     )
     with op.batch_alter_table('usuarios', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_usuarios_username'), ['username'], unique=True)
@@ -138,11 +133,10 @@ def upgrade() -> None:
     sa.Column('monto', sa.DECIMAL(precision=12, scale=2), nullable=False),
     sa.Column('comprobante', sa.String(length=50), nullable=True),
     sa.Column('usuario', sa.String(length=50), server_default='Sistema', nullable=True),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['placa'], ['autos.placa'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id'),
-    mysql_collate='utf8mb4_unicode_ci'
     )
     with op.batch_alter_table('gastos', schema=None) as batch_op:
         batch_op.create_index('ix_gastos_categoria_fecha', ['categoria', 'fecha'], unique=False)
@@ -159,11 +153,10 @@ def upgrade() -> None:
     sa.Column('cost_varios', sa.DECIMAL(precision=12, scale=2), server_default='0.00', nullable=False),
     sa.Column('km_proximo_cambio_aceite', sa.Integer(), server_default='0', nullable=True),
     sa.Column('total_mantenimiento', sa.DECIMAL(precision=12, scale=2), server_default='0.00', nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['placa'], ['autos.placa'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
-    mysql_collate='utf8mb4_unicode_ci'
     )
     with op.batch_alter_table('mantenimiento_vehiculos', schema=None) as batch_op:
         batch_op.create_index('ix_mantenimiento_placa_fecha', ['placa', 'pieza_varias_fecha'], unique=False)
@@ -190,12 +183,11 @@ def upgrade() -> None:
     sa.Column('total', sa.DECIMAL(precision=12, scale=2), server_default='0.00', nullable=False),
     sa.Column('observaciones', sa.Text(), nullable=True),
     sa.Column('estado', sa.String(length=30), server_default='Confirmada', nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['id_cliente'], ['clientes.id'], ),
     sa.ForeignKeyConstraint(['placa_asignada'], ['autos.placa'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id'),
-    mysql_collate='utf8mb4_unicode_ci'
     )
     with op.batch_alter_table('reservas', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_reservas_estado'), ['estado'], unique=False)
@@ -240,12 +232,11 @@ def upgrade() -> None:
     sa.Column('km_salida', sa.Float(), server_default='0.00', nullable=False),
     sa.Column('tanque_salida', sa.String(length=20), server_default='Lleno', nullable=True),
     sa.Column('id_reserva', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['id_cliente'], ['clientes.id'], ),
     sa.ForeignKeyConstraint(['id_reserva'], ['reservas.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['placa'], ['autos.placa'], onupdate='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
-    mysql_collate='utf8mb4_unicode_ci'
     )
     with op.batch_alter_table('rentas', schema=None) as batch_op:
         batch_op.create_index('idx_rentas_estado', ['estado'], unique=False)
@@ -266,13 +257,12 @@ def upgrade() -> None:
     sa.Column('id_cliente', sa.Integer(), nullable=True),
     sa.Column('estado', sa.String(length=20), server_default='Pendiente', nullable=True),
     sa.Column('observaciones', sa.Text(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['id_cliente'], ['clientes.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['id_renta'], ['rentas.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['placa'], ['autos.placa'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
-    mysql_collate='utf8mb4_unicode_ci'
     )
     with op.batch_alter_table('comparendos', schema=None) as batch_op:
         batch_op.create_index('ix_comparendos_placa_fecha', ['placa', 'fecha_infraccion'], unique=False)
@@ -281,7 +271,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('id_renta', sa.Integer(), nullable=False),
     sa.Column('tipo', sa.String(length=30), nullable=False),
-    sa.Column('fecha', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('fecha', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('kilometraje', sa.Float(), nullable=False),
     sa.Column('nivel_gasolina', sa.String(length=20), nullable=False),
     sa.Column('limpieza', sa.String(length=50), server_default='Limpio', nullable=True),
@@ -293,21 +283,19 @@ def upgrade() -> None:
     sa.Column('observaciones', sa.Text(), nullable=True),
     sa.ForeignKeyConstraint(['id_renta'], ['rentas.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
-    mysql_collate='utf8mb4_unicode_ci'
     )
     op.create_table('pagos',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('id_renta', sa.Integer(), nullable=False),
-    sa.Column('fecha', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('fecha', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('monto', sa.DECIMAL(precision=12, scale=2), nullable=False),
     sa.Column('metodo_pago', sa.String(length=50), nullable=False),
     sa.Column('concepto', sa.String(length=80), nullable=False),
     sa.Column('observaciones', sa.Text(), nullable=True),
     sa.Column('usuario', sa.String(length=50), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['id_renta'], ['rentas.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
-    mysql_collate='utf8mb4_unicode_ci'
     )
     with op.batch_alter_table('pagos', schema=None) as batch_op:
         batch_op.create_index('ix_pagos_renta_fecha', ['id_renta', 'fecha'], unique=False)

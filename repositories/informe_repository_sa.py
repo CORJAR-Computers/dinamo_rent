@@ -18,11 +18,12 @@ class InformeRepositorySA:
         from core.config import DB_ENGINE
 
         with get_session() as session:
-            date_func = (
-                "DATE_FORMAT(fecha, '%%Y-%%m')"
-                if DB_ENGINE == "mysql"
-                else "strftime('%%Y-%%m', fecha)"
-            )
+            if DB_ENGINE == "mysql":
+                date_func = "DATE_FORMAT(fecha, '%%Y-%%m')"
+            elif DB_ENGINE == "firebird":
+                date_func = "EXTRACT(YEAR FROM fecha) || '-' || LPAD(EXTRACT(MONTH FROM fecha), 2, '0')"
+            else:
+                date_func = "strftime('%%Y-%%m', fecha)"
             sql = text(f"""
                 SELECT
                     {date_func} as mes,

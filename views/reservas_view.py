@@ -436,10 +436,20 @@ class NuevaReservaDialog(BaseDialog):
         categoria = seleccion["valor"] if seleccion["es_generico"] else seleccion["marca"]
         placa = None if seleccion["es_generico"] else seleccion["placa"]
 
+        nac = "COLOMBIA"
+        if self.cliente_id:
+            try:
+                from services.cliente_service import ClienteService
+                cli = ClienteService.obtener_por_id(self.cliente_id)
+                if cli and cli.get("nacionalidad"):
+                    nac = cli.get("nacionalidad")
+            except Exception:
+                pass
+
         datos = {
             "id_cliente": self.cliente_id,
             "nombre_cliente": self.txt_cliente.text(),
-            "nacionalidad": "COLOMBIA",
+            "nacionalidad": nac,
             "categoria_vehiculo": categoria,
             "placa_asignada": placa,
             "fecha_recogida": self.d_inicio.date().toString("yyyy-MM-dd"),

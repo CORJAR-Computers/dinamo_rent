@@ -8,7 +8,7 @@ Si no, crea su propia sesión (comportamiento original).
 
 from typing import List, Dict
 
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, extract
 from sqlalchemy.orm import Session
 
 from core.models import Renta, Reserva
@@ -107,12 +107,12 @@ class RentaRepositorySA:
             hoy = date.today()
 
             if filtro == "Vencen Hoy":
-                query = query.filter(func.date(Renta.fecha_retorno) == hoy)
+                query = query.filter(Renta.fecha_retorno == hoy)
             elif filtro == "Retrasadas (Vencidas)":
-                query = query.filter(func.date(Renta.fecha_retorno) < hoy)
+                query = query.filter(Renta.fecha_retorno < hoy)
             elif filtro == "Entregas de Mañana":
                 manana = hoy + timedelta(days=1)
-                query = query.filter(func.date(Renta.fecha_retorno) == manana)
+                query = query.filter(Renta.fecha_retorno == manana)
 
             rentas = query.order_by(Renta.fecha_recogida.desc()).all()
             return [RentaRepositorySA._to_dict(r) for r in rentas]
@@ -242,8 +242,8 @@ class RentaRepositorySA:
                 .filter(
                     and_(
                         Renta.estado == "Activo",
-                        func.month(Renta.fecha_recogida) == mes,
-                        func.year(Renta.fecha_recogida) == anio,
+                        extract('month', Renta.fecha_recogida) == mes,
+                        extract('year', Renta.fecha_recogida) == anio,
                     )
                 )
                 .all()
@@ -255,8 +255,8 @@ class RentaRepositorySA:
                 .filter(
                     and_(
                         Reserva.estado == "Confirmada",
-                        func.month(Reserva.fecha_recogida) == mes,
-                        func.year(Reserva.fecha_recogida) == anio,
+                        extract('month', Reserva.fecha_recogida) == mes,
+                        extract('year', Reserva.fecha_recogida) == anio,
                     )
                 )
                 .all()

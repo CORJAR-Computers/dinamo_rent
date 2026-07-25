@@ -59,8 +59,8 @@ class AuthService:
                 mensaje_usuario="Demasiados intentos. Espera unos minutos antes de intentar nuevamente.",
             )
 
-        # Buscar usuario
-        usuario = UsuarioRepositorySA.obtener_por_username(username)
+        # Buscar usuario con hash de password para verificar credenciales
+        usuario = UsuarioRepositorySA.obtener_para_autenticacion(username)
 
         if not usuario or not SecurityManager.verify_password(usuario["password"], password):
             # Registrar intento fallido (ahora con IP)
@@ -171,7 +171,7 @@ class AuthService:
             raise CredencialesInvalidas(mensaje_usuario="Todos los campos son obligatorios.")
 
         # 1. Obtener usuario con hash actual
-        usuario = UsuarioRepositorySA.obtener_por_username(username)
+        usuario = UsuarioRepositorySA.obtener_para_autenticacion(username)
         if not usuario:
             raise CredencialesInvalidas(mensaje_usuario="Usuario no encontrado.")
 
@@ -214,6 +214,14 @@ class AuthService:
     @staticmethod
     def unlock_account(username: str) -> bool:
         """Desbloquea manualmente una cuenta (solo para administradores)."""
+        from core.database_sa import get_session
+        from core.models import Usuario
+
+        with get_session() as session:
+            user = session.query(Usuario).filter(Usuario.username == username).first()
+            if user:
+                user.intentos_fallidos = 0
+
         if login_tracker.is_locked(username):
             # SEC-03: Persistir el desbloqueo en la BD
             login_tracker.reset_attempts(username)

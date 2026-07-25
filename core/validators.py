@@ -23,6 +23,11 @@ from core.exceptions import (
 )
 
 
+def sanitize_for_sql(val: str) -> str:
+    """Alias de compatibilidad para sanitización de cadenas."""
+    return sanitizar(val) if val else ""
+
+
 # ─── Seguridad - Validación XSS (fuente única de verdad) ─────────────────────
 
 # Patrones consolidados de seguridad — usados por validate_no_xss

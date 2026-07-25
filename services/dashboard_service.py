@@ -41,8 +41,11 @@ class DashboardService:
         mes_actual = date.today().strftime("%Y-%m")
 
         if DB_ENGINE == "mysql":
-            date_expr_fecha = "DATE_FORMAT(fecha, '%%Y-%%m')"
-            date_expr_pieza = "DATE_FORMAT(pieza_varias_fecha, '%%Y-%%m')"
+            date_expr_fecha = "DATE_FORMAT(fecha, '%Y-%m')"
+            date_expr_pieza = "DATE_FORMAT(pieza_varias_fecha, '%Y-%m')"
+        elif DB_ENGINE == "firebird":
+            date_expr_fecha = "EXTRACT(YEAR FROM fecha) || '-' || LPAD(EXTRACT(MONTH FROM fecha), 2, '0')"
+            date_expr_pieza = "EXTRACT(YEAR FROM pieza_varias_fecha) || '-' || LPAD(EXTRACT(MONTH FROM pieza_varias_fecha), 2, '0')"
         else:
             date_expr_fecha = "strftime('%Y-%m', fecha)"
             date_expr_pieza = "strftime('%Y-%m', pieza_varias_fecha)"
