@@ -2,7 +2,7 @@
 
 > Sistema de gestión de flota para renta de vehículos. Administración integral: flota, clientes, rentas, reservas, finanzas, taller y más.
 
-[![CI — Ruff + Pytest](https://github.com/aleksei-corom/dinamo_rent/actions/workflows/ruff-lint.yml/badge.svg?branch=main)](https://github.com/aleksei-corom/dinamo_rent/actions/workflows/ruff-lint.yml) [![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)](tests/)
+[![CI — Ruff + Pytest](https://github.com/CORJAR-Computers/dinamo_rent/actions/workflows/ruff-lint.yml/badge.svg?branch=main)](https://github.com/CORJAR-Computers/dinamo_rent/actions/workflows/ruff-lint.yml) [![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)](tests/)
 
 ---
 
