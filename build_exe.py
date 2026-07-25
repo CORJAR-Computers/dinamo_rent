@@ -25,7 +25,7 @@ BUILD_DIR = PROJECT_DIR / "build"
 SPEC_FILE = PROJECT_DIR / "dinamo_rent.spec"
 
 APP_NAME = "DinamoRentERP"
-APP_VERSION = "3.2.0"
+APP_VERSION = "3.2.1"
 ENTRY_POINT = "main_qt.py"
 
 # --- Recursos a incluir en el ejecutable -----------------------------------
@@ -222,7 +222,6 @@ def _build_spec(args):
         "pandas.testing",
         "setuptools",
         "pip",
-        "distutils",
         "IPython",
         "jupyter",
         "notebook",
@@ -406,7 +405,7 @@ def _make_spec_manual(dist_path: Path, onefile: bool):
     lines.append("    excludes=[")
     lines.append("        'tkinter', 'matplotlib', 'scipy', 'PIL', 'Pillow',")
     lines.append("        'cv2', 'numpy.testing', 'pandas.testing',")
-    lines.append("        'setuptools', 'pip', 'distutils',")
+    lines.append("        'setuptools', 'pip',")
     lines.append("        'IPython', 'jupyter', 'notebook',")
     lines.append("        'PySide6.QtWebEngine*', 'PySide6.Qt3D*',")
     lines.append("        'PySide6.QtHelp', 'PySide6.QtLocation',")
