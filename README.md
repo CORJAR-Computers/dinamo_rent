@@ -110,5 +110,5 @@ python security_audit.py
 
 ---
 
-**Versión**: 3.2.0  
-**Última actualización**: 15 de abril de 2026
+**Versión**: 3.2.1  
+**Última actualización**: 25 de julio de 2026
