@@ -138,9 +138,11 @@ class AuthService:
 
             db_attempts = {}
             with get_session() as session:
-                users = session.query(
-                    Usuario.username, Usuario.intentos_fallidos
-                ).filter(Usuario.intentos_fallidos > 0).all()
+                users = (
+                    session.query(Usuario.username, Usuario.intentos_fallidos)
+                    .filter(Usuario.intentos_fallidos > 0)
+                    .all()
+                )
                 for username, attempts in users:
                     db_attempts[username] = attempts
 

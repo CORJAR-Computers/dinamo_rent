@@ -12,6 +12,7 @@ from core.logger import get_logger
 
 log = get_logger(__name__)
 
+
 class InspeccionRepositorySA:
     @staticmethod
     def obtener_por_renta(id_renta: int) -> List[Dict]:

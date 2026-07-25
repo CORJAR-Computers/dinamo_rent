@@ -296,7 +296,7 @@ def _make_postinstall_script(dist_path: Path, onefile: bool):
     """
     if onefile:
         exe_path = dist_path / f"{APP_NAME}.exe"
-        bat_content = f'''@echo off
+        bat_content = f"""@echo off
 REM =============================================
 REM  Dinamo Rent ERP -- Inicio Rapido
 REM =============================================
@@ -322,10 +322,10 @@ echo  Iniciando aplicacion...
 echo.
 start "" "{exe_path}"
 exit /b 0
-'''
+"""
     else:
         exe_path = dist_path / APP_NAME / f"{APP_NAME}.exe"
-        bat_content = f'''@echo off
+        bat_content = f"""@echo off
 REM =============================================
 REM  Dinamo Rent ERP -- Inicio Rapido
 REM =============================================
@@ -351,7 +351,7 @@ echo  Iniciando aplicacion...
 echo.
 start "" "{exe_path}"
 exit /b 0
-'''
+"""
 
     bat_path = dist_path / "iniciar_dinamo.bat"
     bat_path.write_text(bat_content, encoding="utf-8")

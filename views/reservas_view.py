@@ -48,10 +48,6 @@ from core import utils
 
 # ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
 # ── Paleta centralizada (CODE-02) ───────────────────────────────────
-from views.theme_colors import (
-    NAV as _NAV, BLUE as _BLUE, BG as _BG, SURF as _SURF,
-    BORD as _BORD, TEXT as _TEXT, MUTED as _MUTED,
-)
 
 
 # =============================================================================
@@ -440,6 +436,7 @@ class NuevaReservaDialog(BaseDialog):
         if self.cliente_id:
             try:
                 from services.cliente_service import ClienteService
+
                 cli = ClienteService.obtener_por_id(self.cliente_id)
                 if cli and cli.get("nacionalidad"):
                     nac = cli.get("nacionalidad")

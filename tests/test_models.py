@@ -52,13 +52,13 @@ def _assert_column(
     columns = {c["name"]: c for c in inspector.get_columns(table)}
     assert name in columns, f"Column '{name}' not found in table '{table}'"
     col = columns[name]
-    assert isinstance(col["type"], type_class), (
-        f"Column '{table}.{name}' expected {type_class.__name__}, got {type(col['type']).__name__}"
-    )
+    assert isinstance(
+        col["type"], type_class
+    ), f"Column '{table}.{name}' expected {type_class.__name__}, got {type(col['type']).__name__}"
     if nullable is not None:
-        assert col["nullable"] is nullable, (
-            f"Column '{table}.{name}' nullable expected {nullable}, got {col['nullable']}"
-        )
+        assert (
+            col["nullable"] is nullable
+        ), f"Column '{table}.{name}' nullable expected {nullable}, got {col['nullable']}"
     if primary_key:
         pk = set(inspector.get_pk_constraint(table)["constrained_columns"])
         assert name in pk, f"Column '{table}.{name}' should be primary key"

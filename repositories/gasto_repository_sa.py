@@ -12,6 +12,7 @@ from core.logger import get_logger
 
 log = get_logger(__name__)
 
+
 class GastoRepositorySA:
     @staticmethod
     def obtener_todos(limite: int = 200) -> List[Dict]:

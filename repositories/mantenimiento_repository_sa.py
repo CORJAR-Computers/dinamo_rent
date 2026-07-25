@@ -17,6 +17,7 @@ from core.unit_of_work import session_scope
 
 log = get_logger(__name__)
 
+
 class MantenimientoRepositorySA:
     @staticmethod
     def obtener_historial(limite: int = 50, session: Session = None) -> List[Dict]:

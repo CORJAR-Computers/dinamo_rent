@@ -13,6 +13,7 @@ from core.logger import get_logger
 
 log = get_logger(__name__)
 
+
 class ComparendoRepositorySA:
     @staticmethod
     def obtener_todos() -> List[Dict]:

@@ -5,7 +5,6 @@ cliente_repository_sa.py — Repositorio de Clientes
 
 from typing import List, Dict
 
-from sqlalchemy import or_
 
 from core.database_sa import get_session
 from core.models import Cliente
@@ -14,6 +13,7 @@ from core.exceptions import RegistroNoEncontrado
 from core.logger import get_logger
 
 log = get_logger(__name__)
+
 
 class ClienteRepositorySA:
     @staticmethod

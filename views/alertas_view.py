@@ -25,10 +25,6 @@ from views.base_widget import BaseWidget
 
 # ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
 # ── Paleta centralizada (CODE-02) ───────────────────────────────────
-from views.theme_colors import (
-    NAV as _NAV, BLUE as _BLUE, BG as _BG, SURF as _SURF,
-    BORD as _BORD, TEXT as _TEXT, MUTED as _MUTED,
-)
 
 
 class AlertasWidget(BaseWidget):
@@ -39,7 +35,6 @@ class AlertasWidget(BaseWidget):
         QTimer.singleShot(0, lambda: self._deferred_call(self.cargar_alertas))
 
     def _setup_ui(self):
-
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)

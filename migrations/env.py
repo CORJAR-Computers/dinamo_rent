@@ -16,7 +16,7 @@ from alembic import context
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Import configuration
-from core.config import DB_ENGINE, DB_MYSQL, DB_PATH
+from core.config import DB_ENGINE
 from core.models import Base  # Import SQLAlchemy models
 
 # this is the Alembic Config object, which provides
@@ -39,6 +39,7 @@ target_metadata = Base.metadata
 
 
 from core.database_sa import _get_database_url
+
 
 def get_database_url():
     """

@@ -24,7 +24,7 @@ from views.base_widget import BaseWidget
 from core.config import COLOR_EXITO, COLOR_PRIMARIO, COLOR_ALERTA, COLOR_PELIGRO
 
 # ── Paleta centralizada (CODE-02) ───────────────────────────────────
-from views.theme_colors import NAV as _NAV, BLUE as _BLUE, BG as _BG, SURF as _SURF
+from views.theme_colors import NAV as _NAV, BLUE as _BLUE, SURF as _SURF
 from views.theme_colors import BORD as _BORD, TEXT as _TEXT, MUTED as _MUTED
 
 _DASH_STYLE = f"""

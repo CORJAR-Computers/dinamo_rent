@@ -17,6 +17,7 @@ from core.unit_of_work import session_scope
 
 log = get_logger(__name__)
 
+
 class AutoRepositorySA:
     @staticmethod
     def obtener_todos(session: Session = None) -> List[Dict]:

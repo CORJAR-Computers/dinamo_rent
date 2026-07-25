@@ -35,7 +35,7 @@ def sanitize_for_sql(val: str) -> str:
 _XSS_PATTERNS = [
     r"<script",
     r"javascript:",
-    r"on\w+\s*=",          # event handlers como onclick=
+    r"on\w+\s*=",  # event handlers como onclick=
     r"<iframe",
     r"<object",
     r"<embed",
@@ -43,9 +43,9 @@ _XSS_PATTERNS = [
     r"eval\s*\(",
     r"document\.",
     r"window\.",
-    r"union\s+select",     # SQL injection (capa extra)
-    r"drop\s+table",       # SQL injection (capa extra)
-    r";\s*--",             # SQL comment injection
+    r"union\s+select",  # SQL injection (capa extra)
+    r"drop\s+table",  # SQL injection (capa extra)
+    r";\s*--",  # SQL comment injection
 ]
 
 

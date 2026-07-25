@@ -95,9 +95,9 @@ class TestSetupRootLogger:
         handler_types = [type(h).__name__ for h in root.handlers]
         # SafeRotatingFileHandler is a custom subclass that wraps RotatingFileHandler
         # with PermissionError handling for Windows multi-process log rotation
-        assert any("RotatingFileHandler" in t for t in handler_types), (
-            f"No RotatingFileHandler subclass found in {handler_types}"
-        )
+        assert any(
+            "RotatingFileHandler" in t for t in handler_types
+        ), f"No RotatingFileHandler subclass found in {handler_types}"
         assert "StreamHandler" in handler_types
         assert len(root.handlers) == 3
 

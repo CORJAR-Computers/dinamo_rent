@@ -302,6 +302,7 @@ class SecurityManager:
         if not allow_html:
             # Delegar validación XSS al módulo centralizado de validators
             from core.validators import validate_no_xss
+
             value = validate_no_xss(value, max_length=max_length)
 
         # Eliminar null bytes

@@ -12,6 +12,7 @@ from core.logger import get_logger
 
 log = get_logger(__name__)
 
+
 class InformeRepositorySA:
     @staticmethod
     def obtener_balance_consolidado() -> List[Dict]:

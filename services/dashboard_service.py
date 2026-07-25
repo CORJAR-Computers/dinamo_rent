@@ -45,7 +45,9 @@ class DashboardService:
             date_expr_pieza = "DATE_FORMAT(pieza_varias_fecha, '%Y-%m')"
         elif DB_ENGINE == "firebird":
             date_expr_fecha = "SUBSTRING(CAST(CAST(fecha AS DATE) AS VARCHAR(10)) FROM 1 FOR 7)"
-            date_expr_pieza = "SUBSTRING(CAST(CAST(pieza_varias_fecha AS DATE) AS VARCHAR(10)) FROM 1 FOR 7)"
+            date_expr_pieza = (
+                "SUBSTRING(CAST(CAST(pieza_varias_fecha AS DATE) AS VARCHAR(10)) FROM 1 FOR 7)"
+            )
         else:
             date_expr_fecha = "strftime('%Y-%m', fecha)"
             date_expr_pieza = "strftime('%Y-%m', pieza_varias_fecha)"
@@ -114,6 +116,7 @@ class DashboardService:
     @staticmethod
     def obtener_alertas() -> AlertasResponse:
         from services.alerta_service import AlertaService
+
         return AlertaService.obtener_todas_las_alertas()
 
     @staticmethod

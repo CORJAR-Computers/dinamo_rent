@@ -4,6 +4,7 @@ views/calendario_view.py — Calendario de Disponibilidad
 Colores: Azul=Disponible, Verde=Rentado, Amarillo=Reservado, Rojo=Taller
 Herencia: BaseWidget. Pintura via QStyledItemDelegate (no QSS).
 """
+
 import calendar
 from datetime import date, datetime
 
@@ -21,7 +22,7 @@ from PySide6.QtWidgets import (
     QStyledItemDelegate,
     QStyleOptionViewItem,
 )
-from PySide6.QtCore import Qt, QTimer, QRect, QSize
+from PySide6.QtCore import Qt, QTimer, QSize
 from PySide6.QtGui import QColor, QFont, QPainter, QPen
 
 from core.exceptions import DinamoBaseError
@@ -33,8 +34,7 @@ from views.components import ModernMessageBox
 
 # ── Paleta centralizada (CODE-02) ───────────────────────────────────
 from views.theme_colors import (
-    NAV as _NAV, BLUE as _BLUE, BG as _BG, SURF as _SURF,
-    BORD as _BORD, TEXT as _TEXT, MUTED as _MUTED,
+    NAV as _NAV,
 )
 from core.logger import get_logger
 
@@ -45,16 +45,16 @@ _ROL_ESTADO = Qt.ItemDataRole.UserRole + 1
 
 # Paleta de colores del calendario
 _COLORES = {
-    "disponible": QColor("#3b82f6"),   # Azul
-    "rentado":    QColor("#22c55e"),   # Verde
-    "reservado":  QColor("#eab308"),   # Amarillo
-    "taller":     QColor("#ef4444"),   # Rojo
+    "disponible": QColor("#3b82f6"),  # Azul
+    "rentado": QColor("#22c55e"),  # Verde
+    "reservado": QColor("#eab308"),  # Amarillo
+    "taller": QColor("#ef4444"),  # Rojo
 }
 _COLORES_TEXTO = {
     "disponible": QColor("#ffffff"),
-    "rentado":    QColor("#ffffff"),
-    "reservado":  QColor("#1a1a1a"),
-    "taller":     QColor("#ffffff"),
+    "rentado": QColor("#ffffff"),
+    "reservado": QColor("#1a1a1a"),
+    "taller": QColor("#ffffff"),
 }
 
 
@@ -197,10 +197,10 @@ class CalendarioWidget(BaseWidget):
         ley_lay.setSpacing(10)
 
         for texto, color_hex, texto_hex in (
-            ("Disponible",  "#3b82f6", "#ffffff"),
-            ("Rentado",     "#22c55e", "#ffffff"),
-            ("Reservado",   "#eab308", "#1a1a1a"),
-            ("En Taller",   "#ef4444", "#ffffff"),
+            ("Disponible", "#3b82f6", "#ffffff"),
+            ("Rentado", "#22c55e", "#ffffff"),
+            ("Reservado", "#eab308", "#1a1a1a"),
+            ("En Taller", "#ef4444", "#ffffff"),
         ):
             pill = QLabel(f"  {texto}  ")
             pill.setStyleSheet(
@@ -230,8 +230,6 @@ class CalendarioWidget(BaseWidget):
         self.tabla.setItemDelegate(self._delegate)
 
         c_lay.addWidget(self.tabla)
-
-
 
     def mes_anterior(self):
         if self.mes_vista == 1:
@@ -310,7 +308,6 @@ class CalendarioWidget(BaseWidget):
 
             self.tabla.setRowHeight(i, 42)
 
-
     def _estado_dia(self, fecha_dia: date, eventos: list[dict], auto: dict) -> str:
         for ev in eventos:
             try:
@@ -336,7 +333,6 @@ class CalendarioWidget(BaseWidget):
 
         return "disponible"
 
-
     def _obtener_autos(self) -> list[dict] | None:
         try:
             return AutoService.listar()
@@ -354,7 +350,9 @@ class CalendarioWidget(BaseWidget):
             resultado = RentaService.obtener_para_calendario(self.mes_vista, self.anio_vista)
             return resultado if resultado else []
         except AttributeError as err:
-            log.debug("RentaService.obtener_para_calendario no implementado o atributo faltante: %s", err)
+            log.debug(
+                "RentaService.obtener_para_calendario no implementado o atributo faltante: %s", err
+            )
         except DinamoBaseError as err:
             log.warning("Error de negocio obteniendo datos para calendario: %s", err)
         except Exception as err:

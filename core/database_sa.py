@@ -37,8 +37,7 @@ _SessionMaker = None
 
 if DB_ENGINE == "firebird":
     from firebird.driver import driver_config
-    import os
-    
+
     # Buscamos fbclient.dll en la carpeta de Firebird descargada o en la ruta de ejecución
     fb_path = BASE_DIR / "Firebird-4.0.7.3271" / "fbclient.dll"
     if fb_path.exists():
@@ -82,6 +81,7 @@ def _create_engine_instance():
         )
     elif DB_ENGINE == "firebird":
         from sqlalchemy.pool import NullPool
+
         engine = create_engine(
             url,
             poolclass=NullPool,
@@ -187,7 +187,9 @@ _MIGRATIONS_INDEXES = [
 
 def _apply_migrations() -> None:
     if DB_ENGINE != "mysql":
-        log.info(f"Omitiendo _apply_migrations manuales para {DB_ENGINE} (gestionado por SQLAlchemy/Alembic)")
+        log.info(
+            f"Omitiendo _apply_migrations manuales para {DB_ENGINE} (gestionado por SQLAlchemy/Alembic)"
+        )
         return
 
     eng = get_engine()

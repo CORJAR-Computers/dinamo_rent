@@ -33,10 +33,6 @@ from views.base_widget import BaseWidget
 
 # ── Paleta coherente con el sistema Dinamo Pro ────────────────────────
 # ── Paleta centralizada (CODE-02) ───────────────────────────────────
-from views.theme_colors import (
-    NAV as _NAV, BLUE as _BLUE, BG as _BG, SURF as _SURF,
-    BORD as _BORD, TEXT as _TEXT, MUTED as _MUTED,
-)
 
 log = get_logger(__name__)
 

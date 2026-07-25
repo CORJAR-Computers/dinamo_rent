@@ -165,14 +165,14 @@ class TestCierreRentaDialogCarga:
 
             # Info label should contain client name and plate
             labels = dlg.findChildren(QLabel)
-            assert any("Juan Perez" in lbl.text() for lbl in labels), (
-                "Expected client name in info label"
-            )
+            assert any(
+                "Juan Perez" in lbl.text() for lbl in labels
+            ), "Expected client name in info label"
             assert any("ABC123" in lbl.text() for lbl in labels), "Expected plate in info label"
             # Pactado label should show the total
-            assert "500,000" in dlg.lbl_pactado.text().replace(" ", ""), (
-                "Expected pactado label to show 500,000"
-            )
+            assert "500,000" in dlg.lbl_pactado.text().replace(
+                " ", ""
+            ), "Expected pactado label to show 500,000"
         finally:
             dlg.close()
 

@@ -107,9 +107,9 @@ class TestAutoService:
                 "transmision",
                 "combustible",
             }
-            assert expected_keys.issubset(auto.keys()), (
-                f"Missing keys in auto dict: {expected_keys - auto.keys()}"
-            )
+            assert expected_keys.issubset(
+                auto.keys()
+            ), f"Missing keys in auto dict: {expected_keys - auto.keys()}"
 
     def test_guardar_y_listar_auto(self):
         """guardar() creates an auto, then listar() returns it."""

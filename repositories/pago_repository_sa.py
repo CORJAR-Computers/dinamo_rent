@@ -17,6 +17,7 @@ from core.unit_of_work import session_scope
 
 log = get_logger(__name__)
 
+
 class PagoRepositorySA:
     @staticmethod
     def obtener_por_renta(id_renta: int, session: Session = None) -> List[Dict]:

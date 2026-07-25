@@ -8,7 +8,7 @@ Si no, crea su propia sesión (comportamiento original).
 
 from typing import List, Dict
 
-from sqlalchemy import func, and_, extract
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from core.models import Renta, Reserva
@@ -297,7 +297,6 @@ class RentaRepositorySA:
                 )
 
             return resultado
-
 
     @staticmethod
     def _to_dict(renta: Renta) -> Dict:

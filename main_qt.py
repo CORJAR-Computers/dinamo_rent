@@ -441,6 +441,7 @@ class LoginWindow(QMainWindow):
             session = AuthService.login(user, pwd, ip=client_ip)
         except Exception as exc:
             from services.auth_service import CredencialesInvalidas
+
             self.btn_login.setText("INICIAR SESIÓN")
             self.btn_login.setEnabled(True)
             if isinstance(exc, CredencialesInvalidas):
@@ -471,7 +472,6 @@ class LoginWindow(QMainWindow):
         _active_main_window.showMaximized()
         self._login_successful = True  # Evitar que closeEvent llame a app.quit()
         self.close()
-
 
     def _obtener_ip(self) -> str:
         """Obtiene la IP del cliente."""
@@ -808,7 +808,7 @@ class MainWindow(QMainWindow):
             self.stack.addWidget(QWidget())
 
         self._first_load_done = False
-        
+
         # Cargar la vista inicial
         self._cambiar_vista(0)
 

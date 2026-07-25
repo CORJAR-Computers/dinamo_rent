@@ -46,14 +46,14 @@ def parse_sql_values(sql_text: str, table_name: str):
     """Extrae nombres de columnas y lista de tuplas de valores de sentencias INSERT SQL."""
     pattern = rf"INSERT INTO `{table_name}`\s*\((.*?)\)\s*VALUES\s*(.*?);"
     matches = re.findall(pattern, sql_text, re.DOTALL | re.IGNORECASE)
-    
+
     all_rows = []
     columns = []
-    
+
     for cols_str, vals_str in matches:
         if not columns:
             columns = [c.strip(" `\t\r\n") for c in cols_str.split(",")]
-        
+
         tuples = re.findall(r"\((.*?)\)(?:,|\s*;)", vals_str.strip(), re.DOTALL)
         for t_str in tuples:
             clean_str = re.sub(r"\bNULL\b", "None", t_str, flags=re.IGNORECASE)
@@ -63,7 +63,7 @@ def parse_sql_values(sql_text: str, table_name: str):
                     all_rows.append(row_tuple)
             except Exception as e:
                 log.warning(f"Error parseando fila de {table_name}: {e}")
-                
+
     return columns, all_rows
 
 
@@ -174,7 +174,9 @@ def importar():
             session.add(nuevo_cliente)
             clientes_insertados += 1
 
-        print(f"Clientes insertados: {clientes_insertados} | Omitidos (ya existían): {clientes_omitidos}")
+        print(
+            f"Clientes insertados: {clientes_insertados} | Omitidos (ya existían): {clientes_omitidos}"
+        )
         print("\n¡Importación a la Base de Datos completada exitosamente!")
 
 

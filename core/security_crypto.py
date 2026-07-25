@@ -3,16 +3,15 @@ security_crypto.py — Encriptación transparente para campos de SQLAlchemy
 Usa Fernet (AES-128-CBC + HMAC SHA256) de la librería `cryptography`.
 """
 
-import base64
-import os
 from typing import Optional
 from cryptography.fernet import Fernet
 from sqlalchemy.types import TypeDecorator, String, Text
 
-from core.config import BASE_DIR, _cfg
+from core.config import _cfg
 from core.logger import get_logger
 
 log = get_logger(__name__)
+
 
 # Intentar obtener o generar clave de encriptación persistente en config.ini
 def _get_or_create_crypto_key() -> bytes:
@@ -20,7 +19,7 @@ def _get_or_create_crypto_key() -> bytes:
     if not key_str:
         # Generar nueva clave Fernet si no existe
         key_bytes = Fernet.generate_key()
-        key_str = key_bytes.decode('utf-8')
+        key_str = key_bytes.decode("utf-8")
         _cfg.set("security", "db_encryption_key", key_str)
         try:
             _cfg.save()
@@ -30,11 +29,13 @@ def _get_or_create_crypto_key() -> bytes:
         return key_bytes
     else:
         try:
-            return key_str.encode('utf-8')
+            return key_str.encode("utf-8")
         except Exception:
             return Fernet.generate_key()
 
+
 _FERNET_INSTANCE: Optional[Fernet] = None
+
 
 def get_fernet() -> Fernet:
     global _FERNET_INSTANCE
@@ -49,6 +50,7 @@ class EncryptedString(TypeDecorator):
     Tipo de columna SQLAlchemy que encripta antes de guardar en BD
     y desencripta transparente al leer.
     """
+
     impl = String
     cache_ok = True
 
@@ -60,8 +62,8 @@ class EncryptedString(TypeDecorator):
             return value
         try:
             fernet = get_fernet()
-            encrypted_bytes = fernet.encrypt(value.encode('utf-8'))
-            return encrypted_bytes.decode('utf-8')
+            encrypted_bytes = fernet.encrypt(value.encode("utf-8"))
+            return encrypted_bytes.decode("utf-8")
         except Exception as e:
             log.error(f"Error encriptando campo: {e}")
             return value
@@ -71,8 +73,8 @@ class EncryptedString(TypeDecorator):
             return value
         try:
             fernet = get_fernet()
-            decrypted_bytes = fernet.decrypt(value.encode('utf-8'))
-            return decrypted_bytes.decode('utf-8')
+            decrypted_bytes = fernet.decrypt(value.encode("utf-8"))
+            return decrypted_bytes.decode("utf-8")
         except Exception:
             # Si el valor no estaba encriptado (ej. migraciones previas), retornar valor original
             return value
@@ -82,6 +84,7 @@ class EncryptedText(TypeDecorator):
     """
     Tipo de columna SQLAlchemy para textos largos encriptados.
     """
+
     impl = Text
     cache_ok = True
 
@@ -90,8 +93,8 @@ class EncryptedText(TypeDecorator):
             return value
         try:
             fernet = get_fernet()
-            encrypted_bytes = fernet.encrypt(value.encode('utf-8'))
-            return encrypted_bytes.decode('utf-8')
+            encrypted_bytes = fernet.encrypt(value.encode("utf-8"))
+            return encrypted_bytes.decode("utf-8")
         except Exception as e:
             log.error(f"Error encriptando campo Text: {e}")
             return value
@@ -101,7 +104,7 @@ class EncryptedText(TypeDecorator):
             return value
         try:
             fernet = get_fernet()
-            decrypted_bytes = fernet.decrypt(value.encode('utf-8'))
-            return decrypted_bytes.decode('utf-8')
+            decrypted_bytes = fernet.decrypt(value.encode("utf-8"))
+            return decrypted_bytes.decode("utf-8")
         except Exception:
             return value

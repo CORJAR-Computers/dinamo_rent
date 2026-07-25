@@ -13,6 +13,7 @@ from core.logger import get_logger
 
 log = get_logger(__name__)
 
+
 class ReservaRepositorySA:
     @staticmethod
     def obtener_todas() -> List[Dict]:

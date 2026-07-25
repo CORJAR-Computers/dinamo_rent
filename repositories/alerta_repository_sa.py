@@ -13,6 +13,7 @@ from core.logger import get_logger
 
 log = get_logger(__name__)
 
+
 class AlertaRepositorySA:
     @staticmethod
     def obtener_rentas_por_vencer() -> List[Dict]:
