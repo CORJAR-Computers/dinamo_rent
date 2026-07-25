@@ -53,6 +53,9 @@ from services.auth_service import AuthService
 
 log = get_logger(__name__)
 
+_active_main_window = None
+_active_login_window = None
+
 # ── Cache paralogo (evita búsquedas repetidas) ───────────────────────────────
 _LOGO_CACHE = None
 
@@ -289,9 +292,10 @@ class SplashScreen(QWidget):
     def close_and_show_login(self) -> None:
         """Cierra el splash y abre la ventana de login."""
         self._timer.stop()
+        global _active_login_window
+        _active_login_window = LoginWindow()
+        _active_login_window.show()
         self.close()
-        self._login = LoginWindow()
-        self._login.show()
 
     # ── Internos ───────────────────────────────────────────────────
 
@@ -442,8 +446,9 @@ class LoginWindow(QMainWindow):
                 # Actualizar flag en sesión
                 session["debe_cambiar_password"] = False
 
-            self._main = MainWindow(session)
-            self._main.show()
+            global _active_main_window
+            _active_main_window = MainWindow(session)
+            _active_main_window.show()
             self.close()
 
         def _on_error(err_tuple):
@@ -484,6 +489,11 @@ class LoginWindow(QMainWindow):
 
         dlg = DatabaseConfigDialog(self)
         dlg.exec()
+
+    def closeEvent(self, event):
+        """Al cerrar la ventana de login, terminar la aplicación."""
+        event.accept()
+        QApplication.instance().quit()
 
 
 # =============================================================================
@@ -950,9 +960,10 @@ class MainWindow(QMainWindow):
             self._session.get("username"),
             duracion,
         )
+        global _active_login_window
+        _active_login_window = LoginWindow()
+        _active_login_window.show()
         self.close()
-        self._login = LoginWindow()
-        self._login.show()
 
     def closeEvent(self, event):
         from views.components import ModernMessageBox
@@ -961,6 +972,7 @@ class MainWindow(QMainWindow):
         resp = ModernMessageBox.question(self, "Salir", "¿Está seguro de salir de la aplicación?")
         if resp == QDialog.Accepted:
             event.accept()
+            QApplication.instance().quit()
         else:
             event.ignore()
 
@@ -980,6 +992,7 @@ if __name__ == "__main__":
 
     # ── Crear QApplication ANTES del splash ────────────────────────────
     app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
     app.setStyle("Fusion")
 
     ico = str(ASSETS_DIR / "LogoDinamo.ico")
