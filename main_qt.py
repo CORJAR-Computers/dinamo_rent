@@ -425,53 +425,51 @@ class LoginWindow(QMainWindow):
             return
         self.btn_login.setText("Verificando…")
         self.btn_login.setEnabled(False)
+        self.lbl_error.setText("")
         QApplication.processEvents()
 
         client_ip = self._obtener_ip()
 
-        from core.worker import Worker
-        from PySide6.QtCore import QThreadPool
+        # Ejecutar en el siguiente ciclo del event loop (hilo principal garantizado)
+        QTimer.singleShot(0, lambda: self._ejecutar_login(user, pwd, client_ip))
 
-        worker = Worker(AuthService.login, user, pwd, ip=client_ip)
-
-        def _on_success(session):
-            # Si debe cambiar contraseña, mostrar diálogo obligatorio
-            if session.get("debe_cambiar_password"):
-                from views.force_change_password_dialog import ForceChangePasswordDialog
-
-                dlg = ForceChangePasswordDialog(self, session)
-                if dlg.exec() != QDialog.Accepted:
-                    self.lbl_error.setText("Debes cambiar tu contraseña para acceder.")
-                    return
-                # Actualizar flag en sesión
-                session["debe_cambiar_password"] = False
-
-            global _active_main_window
-            _active_main_window = MainWindow(session)
-            _active_main_window.show()
-            self.close()
-
-        def _on_error(err_tuple):
-            exctype, value, tb = err_tuple
+    def _ejecutar_login(self, user: str, pwd: str, client_ip: str):
+        """Realiza el login en el hilo principal para evitar que MainWindow
+        se cree desde un hilo secundario (crash silencioso de Qt)."""
+        try:
+            session = AuthService.login(user, pwd, ip=client_ip)
+        except Exception as exc:
             from services.auth_service import CredencialesInvalidas
-
-            if issubclass(exctype, CredencialesInvalidas):
-                self.lbl_error.setText("Usuario o contraseña incorrectos")
-            elif issubclass(exctype, DinamoBaseError):
-                self.lbl_error.setText(f"{value.mensaje_usuario}")
-            else:
-                self.lbl_error.setText("Error inesperado")
-                log.error("Error en login: %s", value, exc_info=True)
-
-        def _on_finished():
             self.btn_login.setText("INICIAR SESIÓN")
             self.btn_login.setEnabled(True)
+            if isinstance(exc, CredencialesInvalidas):
+                self.lbl_error.setText("Usuario o contraseña incorrectos")
+            elif isinstance(exc, DinamoBaseError):
+                self.lbl_error.setText(f"{exc.mensaje_usuario}")
+            else:
+                self.lbl_error.setText("Error inesperado al iniciar sesión")
+                log.error("Error en login: %s", exc, exc_info=True)
+            return
 
-        worker.signals.result.connect(_on_success)
-        worker.signals.error.connect(_on_error)
-        worker.signals.finished.connect(_on_finished)
+        self.btn_login.setText("INICIAR SESIÓN")
+        self.btn_login.setEnabled(True)
 
-        QThreadPool.globalInstance().start(worker)
+        # Si debe cambiar contraseña, mostrar diálogo obligatorio
+        if session.get("debe_cambiar_password"):
+            from views.force_change_password_dialog import ForceChangePasswordDialog
+
+            dlg = ForceChangePasswordDialog(self, session)
+            if dlg.exec() != QDialog.Accepted:
+                self.lbl_error.setText("Debes cambiar tu contraseña para acceder.")
+                return
+            session["debe_cambiar_password"] = False
+
+        # Crear y mostrar la ventana principal desde el hilo principal
+        global _active_main_window
+        _active_main_window = MainWindow(session)
+        _active_main_window.show()
+        self.close()
+
 
     def _obtener_ip(self) -> str:
         """Obtiene la IP del cliente."""
