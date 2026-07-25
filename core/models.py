@@ -36,6 +36,8 @@ from sqlalchemy import (
 from sqlalchemy.orm import DeclarativeBase, relationship, Mapped, mapped_column
 from sqlalchemy.sql import func
 
+from core.security_crypto import EncryptedString, EncryptedText
+
 
 class Base(DeclarativeBase):
     """Base class for all SQLAlchemy models."""
@@ -154,18 +156,18 @@ class Cliente(Base):
     nombre_completo: Mapped[str] = mapped_column(
         String(200), nullable=False, server_default="", index=True
     )
-    celular: Mapped[Optional[str]] = mapped_column(String(20))
-    celular2: Mapped[Optional[str]] = mapped_column(String(20))
-    email: Mapped[Optional[str]] = mapped_column(String(150))
+    celular: Mapped[Optional[str]] = mapped_column(EncryptedString(255))
+    celular2: Mapped[Optional[str]] = mapped_column(EncryptedString(255))
+    email: Mapped[Optional[str]] = mapped_column(EncryptedString(255))
     ciudad: Mapped[Optional[str]] = mapped_column(String(100))
     estado_region: Mapped[Optional[str]] = mapped_column(String(100))
     pais: Mapped[Optional[str]] = mapped_column(String(80))
     nacionalidad: Mapped[Optional[str]] = mapped_column(String(80))
-    dir_residencia: Mapped[Optional[str]] = mapped_column(String(200))
-    dir_temporal: Mapped[Optional[str]] = mapped_column(String(200))
+    dir_residencia: Mapped[Optional[str]] = mapped_column(EncryptedString(255))
+    dir_temporal: Mapped[Optional[str]] = mapped_column(EncryptedString(255))
     hotel: Mapped[Optional[str]] = mapped_column(String(150))
     habitacion: Mapped[Optional[str]] = mapped_column(String(30))
-    no_licencia: Mapped[Optional[str]] = mapped_column(String(50))
+    no_licencia: Mapped[Optional[str]] = mapped_column(EncryptedString(255))
     tipo_licencia: Mapped[Optional[str]] = mapped_column(String(50))
     vencimiento_licencia: Mapped[Optional[datetime]] = mapped_column(Date)
     estado: Mapped[str] = mapped_column(

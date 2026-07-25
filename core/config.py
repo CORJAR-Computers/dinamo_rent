@@ -59,6 +59,7 @@ class _Config:
             "account_lockout_duration": "1800",
             "login_rate_limit_window": "300",
             "max_login_attempts_in_window": "10",
+            "db_encryption_key": "",
         },
         "backup": {
             "directory": "Backups",
