@@ -138,7 +138,6 @@ class AlertasWidget(BaseWidget):
         finally:
             self._cargando = False  # Siempre liberar para permitir recarga manual
 
-
     def _enviar_wa(self, celular: str, mensaje: str):
         if not celular or celular.strip() == "":
             ModernMessageBox.warning(
