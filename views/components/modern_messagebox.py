@@ -1,6 +1,12 @@
+import os
+
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame
 from PySide6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QPixmap, QPainter, QColor
+
+# En CI (offscreen) no hay event loop interactivo — exec() cuelga indefinidamente.
+# Los métodos estáticos retornan inmediatamente sin mostrar el diálogo.
+_HEADLESS = os.environ.get("QT_QPA_PLATFORM", "").lower() == "offscreen"
 
 
 class ModernMessageBox(QDialog):
@@ -190,19 +196,25 @@ class ModernMessageBox(QDialog):
 
     # API estática (igual a QMessageBox)
     @staticmethod
-    def information(parent, title, message):
+    def info(parent, title, message):
+        if _HEADLESS:
+            return QDialog.Accepted
         d = ModernMessageBox(parent, title, message, "info")
         d.exec()
         return d._result_code
 
     @staticmethod
     def success(parent, title, message):
+        if _HEADLESS:
+            return QDialog.Accepted
         d = ModernMessageBox(parent, title, message, "success")
         d.exec()
         return d._result_code
 
     @staticmethod
     def warning(parent, title, message):
+        if _HEADLESS:
+            return QDialog.Accepted
         btns = [
             {"text": "Cancelar", "role": "reject", "class": "secondary"},
             {"text": "Continuar", "role": "accept", "class": "primary"},
@@ -213,6 +225,8 @@ class ModernMessageBox(QDialog):
 
     @staticmethod
     def error(parent, title, message, detailed_text=None):
+        if _HEADLESS:
+            return QDialog.Rejected
         btns = [
             {"text": "Cerrar", "role": "reject", "class": "secondary"},
             {"text": "Reintentar", "role": "accept", "class": "primary"},
@@ -223,6 +237,8 @@ class ModernMessageBox(QDialog):
 
     @staticmethod
     def question(parent, title, message):
+        if _HEADLESS:
+            return QDialog.Rejected
         btns = [
             {"text": "No", "role": "reject", "class": "secondary"},
             {"text": "Sí", "role": "accept", "class": "primary"},

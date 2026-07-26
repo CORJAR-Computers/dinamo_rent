@@ -30,6 +30,7 @@ from views.base_widget import BaseWidget
 class AlertasWidget(BaseWidget):
     def __init__(self, session_id: str = None):
         super().__init__(session_id=session_id)
+        self._cargando = False  # Guard: evita llamadas re-entrantes a cargar_alertas
         self._setup_ui()
         self._init_loading_overlay("Cargando alertas...")
         QTimer.singleShot(0, lambda: self._deferred_call(self.cargar_alertas))
@@ -90,6 +91,9 @@ class AlertasWidget(BaseWidget):
         lay_int.addWidget(self.tbl_int)
 
     def cargar_alertas(self):
+        if self._cargando:
+            return  # Evitar re-entrada por exec() corriendo el event loop
+        self._cargando = True
         self.tbl_cli.setRowCount(0)
         self.tbl_int.setRowCount(0)
         try:
@@ -131,6 +135,9 @@ class AlertasWidget(BaseWidget):
             self.tabs.setTabText(1, f"Alertas del Sistema ({len(alertas['internas'])})")
         except Exception as e:
             ModernMessageBox.warning(self, "Error", f"No se pudieron cargar las alertas:\n{e}")
+        finally:
+            self._cargando = False  # Siempre liberar para permitir recarga manual
+
 
     def _enviar_wa(self, celular: str, mensaje: str):
         if not celular or celular.strip() == "":
