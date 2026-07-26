@@ -1472,7 +1472,7 @@ class TestModuleLevelBootstrap:
     def test_pyside6_reportlab_weasyprint_disponibles(self, monkeypatch):
         """PySide6 available + ReportLab installed + WeasyPrint installed → both flags True (lines 49, 62-63)."""
         from unittest.mock import MagicMock
-        
+
         mock_weasyprint = type("weasyprint", (), {"HTML": MagicMock()})()
         monkeypatch.setitem(sys.modules, "weasyprint", mock_weasyprint)
         self._ensure_pyside6_mocks(monkeypatch)
