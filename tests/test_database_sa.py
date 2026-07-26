@@ -210,6 +210,10 @@ class TestCreateEngineInstance:
 
     def test_mysql_uses_queue_pool(self, monkeypatch):
         """MySQL engine uses QueuePool with correct pool_size."""
+        import sys
+        from unittest.mock import MagicMock
+
+        monkeypatch.setitem(sys.modules, "pymysql", MagicMock())
         monkeypatch.setattr("core.database_sa.DB_ENGINE", "mysql")
         monkeypatch.setattr(
             "core.database_sa.DB_MYSQL",

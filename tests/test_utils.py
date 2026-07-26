@@ -709,7 +709,7 @@ class TestEnviarAImpresora:
         def fake_startfile(path, verb=None):
             startfile_called.append((path, verb))
 
-        monkeypatch.setattr(os, "startfile", fake_startfile)
+        monkeypatch.setattr(os, "startfile", fake_startfile, raising=False)
         monkeypatch.setattr(sys, "platform", "win32")
 
         from core.utils import enviar_a_impresora
@@ -743,7 +743,7 @@ class TestEnviarAImpresora:
         def fake_startfile(path, verb=None):
             raise OSError("Print failed")
 
-        monkeypatch.setattr(os, "startfile", fake_startfile)
+        monkeypatch.setattr(os, "startfile", fake_startfile, raising=False)
         monkeypatch.setattr(sys, "platform", "win32")
         abrir_called = []
 
@@ -1471,6 +1471,10 @@ class TestModuleLevelBootstrap:
 
     def test_pyside6_reportlab_weasyprint_disponibles(self, monkeypatch):
         """PySide6 available + ReportLab installed + WeasyPrint installed → both flags True (lines 49, 62-63)."""
+        from unittest.mock import MagicMock
+        
+        mock_weasyprint = type("weasyprint", (), {"HTML": MagicMock()})()
+        monkeypatch.setitem(sys.modules, "weasyprint", mock_weasyprint)
         self._ensure_pyside6_mocks(monkeypatch)
         mod = self._fresh_import()
         assert mod.TIENE_REPORTLAB is True
